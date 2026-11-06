@@ -1,0 +1,28 @@
+# Purpose: define the complete supervised prototype backend on Render with durable agent state.
+# Behavior: attach a persistent disk; inject secrets at setup; frontend remains on Vercel.
+# Refs: H05 deployment decision; official Render Blueprint specification; Phase: H05.
+# Paid resources: review the Render checkout estimate before applying this Blueprint.
+services:
+  - type: web
+    name: orca-research-backend
+    runtime: docker
+    plan: 1c-2g
+    region: singapore
+    dockerfilePath: ./infra/Dockerfile.hackathon
+    dockerContext: .
+    numInstances: 1
+    autoDeployTrigger: 'off'
+    healthCheckPath: /livez
+    disk:
+      name: orca-agent-state
+      mountPath: /var/data/orca
+      sizeGB: 1
+    envVars:
+      - key: ORCA_RUNTIME_BUNDLE
+        sync: false
+      - key: ORCA_FRONTEND_ORIGIN
+        sync: false
+      - key: ORCA_PERSISTENT_DIR
+        value: /var/data/orca
+      - key: OPENBLAS_NUM_THREADS
+        value: '1'

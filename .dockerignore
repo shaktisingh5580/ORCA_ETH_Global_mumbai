@@ -1,16 +1,29 @@
-# Purpose: exclude secrets, source reference documents and local data from image builds.
-# Refs: accelerated research demo decision; Phase: accelerated P08 demo.
-**/.env
-**/.env.*
-.env*
+# Purpose: prevent credentials, private references, local runtimes and synthetic tooling entering builds.
+# Refs: H05 deployment isolation; Phase: H05.
 .git
 .cache
+.env
+.env.*
 **/.venv
 **/node_modules
 **/__pycache__
-backend/.tmp-*
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
 backend/tests
+!backend/tests/
+backend/tests/*
+!backend/tests/support/
+backend/tests/support/*
+!backend/tests/support/network_setup.py
+!backend/tests/support/disagreement_data.py
+!backend/tests/support/disagreement_store.py
+!backend/tests/support/disagreement_worker.py
+!backend/tests/support/disagreement_demo.py
+!backend/tests/support/demo_bootstrap.py
+!backend/tests/support/cloud_demo.py
 backend/fixtures
+backend/dist
+docs/sources
 *.md
-docs
-arkiv
+!backend/README.md

@@ -1,0 +1,20 @@
+# Purpose: add explicitly labelled synthetic disagreement tooling to the cloud demonstration image.
+# Behavior: keep the production wheel/image clean; copy only the isolated demonstration harness.
+# Refs: H05 mock-isolation decision; Phase: H05.
+FROM node:22-bookworm-slim AS node
+FROM python:3.12.12-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+WORKDIR /app
+COPY backend/pyproject.toml backend/uv.lock backend/README.md ./backend/
+RUN pip install --no-cache-dir uv==0.9.30 && uv sync --project backend --frozen --no-dev --no-install-project
+COPY backend/src ./backend/src
+RUN uv pip install --python backend/.venv/bin/python --no-deps ./backend
+COPY arkiv/package.json arkiv/package-lock.json ./arkiv/
+RUN node /usr/local/lib/node_modules/npm/bin/npm-cli.js --prefix arkiv ci --omit=dev --ignore-scripts --no-audit --no-fund
+COPY arkiv/src ./arkiv/src
+COPY backend/tests/support/network_setup.py backend/tests/support/disagreement_data.py backend/tests/support/disagreement_store.py backend/tests/support/disagreement_worker.py backend/tests/support/disagreement_demo.py backend/tests/support/demo_bootstrap.py backend/tests/support/cloud_demo.py ./demo_tooling/
+ENV OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONUNBUFFERED=1 ORCA_REPOSITORY_ROOT=/app
+EXPOSE 10000
+CMD ["backend/.venv/bin/python", "demo_tooling/cloud_demo.py"]
