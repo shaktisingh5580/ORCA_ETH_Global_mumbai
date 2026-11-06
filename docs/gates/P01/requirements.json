@@ -32,6 +32,13 @@
       "test_gate_live_block_is_not_pass",
       "test_openapi_export_deterministic",
       "test_generated_ts_reproducible"
+    ],
+    "G01.5": [
+      "test_scope_01_excluded_routes_absent_from_selected_and_runtime",
+      "test_scope_manifest_exactly_reconciles_historical_inventory",
+      "test_scope_05_federation_not_exposed_before_live_gates",
+      "test_scope_09_local_sources_match_immutable_snapshot",
+      "test_research_release_profiles_replace_expanded_product_names"
     ]
   },
   "required_live_evidence": []

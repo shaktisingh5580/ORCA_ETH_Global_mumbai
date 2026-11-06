@@ -138,9 +138,9 @@ def write_report(report: dict[str, Any]) -> None:
         "[Manifest](manifest.json), [requirements](requirements.json), [test output](test-results.txt), "
         "[JUnit](test-results.xml), [clean install](clean-install.txt), [build output](build.txt).\n\n"
         + "\n".join(f"- {reason}" for reason in report.get("reasons", []))
-        + "\n\nP01 delivers contracts, four foundation routes and an isolated frontend harness. "
-        "Core readiness remains 503. Database, OIDC, real source access, science execution and chain integrations "
-        "are not implemented by this gate. P02 may begin only with current G00 and G01 PASS evidence. "
+        + "\n\nP01 delivers runtime contracts, the selected research-route inventory and an isolated frontend harness. "
+        "Research-foundation readiness remains 503 until G02 passes. Scientific execution and federation "
+        "remain unavailable. P02 may continue only with current G00 and G01 PASS evidence. "
         "Rerun after any input change; a stored PASS alone is insufficient.\n",
         encoding="utf-8",
     )
@@ -182,6 +182,7 @@ def run() -> int:
         "tests/contracts/test_common_schemas.py",
         "tests/contracts/test_mock_scenarios.py",
         "tests/contracts/test_gate_and_openapi.py",
+        "tests/contracts/test_research_scope.py",
         f"--junitxml={junit}",
     ]
     tests = subprocess.run(

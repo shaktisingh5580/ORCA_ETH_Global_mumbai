@@ -1,7 +1,7 @@
-"""Purpose: protect P00 decisions against invented source readiness and unsafe scope.
-Behavior: run the twelve named plan assertions plus negative policy cases offline.
-Refs: main_implementation plan.md section 6 P00.1-P00.4; ADR-000 through ADR-004.
-Phase: P00. No production adapters or synthetic runtime results are introduced.
+"""Purpose: protect P00 and research-only decisions against invented readiness and unsafe scope.
+Behavior: validate historical sources, bounded science and the exact 220-to-165 route decision.
+Refs: main plan P00; research-only guide sections 3, 8 and 11; ADR-R01.
+Phase: P00 scope migration. No synthetic runtime results are introduced.
 """
 import csv
 import hashlib
@@ -170,6 +170,45 @@ class P00Decisions(unittest.TestCase):
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             self.assertEqual(module.violations(ROOT / 'backend/src'), [])
+
+    def test_research_only_scope_adr_and_snapshot(self):
+        adr = read_yaml('docs/adr/ADR-R01-research-only-scope.json')
+        snapshot = read_yaml('docs/review/research-only-source-snapshot.json')
+        self.assertEqual(adr['status'], 'ACCEPTED_FOR_IMPLEMENTATION')
+        self.assertEqual(adr['selected_release'], 'research-federated')
+        self.assertTrue(adr['gate_policy']['scope_change_does_not_mark_any_blocked_gate_passed'])
+        guide = next(row for row in snapshot['files'] if 'Research_Only_Scope' in row['path'])
+        self.assertEqual(
+            guide['sha256'],
+            '8ba91e7d26601a70ff6e0c30752e41142901a61d73a20a48b2fd9af3dc537cb7',
+        )
+
+    def test_route_disposition_counts_and_exclusions(self):
+        scope = read_yaml('contracts/designed/research-route-dispositions.json')
+        selected = read_yaml('contracts/designed/orca-research-selected.json')
+        self.assertEqual(
+            scope['counts'],
+            {'CORE': 100, 'DEFER': 21, 'EXCLUDE': 34, 'FED': 47, 'OPS': 18},
+        )
+        self.assertEqual(scope['selected_operation_count'], 165)
+        paths = set(selected['paths'])
+        for excluded in (
+            '/v1/marine/',
+            '/v1/alerts/',
+            '/v1/conversations',
+            '/v1/voice/',
+            '/v1/research/training-jobs',
+        ):
+            self.assertFalse(any(excluded in path for path in paths))
+
+    def test_release_profiles_research_only(self):
+        releases = read_yaml('docs/releases/release_profiles.yaml')
+        self.assertEqual(releases['selected_target'], 'research-federated')
+        self.assertEqual(
+            [profile['name'] for profile in releases['profiles']],
+            ['research-foundation', 'research-engine', 'research-core', 'research-federated'],
+        )
+        self.assertEqual(releases['legacy_aliases'], {'core-C': 'research-core'})
 
     def test_unknown_license_cannot_gain_export_permission(self):
         entry = read_yaml('docs/sources/rights_register.yaml')['entries'][0]

@@ -1,7 +1,7 @@
-"""Purpose: compute G00 from actual offline tests and preserved source checksums.
+"""Purpose: compute G00 from offline tests, source checksums and research-only scope evidence.
 Behavior: fail on missing/failed/skipped tests; write hashed local gate evidence.
-Refs: main_implementation plan.md sections 6 P00 and 9; ADR-000.
-Phase: P00 bootstrap only. The general backend gate runner belongs to P01.
+Refs: main plan P00; research-only guide sections 3, 8 and 11; ADR-R01.
+Phase: P00 scope migration. The general backend gate runner belongs to P01.
 """
 import ast
 from datetime import datetime, timezone
@@ -68,6 +68,9 @@ def main():
     source_register = module.read_yaml('docs/sources/source_register.yaml')
     input_paths = {ROOT / x['path'] for x in source_register['sources']}
     input_paths.update((ROOT / 'docs/adr').glob('ADR-00*.md'))
+    input_paths.update((ROOT / 'docs/adr').glob('ADR-R*.json'))
+    input_paths.add(ROOT / 'docs/review/research-only-source-snapshot.json')
+    input_paths.update((ROOT / 'contracts/designed').glob('*research*.json'))
     input_paths.update((ROOT / 'docs/sources').glob('*'))
     input_paths.update((ROOT / 'docs/releases').glob('*'))
     input_paths.update([test_path, Path(__file__), OUT / 'requirements.json', OUT / 'decisions.yaml', OUT / 'acceptance_matrix.csv'])

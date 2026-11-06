@@ -3,9 +3,9 @@
   "gate_id": "G00",
   "phase": "P00",
   "status": "NOT_STARTED",
-  "release_profile": "core-C",
+  "release_profile": "research-federated",
   "upstream_gate_ids": [],
-  "contract_revision": "3.1.0-proposal",
+  "contract_revision": "3.2.0-research-scope",
   "migration_head": null,
   "subphase_tests": {
     "G00.1": [
@@ -27,6 +27,11 @@
       "test_adr_has_alternatives_and_rejected_options",
       "test_runtime_version_unverified_until_installed",
       "test_safety_no_production_mock"
+    ],
+    "G00.5": [
+      "test_research_only_scope_adr_and_snapshot",
+      "test_route_disposition_counts_and_exclusions",
+      "test_release_profiles_research_only"
     ]
   },
   "required_live_evidence": [],
@@ -36,7 +41,7 @@
   "limits": [
     "P00 documentation and decision validation only",
     "G03 requires real source and baseline access; not satisfied",
-    "No backend routes or migrations implemented",
-    "CI execution not yet configured; report is a local run"
+    "Historical P00 source evidence is preserved while route scope is narrowed",
+    "G02 remains blocked until dedicated staging Supabase live checks pass"
   ]
 }
