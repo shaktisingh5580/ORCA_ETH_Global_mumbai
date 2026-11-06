@@ -26,7 +26,7 @@ jobs:
       - run: backend/.venv/bin/python backend/scripts/check_import_boundaries.py
       - run: backend/.venv/bin/python -m ruff check backend
       - run: backend/.venv/bin/python -m ruff format --check backend
-      - run: backend/.venv/bin/python -m mypy backend/src backend/scripts
+      - run: backend/.venv/bin/python -m mypy --config-file backend/pyproject.toml backend/src backend/scripts
       - run: backend/.venv/bin/python -m pytest -c backend/pyproject.toml backend/tests
       - uses: actions/upload-artifact@v4
         if: always()
