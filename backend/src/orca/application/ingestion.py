@@ -25,6 +25,7 @@ def preserve_snapshot(
     origin_uri: str,
     retrieved_at: datetime,
     max_bytes: int = 16 * 1024 * 1024,
+    acquisition_request_digest: str | None = None,
 ) -> DatasetSnapshotManifest:
     if not version.can_preserve_for(tenant_id):
         raise PermissionError("source preservation is not authorized")
@@ -39,6 +40,7 @@ def preserve_snapshot(
         byte_count=len(content),
         retrieved_at=retrieved_at,
         origin_uri=origin_uri,
+        acquisition_request_digest=acquisition_request_digest,
     )
     stored_digest = store.preserve(tenant_id, content, permitted=True)
     if stored_digest != digest:

@@ -25,6 +25,7 @@ class DatasetSnapshotManifest(Contract):
     origin_uri: str = Field(max_length=2048)
     scientific_status: Literal["not_validated"] = "not_validated"
     quality_policy_ref: str | None = None
+    acquisition_request_digest: Digest | None = None
 
     @field_validator("origin_uri")
     @classmethod

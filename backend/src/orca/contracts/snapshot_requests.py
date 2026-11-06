@@ -3,6 +3,8 @@ Behavior: require a pinned version, explicit variables, geometry and UTC interva
 Refs: API 3.4; main plan P03.3/P03.5; Phase: P03.5.
 """
 
+import hashlib
+import json
 from typing import Annotated, Self
 from uuid import UUID
 
@@ -33,3 +35,9 @@ class SnapshotRequestStatus(Contract):
     snapshot_id: UUID | None
     error_code: str | None
     attempts: int
+
+
+def request_digest(body: SnapshotRequest) -> str:
+    """Bind all validated request fields using the same canonical representation."""
+    payload = json.dumps(body.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
+    return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()

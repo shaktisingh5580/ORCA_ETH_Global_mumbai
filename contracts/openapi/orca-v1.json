@@ -286,6 +286,18 @@
       "DatasetSnapshotManifest": {
         "additionalProperties": false,
         "properties": {
+          "acquisition_request_digest": {
+            "anyOf": [
+              {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acquisition Request Digest"
+          },
           "byte_count": {
             "exclusiveMinimum": 0.0,
             "title": "Byte Count",
