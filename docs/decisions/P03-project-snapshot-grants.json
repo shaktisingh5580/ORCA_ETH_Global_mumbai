@@ -1,0 +1,12 @@
+{
+  "phase": "P03.5",
+  "status": "PROJECT_FILTER_IMPLEMENTED_MANAGEMENT_API_PENDING",
+  "references": ["api design.md 3.4 GET /v1/catalog/snapshots", "main_implementation plan.md P03.5"],
+  "behavior": "project_id queries require dataset:read plus active project membership and active project state. Results require an explicit unexpired snapshot/project grant. Grant expiry and revocation are evaluated on every uncached request.",
+  "identity": "project_members.principal_id is the UUID OIDC subject, matching Supabase Auth user IDs. Non-UUID subjects fail closed for project-filtered queries.",
+  "database": "Migration 0006 adds composite tenant/project and tenant/snapshot foreign keys and default-deny tenant RLS. Trusted application methods can grant, renew and revoke access. Callers of these internal methods must authorize project sharing separately.",
+  "scope": "This implements the designed project filter. Existing tenant-wide dataset:read and snapshot detail semantics are unchanged; this does not introduce project-only snapshot classification. No grant-management HTTP endpoint is added without a contract decision.",
+  "validation": "Integration assertions cover membership, no grant, grant, expiry, renewal, revocation and invalid project foreign keys. HTTP tests conceal unauthorized projects and verify filter forwarding. Prior migration/security regressions remain required.",
+  "deployment": "Local disposable services only; production migrations not applied.",
+  "remaining": ["Public grant-management contract and authorization", "Project-only snapshot classification if selected", "Durable source-probe workflow", "Live scientific baseline/QC/as-of validation and full G03"]
+}
