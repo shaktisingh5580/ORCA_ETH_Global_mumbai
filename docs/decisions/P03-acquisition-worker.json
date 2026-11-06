@@ -1,0 +1,11 @@
+{
+  "phase": "P03.3/P03.5",
+  "status": "ORCHESTRATION_IMPLEMENTED_ADAPTER_WIRING_PENDING",
+  "references": ["main_implementation plan.md P03.3/P03.5", "api design.md 3.4", "docs/decisions/P03-snapshot-request-workflow.json"],
+  "behavior": "One tenant-scoped acquisition per invocation. The claim transaction commits before source/storage I/O; a separate transaction atomically inserts the immutable manifest and completes the fenced request.",
+  "binding": "Canonical SHA-256 binds all validated request fields. Completion rejects snapshots without an identical acquisition_request_digest, including legacy snapshots. Existing manifests remain readable. Digest binding is provenance, not proof that a provider returned scientifically correct coordinates.",
+  "failure_policy": "Expected adapter rejection, rights and payload failures yield sanitized ACQUISITION_REJECTED. Unexpected infrastructure errors propagate, leaving a durable lease recoverable after expiry. Stale publication rolls back the manifest insert. Content-addressed bytes may remain unreferenced after crashes; no automatic deletion is performed.",
+  "verified": ["Committed lease visible in a separate runtime-role transaction", "A second claim cannot acquire an unexpired request", "Successful snapshot and operation publication", "Result binding mismatch rejected before storage", "Adapter failure sanitized", "Crash followed by expired-lease recovery", "Recovered lease prevents stale manifest publication"],
+  "deployment": "Not bootstrapped or scheduled. HTTP submission remains disabled. No production database or object-store changes.",
+  "pending": ["Metadata/coordinate-validating ERDDAP acquisition adapter", "Cloud snapshot storage adapter and recovery verification", "Worker deployment configuration and readiness", "Project entitlements", "Broader parallel-worker stress tests", "All remaining G03 tests and real compatible baseline evidence"]
+}
