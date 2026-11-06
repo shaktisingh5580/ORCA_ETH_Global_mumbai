@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     prototype_bundle_digest: str | None = Field(default=None, pattern=r"^sha256:[0-9a-f]{64}$")
     prototype_source_tenant: UUID | None = None
     prototype_showcase_run: UUID | None = None
+    network_enabled: bool = False
+    network_config_file: str | None = None
+    network_private_key: SecretStr | None = None
+    network_wallet_env_file: str = ".env.arkiv"
+    network_state_dir: str = ".cache/network/coordinator"
     gemini_api_key: SecretStr | None = None
     gemini_model: str = Field(default="gemini-flash-latest", pattern=r"^[a-z0-9][a-z0-9.-]{0,90}$")
 
@@ -97,6 +102,14 @@ class Settings(BaseSettings):
         ):
             raise ValueError(
                 "prototype requires private database/storage and a pinned real input bundle/tenant"
+            )
+        if self.network_enabled and (
+            not self.prototype_enabled
+            or not self.network_config_file
+            or not self.network_private_key
+        ):
+            raise ValueError(
+                "agent coordination requires prototype persistence and an operator-pinned signing configuration"
             )
         if self.acquisition_enabled:
             if not self.database_url or not all(configured_store) or not self.acquisition_sources:

@@ -1,0 +1,15 @@
+{
+  "phase": "H04",
+  "authority": "User explicitly requested the pending Arkiv agent-to-agent protocol while the teammate builds the existing frontend",
+  "scope": "Working hackathon agent task, claim, exclusive assignment, authenticated A2A reproduction/review, signed evidence and actual Arkiv publication/read-back",
+  "references": ["docs/02_agentic_architecture.md", "docs/04_database.md", "ORCA_ENSv2_Arkiv_Integration_Blueprint_2026-11-05.md", "api design.md"],
+  "transport": {"specification": "A2A 0.3.0 JSON-RPC", "official_python_sdk": "0.3.22", "latest_protocol_claimed": false},
+  "signing": "RFC8785 canonical JSON with detached Ed25519 signatures and per-agent binding versions; no signature field inside hashed payload",
+  "authorization": "Pinned operator-approved service keys/endpoints/wallets, current project membership and revocation; no ENS or institutional verification claim",
+  "deployment": "Separately keyed team-controlled local provider processes with private durable SQLite task stores and real public MUR captures; no Supabase credential distributed to providers",
+  "chain": {"network": "Rabdi", "chain_id": 7794095, "sdk": "@arkiv-network/sdk 1.0.1", "lifetime_days": 7},
+  "public_policy": "Explicit consent for minimal public task/result metadata; private questions, raw captures and credentials remain off-chain",
+  "recovery": "Atomic PostgreSQL intents, fenced leases, provider message deduplication and durable pre-send chain reservations; ambiguous sends require reconciliation rather than blind resend",
+  "deferred": ["Live ENSv2 deployment/controller-wallet EIP712 binding", "Independent institutional operations/accreditation", "Production scientific qualification", "Full production federation and long-term archive"],
+  "phase_gate": "Real task -> signed claim -> one assignment -> official A2A exchange -> recomputed signed result -> separately keyed review; live Arkiv owner/digest read-back and focused security/recovery/regression checks"
+}
