@@ -81,6 +81,20 @@ class ProductVersion(Contract):
     license: LicenseProfile
     coverage: Coverage | None = None
 
+    @model_validator(mode="after")
+    def consistent_source_clocks(self) -> Self:
+        if self.published_at is not None and self.published_at > self.retrieved_at:
+            raise ValueError("a retrieved source version cannot have a future publication clock")
+        if self.available_at is not None and self.available_at > self.retrieved_at:
+            raise ValueError("availability evidence cannot occur after the metadata retrieval")
+        if (
+            self.published_at is not None
+            and self.available_at is not None
+            and self.published_at > self.available_at
+        ):
+            raise ValueError("source availability cannot precede its known publication")
+        return self
+
     def can_preserve_for(self, tenant_id: UUID) -> bool:
         return self.tenant_id == tenant_id and self.license.can_preserve
 
