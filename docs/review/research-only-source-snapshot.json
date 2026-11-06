@@ -1,0 +1,21 @@
+{
+  "schema_version": "orca.source-snapshot/1.0",
+  "decision": "ADR-R01",
+  "decision_date": "2026-11-06",
+  "purpose": "Immutable hashes of local normative inputs before research-only document migration; source Markdown remains local by user policy.",
+  "files": [
+    {"path": "api design.md", "sha256": "4384d317467d0194db36d95b41c917f2a8f83f57b1ecefa136f681097dc6a178", "bytes": 139002},
+    {"path": "implementation plan.md", "sha256": "1287316a9ea2c1f8284286e111b9628fdc358c2e10d7cb7a3eaf2478926a7e11", "bytes": 17682},
+    {"path": "main_implementation plan.md", "sha256": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad", "bytes": 256550},
+    {"path": "design.md", "sha256": "37f45ad481f3f2a508c2c8a38b04338335782901a090c5e5f6fb48dcb60674df", "bytes": 39531},
+    {"path": "docs/01_user_flows.md", "sha256": "0aed2eb4e59ed47bbcb44cf7f9af6efb737f9d14b9925d3bbc51f522b26bcf53", "bytes": 3583},
+    {"path": "docs/02_agentic_architecture.md", "sha256": "809e262591595aca207683bdf29203fcbd4f030042996d244eff6774d1cc8455", "bytes": 9753},
+    {"path": "docs/03_data_processing.md", "sha256": "4c39c9b35adf3919d3ae2b796f31bc5e839540c5729ce16738f54cfb0470c911", "bytes": 5152},
+    {"path": "docs/04_database.md", "sha256": "9cc54d902adb869a2e2ffe419ebabe47c50a981fc1e2e5f9e7543a50127b5403", "bytes": 14984},
+    {"path": "docs/05_implementation.md", "sha256": "54f6b161ac0b9c018d8d91bb28097d9cc0ea88a6e1bda92291329b9cdc33d16b", "bytes": 7806},
+    {"path": "docs/06_memory_context.md", "sha256": "6f49c6f4f26d15d896c45285b1d15c331c74243d51d94a297de92e7a6dfbebaf", "bytes": 3114},
+    {"path": "docs/07_scientific_engine.md", "sha256": "52fa5136142c03fd8f97c581bb65cc0f4632274c6a942b5787681318bd25be49", "bytes": 4849},
+    {"path": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md", "sha256": "8ba91e7d26601a70ff6e0c30752e41142901a61d73a20a48b2fd9af3dc537cb7", "bytes": 107643},
+    {"path": "contracts/designed/orca-proposal.json", "sha256": "408a454d9cfe49c663d4025cf39190a575c53d60fec891dc9ef5bd9cda1757a8", "bytes": 184383}
+  ]
+}

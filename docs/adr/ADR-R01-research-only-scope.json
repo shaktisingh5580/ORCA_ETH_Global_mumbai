@@ -1,0 +1,47 @@
+{
+  "schema_version": "orca.adr/1.0",
+  "id": "ADR-R01",
+  "title": "Research-only ORCA 3.0 product and release scope",
+  "decision_date": "2026-11-06",
+  "status": "ACCEPTED_FOR_IMPLEMENTATION",
+  "authority": "User supplied the research-only directive and requested the next implementation slice.",
+  "product_definition": "A federated marine scientific research platform for authorized researchers, laboratories, independent reviewers and institutional agent operators.",
+  "selected_release": "research-federated",
+  "technical_milestone": "research-core",
+  "included": [
+    "institutional multi-tenancy, projects and protected scientific files",
+    "one bounded historical SST product and compatible baseline",
+    "deterministic SST computation, provenance, evidence and uncertainty",
+    "independent reproduction, review, challenge and immutable correction",
+    "independently operated A2A providers with ENSv2 authority and Arkiv coordination"
+  ],
+  "excluded": [
+    "fishermen and PFZ advisory product",
+    "public warnings, alerts and vessel route guidance",
+    "consumer conversation, voice, localization and personalized memory",
+    "general model registry, training jobs and reinforcement learning platform"
+  ],
+  "route_policy": {
+    "historical_operations": 220,
+    "selected_ceiling": 165,
+    "core": 100,
+    "federation": 47,
+    "operations": 18,
+    "deferred": 21,
+    "excluded": 34,
+    "manifest": "contracts/designed/research-route-dispositions.json"
+  },
+  "gate_policy": {
+    "historical_gate_evidence_is_preserved": true,
+    "scope_change_does_not_mark_any_blocked_gate_passed": true,
+    "current_blocker": "G02 requires live dedicated staging PostGIS/RLS and object-store evidence",
+    "next_scientific_phase": "P03 may start only after G02 passes"
+  },
+  "source_snapshot": "docs/review/research-only-source-snapshot.json",
+  "pending_specialist_signoffs": [
+    "scientific SST product, baseline and method acceptance",
+    "database 35-vs-29 reconciliation before federation migrations",
+    "A2A, ENSv2 and Arkiv version/network decisions before G09-G11",
+    "frontend navigation and global review-inbox contract decision"
+  ]
+}

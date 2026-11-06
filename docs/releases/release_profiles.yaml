@@ -1,7 +1,7 @@
 # Purpose: P00 decision evidence; not runtime configuration.
 {
   "schema_version": "orca.releases/1",
-  "selected_target": "core-C",
+  "selected_target": "research-federated",
   "scope": {
     "bbox": [
       68,
@@ -19,7 +19,7 @@
   },
   "profiles": [
     {
-      "name": "core-A",
+      "name": "research-foundation",
       "gates": [
         "G00",
         "G01",
@@ -29,7 +29,7 @@
       "acceptance_id": "OUT-01"
     },
     {
-      "name": "core-B",
+      "name": "research-engine",
       "gates": [
         "G00",
         "G01",
@@ -42,7 +42,7 @@
       "acceptance_id": "OUT-02"
     },
     {
-      "name": "core-C",
+      "name": "research-core",
       "gates": [
         "G00",
         "G01",
@@ -58,7 +58,7 @@
       "acceptance_id": "OUT-03"
     },
     {
-      "name": "federation",
+      "name": "research-federated",
       "gates": [
         "G00",
         "G01",
@@ -76,5 +76,15 @@
       "status": "NOT_RELEASED",
       "acceptance_id": "OUT-04"
     }
+  ],
+  "legacy_aliases": {
+    "core-C": "research-core"
+  },
+  "excluded_product_surfaces": [
+    "marine-companion",
+    "alerts",
+    "consumer-conversations",
+    "voice-localization",
+    "model-training"
   ]
 }

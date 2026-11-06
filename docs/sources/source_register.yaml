@@ -3,6 +3,14 @@
   "schema_version": "orca.source-register/1",
   "sources": [
     {
+      "path": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md",
+      "sha256": "8ba91e7d26601a70ff6e0c30752e41142901a61d73a20a48b2fd9af3dc537cb7",
+      "captured_date": "2026-11-06",
+      "classification": "scope_directive",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
       "path": "api design.md",
       "sha256": "4384d317467d0194db36d95b41c917f2a8f83f57b1ecefa136f681097dc6a178",
       "captured_date": "2026-11-06",
@@ -333,6 +341,46 @@
     }
   ],
   "unresolved_local_links": [
+    {
+      "source": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md",
+      "target": "ORCA_3_0_Navigation_and_Dashboard_Redesign_Guidelines.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced navigation source was not supplied; the scope directive preserves its requested migration without inventing its contents.",
+      "resolution_adr": "docs/adr/ADR-R01-research-only-scope.json",
+      "owner_phase": "scope-migration"
+    },
+    {
+      "source": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md",
+      "target": "dashboard%20design.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced dashboard source was not supplied; frontend remains user-owned and no missing screen contract is fabricated.",
+      "resolution_adr": "docs/adr/ADR-R01-research-only-scope.json",
+      "owner_phase": "scope-migration"
+    },
+    {
+      "source": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md",
+      "target": "db/001_orca_v3_extensions.sql",
+      "status": "UNRESOLVED",
+      "reason": "The referenced starter SQL is absent; current Alembic migrations remain the only inspected implementation evidence.",
+      "resolution_adr": "docs/adr/ADR-R01-research-only-scope.json",
+      "owner_phase": "scope-migration"
+    },
+    {
+      "source": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md",
+      "target": "docs/10_fisher_companion_delta.md",
+      "status": "UNRESOLVED",
+      "reason": "Excluded historical companion source was not supplied and is not recreated as a product requirement.",
+      "resolution_adr": "docs/adr/ADR-R01-research-only-scope.json",
+      "owner_phase": "scope-migration"
+    },
+    {
+      "source": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md",
+      "target": "docs/13_legacy_integration_playbook.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced historical playbook was not supplied; retained federation behavior is governed by selected contracts and future live gates.",
+      "resolution_adr": "docs/adr/ADR-R01-research-only-scope.json",
+      "owner_phase": "scope-migration"
+    },
     {
       "source": "main_implementation plan.md",
       "target": "Pasted%20markdown%282%29.md",
