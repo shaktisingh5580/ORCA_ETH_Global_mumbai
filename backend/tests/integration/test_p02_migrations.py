@@ -64,7 +64,7 @@ def test_empty_db_upgrade_head():
     with psycopg.connect(url) as connection:
         assert (
             connection.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-            == "0004_snapshots"
+            == "0005_snapshot_requests"
         )
 
 
@@ -148,6 +148,7 @@ def test_schema_no_old_tables_assumed():
         ("research", "catalog_products"),
         ("research", "catalog_versions"),
         ("research", "dataset_snapshots"),
+        ("research", "snapshot_requests"),
         ("iam", "idempotency_records"),
         ("iam", "organizations"),
         ("iam", "memberships"),
