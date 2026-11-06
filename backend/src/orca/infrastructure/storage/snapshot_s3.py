@@ -4,6 +4,7 @@ Refs: main plan P03.3; Supabase S3 compatibility documentation; Phase: P03.
 """
 
 import hashlib
+import re
 from typing import Any, Protocol
 from uuid import UUID
 
@@ -19,6 +20,14 @@ class SnapshotS3:
     def __init__(self, client: SnapshotS3Client, bucket: str):
         self.client, self.bucket = client, bucket
         self.max_bytes = 16 * 1024 * 1024
+
+    def read(self, tenant: UUID, digest: str) -> bytes:
+        if not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+            raise ValueError("invalid content digest")
+        content = self._read(f"snapshots/{tenant}/sha256/{digest[7:]}")
+        if "sha256:" + hashlib.sha256(content).hexdigest() != digest:
+            raise ValueError("stored source bytes are corrupt")
+        return content
 
     def _read(self, key: str) -> bytes:
         response = self.client.get_object(Bucket=self.bucket, Key=key)
