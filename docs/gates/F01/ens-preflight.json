@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "chain_id": 11155111,
+  "observed_block": 12079893,
+  "registry": "0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4",
+  "bytecode_bytes": 16000,
+  "bytecode_sha256": "a5e9ac8359de8a58236fbbb9dbc400e776199e4b140dc328c6db39a09fd7f580",
+  "source": "https://docs.ens.domains/learn/deployments/",
+  "scope": "Deployment preflight only; full namespace/interface/controller proof at F03"
+}

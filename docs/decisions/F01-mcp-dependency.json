@@ -1,0 +1,17 @@
+{
+  "status": "RESOLVED_NOT_INSTALLED",
+  "package": "mcp",
+  "version": "2.3.0",
+  "registry": "https://pypi.org/pypi/mcp/2.3.0/json",
+  "distributions": [
+    {
+      "filename": "mcp-2.3.0-py3-none-any.whl",
+      "sha256": "dd0c44c089d16453e8ae31a3877a0054d7a2314caaa81f5e0541b9b1734b2377"
+    },
+    {
+      "filename": "mcp-2.3.0.tar.gz",
+      "sha256": "8b147a50441cf059dc88c684e0aeed3687f0aa0f39c6cde7b90330effd2b34d8"
+    }
+  ],
+  "integration_gate": "F04 requires actual initialize/tools/list/tools/call and protocol negotiation; package metadata is not interoperability proof"
+}

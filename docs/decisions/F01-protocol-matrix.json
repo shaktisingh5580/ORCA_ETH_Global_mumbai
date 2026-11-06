@@ -1,0 +1,26 @@
+{
+  "phase": "F01.3",
+  "a2a": {
+    "current_protocol": "0.3.0",
+    "sdk": "0.3.22",
+    "decision": "Preserve wire format and run existing official SDK interoperability regressions",
+    "new_protocol": "1.0.1 evaluated as separate upgrade; not implemented"
+  },
+  "mcp": {
+    "pin_reference": "F01-mcp-dependency.json",
+    "protocol_target": "2025-11-25, subject to real SDK negotiation at F04",
+    "runtime_installed": false,
+    "compatibility_status": "NOT_ESTABLISHED; resolved SDK is not interoperability proof"
+  },
+  "arkiv": {
+    "sdk": "1.0.1",
+    "viem": "2.57.16",
+    "chain_id": 7794095,
+    "decision": "Preserve package-lock and existing bridge; verify regression and existing live receipt; no schema upgrade"
+  },
+  "ens": {
+    "chain_id": 11155111,
+    "preflight": "docs/gates/F01/ens-preflight.json",
+    "status": "Live dependency must pass before GF01 PASS; full namespace/delegation proof is F03"
+  }
+}
