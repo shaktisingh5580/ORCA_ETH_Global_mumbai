@@ -20,6 +20,7 @@ from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
+from orca.api.routers.source_probes import router as source_probes_router
 from orca.config import Settings
 from orca.contracts.common import APIMetadata, Liveness, ReadinessReport
 from orca.infrastructure.auth.oidc import OIDCVerifier
@@ -36,6 +37,7 @@ def create_app(settings: Settings) -> FastAPI:
     )
     app.add_exception_handler(RequestValidationError, validation_error)  # type: ignore[arg-type]
     app.state.snapshot_worker_enabled = settings.acquisition_enabled
+    app.state.source_probes_enabled = settings.source_probes_enabled
     app.state.acquisition_sources = settings.acquisition_sources
     if settings.database_url:
         app.state.runtime_engine = create_runtime_engine(settings.database_url)
@@ -48,6 +50,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(fitness_router)
     app.include_router(snapshots_router)
     app.include_router(snapshot_requests_router)
+    app.include_router(source_probes_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:

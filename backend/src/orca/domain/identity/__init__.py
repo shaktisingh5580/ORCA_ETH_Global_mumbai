@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Final
 
 ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
+    "source_operator": frozenset({"org:read", "source:manage"}),
     "org_owner": frozenset(
         {"org:read", "org:write", "org:members", "project:read", "project:write", "project:share"}
     ),
