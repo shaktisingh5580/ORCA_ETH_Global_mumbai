@@ -1,0 +1,40 @@
+{
+  "profile": "hackathon-prototype",
+  "phase": "H03",
+  "delivery": "backend-and-documentation-handoff",
+  "authority": "Latest user instruction: build the backend and give documentation to the existing dashboard developer",
+  "frontend_repository": "https://github.com/vinit-singh2007/ORCA",
+  "frontend_changes_authored": false,
+  "frontend_push_authorized": false,
+  "local_document": "FRONTEND_BACKEND_HANDOFF.md",
+  "document_git_policy": "Root Markdown stays local as requested; transfer this document explicitly to the frontend developer",
+  "implemented_contract": "contracts/openapi/orca-prototype.json",
+  "contract_generator": "backend/scripts/export_prototype_contract.py",
+  "base_url_same_laptop": "http://localhost:8000",
+  "lan_address_policy": "Use current ipconfig address; do not hardcode a historical address",
+  "vercel_browser_policy": "Use a reachable HTTPS backend origin and allow the exact frontend origin in backend CORS",
+  "authentication": "Supabase user access token, not anon/service role key or user UUID",
+  "workflow": [
+    "GET /v1/me",
+    "GET /v1/research/projects?organization_id={organization_id}",
+    "POST /v1/prototype/investigations",
+    "GET /v1/prototype/investigations/{investigation_id}?project_id={project_id}",
+    "POST /v1/prototype/investigations/{investigation_id}/approve?project_id={project_id}",
+    "POST /v1/prototype/runs",
+    "GET /v1/prototype/runs?project_id={project_id}&investigation_id={investigation_id}",
+    "GET /v1/prototype/runs/{run_id}?project_id={project_id}",
+    "GET /v1/prototype/runs/{run_id}/report?project_id={project_id}"
+  ],
+  "pending_capabilities": [
+    "Existing dashboard implementation and browser acceptance by frontend developer",
+    "New seasonal result Arkiv publication and read-back API integration (H04)",
+    "Optional Gemini key and live provider call",
+    "Additional analysis recipes, regions and input bundles"
+  ],
+  "claims": {
+    "replacement_dashboard_built": false,
+    "full_frontend_walkthrough_passed": false,
+    "full_platform_complete": false,
+    "cloud_schema_changed_by_handoff": false
+  }
+}
