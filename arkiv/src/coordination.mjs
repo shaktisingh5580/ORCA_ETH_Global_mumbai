@@ -16,6 +16,8 @@ import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 const fields = ["schema_version", "domain", "audience", "chain_id", "kind", "event_id", "task_id", "assignment_generation", "actor_id", "binding_version", "subject_id", "parent_key", "recipe_digest", "reference_digest", "issued_at", "deadline"];
 const columns = Object.fromEntries([...fields, "content_digest", "key_id", "signature", "public_key"].map(k => [k, ["task_id", "kind", "actor_id", "event_id"].includes(k) ? str().indexed() : str()]));
 const Coordination = defineSchema("orca.coordination.hackathon.v1", columns);
+const extraFields=["capability","region","source_mode"];
+const CoordinationV2=defineSchema("orca.coordination.hackathon.v2",{...columns,...Object.fromEntries(extraFields.map(k=>[k,str().indexed()]))});
 const hash = value => "sha256:" + createHash("sha256").update(value).digest("hex");
 // Public-profile payloads/statements contain strings only and ASCII keys. For this restricted
 // domain, sorted JSON.stringify is exactly RFC8785; general scientific JSON stays in Python JCS.
@@ -25,13 +27,15 @@ export function canonicalStrings(value) {
 }
 export function validateRecord(envelope, publicKey) {
   const p = envelope?.payload;
-  if (!p || Object.keys(p).length !== fields.length || fields.some(k => !Object.hasOwn(p,k)) ||
+  const acceptedFields=p?.schema_version==="orca.public-coordination/2.0" ? [...fields,...extraFields] : fields;
+  if (!p || Object.keys(p).length !== acceptedFields.length || acceptedFields.some(k => !Object.hasOwn(p,k)) ||
       Object.values(p).some(v => typeof v !== "string" || Buffer.byteLength(v) > 128) ||
-      p.schema_version !== "orca.public-coordination/1.0" || p.domain !== "orca.agent-coordination/hackathon-v1" || p.audience !== "public" || p.chain_id !== "7794095" ||
+      !["orca.public-coordination/1.0","orca.public-coordination/2.0"].includes(p.schema_version) || p.domain !== "orca.agent-coordination/hackathon-v1" || p.audience !== "public" || p.chain_id !== "7794095" ||
       !["task","claim","assignment","result","review","cancellation"].includes(p.kind) || !/^[0-9]+$/.test(p.assignment_generation) ||
       !/^sha256:[0-9a-f]{64}$/.test(p.recipe_digest) || !/^sha256:[0-9a-f]{64}$/.test(p.reference_digest) ||
       envelope.algorithm !== "Ed25519" || hash(canonicalStrings(p)) !== envelope.content_digest) throw new Error("Invalid public coordination payload");
   for (const key of ["task_id", "event_id", "actor_id", "binding_version", "subject_id"]) if (!/^[0-9a-f-]{36}$/i.test(p[key])) throw new Error("Invalid coordination identity");
+  if(p.schema_version.endsWith("/2.0") && (!["sst_reproduction","sst_review"].includes(p.capability) || !["real","synthetic_demo"].includes(p.source_mode) || !/^[a-z0-9_]{1,64}$/.test(p.region))) throw new Error("Invalid discovery/source labels");
   if (p.parent_key && !/^0x[0-9a-f]{64}$/i.test(p.parent_key)) throw new Error("Invalid parent key");
   const statement = { schema_version: "orca.detached-agent-signature/1.0", domain:p.domain, audience:p.audience, task_id:p.task_id, assignment_generation:p.assignment_generation, binding_version:p.binding_version, content_digest:envelope.content_digest, key_id:envelope.key_id };
   const bytes = Buffer.from(publicKey, "base64url");
@@ -39,8 +43,10 @@ export function validateRecord(envelope, publicKey) {
   return { ...p, content_digest:envelope.content_digest, key_id:envelope.key_id, signature:envelope.signature, public_key:publicKey };
 }
 function decode(entity) {
-  const values = Object.fromEntries([...fields,"content_digest","key_id","signature","public_key"].map(k => [k,entity[k]?.value]));
-  const envelope = {payload:Object.fromEntries(fields.map(k => [k,values[k]])),content_digest:values.content_digest,key_id:values.key_id,signature:values.signature,algorithm:"Ed25519"};
+  const attributes=entity.$attributes ?? entity;
+  const acceptedFields=attributes.schema_version?.value==="orca.public-coordination/2.0" ? [...fields,...extraFields] : fields;
+  const values = Object.fromEntries([...acceptedFields,"content_digest","key_id","signature","public_key"].map(k => [k,attributes[k]?.value]));
+  const envelope = {payload:Object.fromEntries(acceptedFields.map(k => [k,values[k]])),content_digest:values.content_digest,key_id:values.key_id,signature:values.signature,algorithm:"Ed25519"};
   validateRecord(envelope, values.public_key);
   return {entity_key:entity.$key,owner:entity.$owner,expires_at:String(entity.$expiresAt),envelope,public_key:values.public_key};
 }
@@ -54,7 +60,7 @@ async function read(client, key, owner, expected) {
   if (!/^0x[0-9a-f]{64}$/i.test(key ?? "") || !isAddress(owner ?? "")) throw new Error("Invalid chain key/owner");
   let row;
   for (let attempt=0;attempt<5;attempt++) {
-    try { row=decode(await client.getEntity(key,Coordination)); break; }
+    try { row=decode(await client.getEntity(key)); break; }
     catch(error) { if(error?.name!=="NoEntityFoundError" || attempt===4) throw error; await new Promise(r=>setTimeout(r,2000)); }
   }
   if(row.owner.toLowerCase()!==owner.toLowerCase() || (expected && row.envelope.content_digest!==expected)) throw new Error("Chain owner/digest differs from expected record");
@@ -94,14 +100,31 @@ export async function run(input) {
     return {funded:true,tx_hash:tx};
   }
   if(input.command==="read") return await read(client,input.entity_key,input.owner,input.content_digest);
+  if(input.command==="discover") {
+    if(!["sst_reproduction","sst_review"].includes(input.capability) || !["real","synthetic_demo"].includes(input.source_mode ?? "real")) throw new Error("Invalid board discovery filter");
+    let query=client.select("*").from(CoordinationV2).where(eq("kind","task"),eq("capability",input.capability),eq("source_mode",input.source_mode ?? "real"));
+    if(input.region) query=query.where(eq("region",input.region));
+    const records=[];let truncated=false;
+    for(let offset=0;offset<500;offset+=100) {
+      const page=await query.limit(100).offset(offset).fetch();
+      for(const entity of page.entities) {
+        try { const row=decode(entity);if(Date.parse(row.envelope.payload.deadline)>Date.now() && (!input.owner || row.owner.toLowerCase()===input.owner.toLowerCase())) records.push(row); } catch { /* Untrusted records are not accepted. */ }
+      }
+      if(page.entities.length<100) return {records,truncated:false,observed_at:new Date().toISOString()};
+      truncated=true;
+    }
+    return {records,truncated,observed_at:new Date().toISOString()};
+  }
   if(input.command==="query") {
     if(!/^[0-9a-f-]{36}$/i.test(input.task_id)) throw new Error("Invalid task filter");
     const rows=[]; let truncated=false;
-    for(let offset=0;offset<500;offset+=100) {
-      const page=await client.select("*").from(Coordination).where(eq("task_id",input.task_id)).limit(100).offset(offset).fetch();
-      for(const entity of page.entities) { try { rows.push(decode(entity)); } catch { /* Untrusted schemas/signatures are not accepted. */ } }
-      if(page.entities.length<100) return {records:rows,truncated:false,observed_at:new Date().toISOString()};
-      truncated=true;
+    for(const schema of [Coordination,CoordinationV2]) {
+      for(let offset=0;offset<500;offset+=100) {
+        const page=await client.select("*").from(schema).where(eq("task_id",input.task_id)).limit(100).offset(offset).fetch();
+        for(const entity of page.entities) { try { rows.push(decode(entity)); } catch { /* Untrusted schemas/signatures are not accepted. */ } }
+        if(page.entities.length<100) break;
+        if(offset===400) truncated=true;
+      }
     }
     return {records:rows,truncated,observed_at:new Date().toISOString()};
   }
@@ -130,7 +153,8 @@ export async function run(input) {
     try { await reserved.writeFile(JSON.stringify(reservation)); await reserved.sync(); } finally { await reserved.close(); }
     reservedBeforeSend=true;
     const wallet=createWalletClient({chain,transport,account});
-    const created=await wallet.createEntity(Coordination,values,{expiration:ExpirationTime.fromDays(7),flags:{readonly:true},salt:predicted.salt});
+    const schema=values.schema_version==="orca.public-coordination/2.0" ? CoordinationV2 : Coordination;
+    const created=await wallet.createEntity(schema,values,{expiration:ExpirationTime.fromDays(7),flags:{readonly:true},salt:predicted.salt});
     const receipt={...reservation,state:"confirmed",entity_key:created.entityKey,tx_hash:created.txHash,expires_at:String(created.expiresAt)};
     await atomic(filename,receipt);
     confirmed=true;

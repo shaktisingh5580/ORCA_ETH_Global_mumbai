@@ -129,6 +129,8 @@ class Network:
     def create(self, body: CreateNetworkTask, key: str) -> NetworkOperation:
         self.authorize("project:write")
         payload = body.model_dump(mode="json")
+        if body.correction_of is None:
+            payload.pop("correction_of", None)
         if previous := self.existing("publish_task", key, payload):
             return previous
         run = Prototype(self.session, self.tenant, self.project, self.principal).run_row(
@@ -139,6 +141,33 @@ class Network:
         if body.approve_public_reference and not run["result"].get("redistribution_permitted"):
             raise ValueError("source policy does not permit public coordination")
         review_digest: str | None = None
+        review_expected: dict[str, Any] | None = None
+        correction_digest: str | None = None
+        challenge_digest: str | None = None
+        if body.correction_of:
+            if body.capability != "sst_reproduction":
+                raise ValueError("corrections require a new reproduction task")
+            original = self.task_row(body.correction_of)
+            if original["state"] != "completed" or original["source_run_id"] != body.source_run_id:
+                raise ValueError(
+                    "correction target must be a completed task on the same source run"
+                )
+            correction_digest = self.session.execute(
+                text(
+                    "SELECT envelope->>'content_digest' FROM federation.artifacts WHERE tenant_id=:t AND task_id=:id"
+                ),
+                {"t": self.tenant, "id": body.correction_of},
+            ).scalar_one()
+            challenge_digest = self.session.execute(
+                text(
+                    "SELECT a.envelope->>'content_digest' FROM federation.artifacts a JOIN federation.tasks t ON t.tenant_id=a.tenant_id AND t.id=a.task_id WHERE t.tenant_id=:tenant AND t.project_id=:project AND t.review_of=:original AND a.envelope->'payload'->'results'->>'verdict'='challenged' ORDER BY a.created_at DESC LIMIT 1"
+                ),
+                {"tenant": self.tenant, "project": self.project, "original": body.correction_of},
+            ).scalar_one_or_none()
+            if not challenge_digest:
+                raise ValueError(
+                    "a signed challenged review is required before creating a correction"
+                )
         if body.capability == "sst_review":
             if body.review_of is None:
                 raise ValueError("review_of is required for a review task")
@@ -157,6 +186,16 @@ class Network:
                 ),
                 {"t": self.tenant, "id": body.review_of},
             ).scalar_one()
+            reviewed_artifact: dict[str, Any] = self.session.execute(
+                text(
+                    "SELECT envelope FROM federation.artifacts WHERE tenant_id=:t AND task_id=:id"
+                ),
+                {"t": self.tenant, "id": body.review_of},
+            ).scalar_one()
+            review_expected = {
+                name: reviewed_artifact["payload"]["results"][name]
+                for name in ("current_mean", "baseline_mean", "anomaly", "daily")
+            }
         elif body.review_of is not None:
             raise ValueError("reproduction tasks cannot name a review target")
         result = run["result"]
@@ -169,10 +208,14 @@ class Network:
             "input_snapshots": result["input_snapshots"],
             "bbox": result["bbox"],
             "source_result_digest": run["result_digest"],
-            "expected": {
+            "expected": review_expected
+            or {
                 name: result[name] for name in ("current_mean", "baseline_mean", "anomaly", "daily")
             },
             "review_of_digest": review_digest,
+            "correction_of": str(body.correction_of) if body.correction_of else None,
+            "corrects_digest": correction_digest,
+            "challenge_digest": challenge_digest,
             "scientific_status": "prototype_not_independently_validated",
         }
         identifier = uuid4()
@@ -195,10 +238,15 @@ class Network:
         )
         return self.queue(identifier, "publish_task", key, payload)
 
-    def request_claim(self, identifier: UUID, provider: UUID, key: str) -> NetworkOperation:
+    def request_claim(
+        self, identifier: UUID, provider: UUID, key: str, entity_key: str | None = None
+    ) -> NetworkOperation:
         self.authorize("project:write")
         payload = {"task_id": str(identifier), "provider_id": str(provider)}
-        if previous := self.existing("claim", key, payload):
+        action = "import_claim" if entity_key else "claim"
+        if entity_key:
+            payload["entity_key"] = entity_key
+        if previous := self.existing(action, key, payload):
             return previous
         task = self.task_row(identifier, lock=True)
         if task["state"] != "open" or task["deadline"] <= datetime.now(timezone.utc):
@@ -230,7 +278,9 @@ class Network:
                 or producer.public_key == binding.public_key
             ):
                 raise ValueError("review requires a separately keyed provider")
-        return self.queue(identifier, "claim", key, payload, provider)
+        if entity_key and task["publication_mode"] != "public_reference":
+            raise ValueError("a private task cannot import public claims")
+        return self.queue(identifier, action, key, payload, provider)
 
     def assign(self, identifier: UUID, body: AssignClaim, key: str) -> NetworkOperation:
         self.authorize("project:write")
@@ -303,6 +353,7 @@ class Network:
 
     def detail(self, identifier: UUID) -> NetworkTask:
         task = dict(self.task_row(identifier))
+        task["correction_of"] = task["recipe"].get("correction_of")
         for table in ("claims", "assignments", "artifacts", "operations"):
             rows = self.session.execute(
                 text(

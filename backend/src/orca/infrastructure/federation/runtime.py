@@ -21,7 +21,7 @@ from orca.config import Settings
 from orca.contracts.network import AgentBinding, SignedEnvelope
 from orca.infrastructure.federation.signing import b64, strict_json, unb64, verify
 
-ROOT = Path(__file__).resolve().parents[5]
+ROOT = Path(os.environ.get("ORCA_REPOSITORY_ROOT", str(Path(__file__).resolve().parents[5])))
 
 
 class NetworkConfiguration(BaseModel):

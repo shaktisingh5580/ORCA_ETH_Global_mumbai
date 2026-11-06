@@ -20,7 +20,11 @@ from orca.domain.scientific_inputs import (
 from orca.infrastructure.federation.signing import digest
 
 
-def reproduce(folder: Path, recipe: dict[str, Any], *, review: bool) -> dict[str, Any]:
+def reproduce(
+    folder: Path, recipe: dict[str, Any], *, review: bool, source_mode: str = "real"
+) -> dict[str, Any]:
+    if source_mode not in {"real", "synthetic_demo"}:
+        raise ValueError("unrecognized scientific input source profile")
     if recipe["method"] != "orca.native-seasonal-sst/hackathon-v1" or recipe["bbox"] != [
         68.45,
         20.45,
@@ -83,14 +87,21 @@ def reproduce(folder: Path, recipe: dict[str, Any], *, review: bool) -> dict[str
                 ),
             }
         ),
-        "source_mode": "real",
+        "source_mode": source_mode,
         "operator_mode": "team_controlled",
         "scientific_status": "prototype_not_independently_validated",
         "limitations": [
             "Separate process and key do not establish independent institutional operation.",
             "Review checks numerical reproducibility on shared preserved inputs, not source independence or physical truth.",
             "Twenty-year seasonal reference; aggregate uncertainty remains unknown.",
-        ],
+        ]
+        + (
+            [
+                "Intentionally synthetic demonstration inputs; not an observed marine research finding."
+            ]
+            if source_mode == "synthetic_demo"
+            else []
+        ),
     }
 
 

@@ -27,7 +27,7 @@ def public_event(
     key_id: str,
 ) -> SignedEnvelope:
     payload = {
-        "schema_version": "orca.public-coordination/1.0",
+        "schema_version": "orca.public-coordination/2.0",
         "domain": DOMAIN,
         "audience": "public",
         "chain_id": CHAIN_ID,
@@ -45,6 +45,9 @@ def public_event(
         "deadline": datetime.fromisoformat(str(task["deadline"]))
         .astimezone(timezone.utc)
         .isoformat(),
+        "capability": task.get("capability", "sst_reproduction"),
+        "region": task.get("region", "north_arabian_sea"),
+        "source_mode": task.get("source_mode", "real"),
     }
     if any(not isinstance(value, str) or len(value.encode()) > 128 for value in payload.values()):
         raise ValueError("public coordination fields exceed chain profile")

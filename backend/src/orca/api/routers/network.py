@@ -5,7 +5,7 @@ Refs: api design.md network guidance; H04-agent-coordination.json; Phase: H04.
 
 from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Annotated, Any, cast
+from typing import Annotated, Any, Literal, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Request
@@ -20,12 +20,14 @@ from orca.contracts.network import (
     AssignClaim,
     CancelNetworkTask,
     CreateNetworkTask,
+    ImportClaim,
     NetworkOperation,
     NetworkTask,
     RequestClaim,
     SignedEnvelope,
 )
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.federation.discovery import discover_open
 from orca.infrastructure.federation.runtime import (
     ChainUnavailable,
     NetworkRuntime,
@@ -111,6 +113,30 @@ def create_task(
         return Network(session, tenant, body.project_id, principal).create(body, idempotency_key)
 
 
+@router.get("/board")
+def board(
+    organization_id: UUID,
+    capability: Literal["sst_reproduction", "sst_review"],
+    request: Request,
+    principal: CurrentPrincipal,
+    source_mode: Literal["real", "synthetic_demo"] = "real",
+) -> dict[str, Any]:
+    configured = runtime(request)
+    db = engine(request)
+    _, roles = resolve_tenant(db, principal, organization_id)
+    try:
+        principal.require("project:read", roles)
+    except PermissionError as error:
+        raise HTTPException(403, "Project read permission required") from error
+    with network_errors():
+        return discover_open(
+            configured.gateway,
+            configured.configuration.coordinator,
+            capability,
+            source_mode=source_mode,
+        )
+
+
 @router.get("/tasks", response_model=list[NetworkTask])
 def tasks(project_id: UUID, request: Request, principal: CurrentPrincipal) -> list[NetworkTask]:
     runtime(request)
@@ -156,6 +182,24 @@ def claim(
     with network_errors(), TenantUnitOfWork(db, tenant) as session:
         return Network(session, tenant, project_id, principal).request_claim(
             task_id, body.provider_id, idempotency_key
+        )
+
+
+@router.post("/tasks/{task_id}/claims/import", response_model=NetworkOperation, status_code=202)
+def import_claim(
+    task_id: UUID,
+    body: ImportClaim,
+    project_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    idempotency_key: Idempotency,
+) -> NetworkOperation:
+    runtime(request)
+    db = engine(request)
+    tenant, _ = resolve_project(db, principal, project_id)
+    with network_errors(), TenantUnitOfWork(db, tenant) as session:
+        return Network(session, tenant, project_id, principal).request_claim(
+            task_id, body.provider_id, idempotency_key, body.entity_key
         )
 
 

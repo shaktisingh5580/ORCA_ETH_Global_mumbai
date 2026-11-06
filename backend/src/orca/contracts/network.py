@@ -34,12 +34,18 @@ class CreateNetworkTask(Contract):
     source_run_id: UUID
     capability: Capability = "sst_reproduction"
     review_of: UUID | None = None
+    correction_of: UUID | None = None
     approve_public_reference: bool = False
     deadline_seconds: int = Field(default=3600, ge=120, le=86400)
 
 
 class RequestClaim(Contract):
     provider_id: UUID
+
+
+class ImportClaim(Contract):
+    provider_id: UUID
+    entity_key: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
 
 
 class AssignClaim(Contract):
@@ -67,6 +73,7 @@ class NetworkTask(Contract):
     source_run_id: UUID
     capability: Capability
     review_of: UUID | None
+    correction_of: UUID | None = None
     publication_mode: Literal["private", "public_reference"]
     state: str
     generation: int

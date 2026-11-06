@@ -169,7 +169,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
             assignment = None
             claim = None
             parent = None
-            if job["action"] == "claim":
+            if job["action"] in {"claim", "import_claim"}:
                 if task["state"] != "open":
                     raise ValueError("task is no longer open for claims")
                 if session.execute(
@@ -232,6 +232,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
             )
         }
         display_task["deadline"] = task["deadline"].isoformat()
+        display_task["source_mode"] = "real"
         if job["action"] in {"publish_task", "cancel"}:
             kind = "task" if job["action"] == "publish_task" else "cancellation"
             event = public_event(
@@ -254,6 +255,42 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                 else None
             )
             emitted.append((event, receipt))
+        elif job["action"] == "import_claim":
+            if provider is None or parent is None or task["publication_mode"] != "public_reference":
+                raise ValueError("public claim import context missing")
+            observed = runtime.gateway.call(
+                {
+                    "command": "read",
+                    "entity_key": job["payload"]["entity_key"],
+                    "owner": provider.wallet,
+                }
+            )
+            public = SignedEnvelope.model_validate(observed["envelope"])
+            from orca.infrastructure.federation.runtime import verify_chain_record
+
+            verify_chain_record(observed, provider, public)
+            payload = public.payload
+            if (
+                payload["kind"] != "claim"
+                or payload["task_id"] != str(task["id"])
+                or payload["recipe_digest"] != task["recipe_digest"]
+                or payload["parent_key"] != parent["receipt"]["entity_key"]
+                or payload.get("source_mode", "real") != "real"
+                or payload["assignment_generation"] != "0"
+            ):
+                raise ValueError(
+                    "discovered public claim is unrelated to the selected open real-source task"
+                )
+            receipt = {
+                "state": "indexed",
+                "entity_key": observed["entity_key"],
+                "owner": observed["owner"],
+                "content_digest": public.content_digest,
+                "chain_id": 7794095,
+                "read_back": observed,
+            }
+            claim_document = public
+            emitted.append((public, receipt))
         else:
             if provider is None or parent is None:
                 raise ValueError("provider task context missing")
@@ -386,6 +423,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                     or payload["attempt_id"] != str(assignment["attempt_id"])
                     or payload["producer_agent_id"] != str(provider.id)
                     or payload["review_of_digest"] != task["recipe"]["review_of_digest"]
+                    or payload.get("corrects_digest") != task["recipe"].get("corrects_digest")
                 ):
                     raise ValueError("stale or unrelated provider artifact")
                 if (

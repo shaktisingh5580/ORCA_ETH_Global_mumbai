@@ -10,7 +10,7 @@ import sqlite3
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID, uuid5
 
 import jwt
@@ -70,6 +70,9 @@ class ProviderSettings(BaseSettings):
     wallet_env_file: str
     capture_folder: str
     state_dir: str
+    source_mode: Literal["real", "synthetic_demo"] = "real"
+    capture_variants: dict[str, str] = {}
+    wallet_state_dir: str | None = None
 
 
 class DurableTasks(TaskStore):
@@ -216,7 +219,9 @@ class ScientificAgent(AgentExecutor):
             store,
         )
         self.gateway = ArkivGateway(
-            Path(settings.wallet_env_file), Path(settings.state_dir), binding.wallet
+            Path(settings.wallet_env_file),
+            Path(settings.wallet_state_dir or settings.state_dir),
+            binding.wallet,
         )
 
     def process(self, data: dict[str, Any], authorization: dict[str, Any]) -> dict[str, Any]:
@@ -228,6 +233,8 @@ class ScientificAgent(AgentExecutor):
         ):
             raise ValueError("delegation request differs from signed scope")
         task = data["task"]
+        if task.get("source_mode", "real") != self.settings.source_mode:
+            raise ValueError("delegation source profile differs from configured provider")
         if task["capability"] != self.binding.capability or datetime.fromisoformat(
             task["deadline"]
         ) <= datetime.now(timezone.utc):
@@ -286,6 +293,20 @@ class ScientificAgent(AgentExecutor):
                     str(self.binding.id),
                 )
                 selected = assignment.payload
+                claim = SignedEnvelope.model_validate(data["claim"])
+                verify(
+                    claim,
+                    self.binding.public_key,
+                    self.binding.key_id,
+                    "public" if claim.payload.get("kind") == "claim" else str(self.coordinator.id),
+                )
+                claimed_provider = claim.payload.get("provider_id", claim.payload.get("actor_id"))
+                if (
+                    claim.content_digest != selected["claim_digest"]
+                    or claim.payload["task_id"] != task["id"]
+                    or claimed_provider != str(self.binding.id)
+                ):
+                    raise ValueError("assignment does not select this provider's signed claim")
                 if (
                     selected["task_id"] != task["id"]
                     or selected["provider_id"] != str(self.binding.id)
@@ -295,10 +316,28 @@ class ScientificAgent(AgentExecutor):
                     or digest(data["recipe"]) != task["recipe_digest"]
                 ):
                     raise ValueError("assignment identity or recipe differs")
+                if (
+                    task["publication_mode"] == "public_reference"
+                    and data["requester_event"]["envelope"]["payload"]["reference_digest"]
+                    != assignment.content_digest
+                ):
+                    raise ValueError("public assignment reference differs from signed delegation")
+                variant = data["recipe"].get("input_variant", "primary")
+                if variant != "primary" and (
+                    self.settings.source_mode != "synthetic_demo"
+                    or variant not in self.settings.capture_variants
+                ):
+                    raise ValueError("unregistered provider input variant")
+                folder = (
+                    self.settings.capture_folder
+                    if variant == "primary"
+                    else self.settings.capture_variants[variant]
+                )
                 computed = reproduce(
-                    Path(self.settings.capture_folder),
+                    Path(folder),
                     data["recipe"],
                     review=self.binding.capability == "sst_review",
+                    source_mode=self.settings.source_mode,
                 )
                 artifact_id = str(uuid5(UUID(operation_id), "artifact"))
                 payload = {
@@ -318,6 +357,7 @@ class ScientificAgent(AgentExecutor):
                     "input_manifest_ref": computed["input_manifest_digest"],
                     "results": computed,
                     "review_of_digest": data["recipe"]["review_of_digest"],
+                    "corrects_digest": data["recipe"].get("corrects_digest"),
                     "issued_at": data["issued_at"],
                 }
                 kind, generation, subject = (

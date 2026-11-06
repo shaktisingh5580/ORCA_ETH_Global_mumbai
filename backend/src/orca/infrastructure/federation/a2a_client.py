@@ -30,6 +30,19 @@ from orca.infrastructure.federation.signing import digest, unb64
 async def exchange_async(
     runtime: NetworkRuntime, agent: AgentBinding, operation_id: str, data: dict[str, Any]
 ) -> dict[str, Any]:
+    # Read-back timestamps are observations, not logical task input. Excluding them
+    # makes retrying a confirmed public assignment preserve the provider deduplication key.
+    if data.get("requester_event"):
+        parent = data["requester_event"]
+        data = {
+            **data,
+            "requester_event": {
+                "envelope": parent["envelope"],
+                "receipt": {"entity_key": parent["receipt"]["entity_key"]}
+                if parent.get("receipt")
+                else None,
+            },
+        }
     now = int(datetime.now(timezone.utc).timestamp())
     token = jwt.encode(
         {
