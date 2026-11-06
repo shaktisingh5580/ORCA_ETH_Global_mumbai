@@ -35,6 +35,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--env-file", type=Path, default=ROOT / ".env.demo")
     parser.add_argument("--frontend-origin", default="")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / ".cache/render")
     args = parser.parse_args()
     settings = Settings(_env_file=args.env_file)  # type: ignore[call-arg]
     if not settings.network_config_file:
@@ -62,7 +63,7 @@ def main() -> None:
         coordinator_wallet=coordinator,
         providers=providers,
     )
-    folder = ROOT / ".cache/render"
+    folder = args.output_dir
     folder.mkdir(parents=True, exist_ok=True)
     target = folder / "runtime-bundle.json"
     target.write_text(bundle.model_dump_json(), encoding="utf-8", newline="\n")

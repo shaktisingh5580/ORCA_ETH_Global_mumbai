@@ -9,7 +9,7 @@ import pytest
 from dotenv import dotenv_values
 from network_setup import configuration
 
-from orca.cloud_runtime import CloudBundle, child_environment, env_text, materialize
+from orca.cloud_runtime import CloudBundle, child_environment, env_text, materialize, read_bundle
 
 
 @pytest.mark.enable_socket
@@ -60,3 +60,19 @@ def test_cloud_bundle_preserves_signers_but_does_not_distribute_database_credent
     file = tmp_path / "quoted.env"
     file.write_text(env_text({"VALUE": json.dumps({"text": "researcher's input"})}))
     assert json.loads(dotenv_values(file)["VALUE"])["text"] == "researcher's input"
+
+
+def test_file_mounted_bundle_is_literal_and_never_ambiguous(tmp_path, monkeypatch):
+    value = b'{"test_secret":"literal $VALUE and quotes"}'
+    filename = tmp_path / "private-bundle.json"
+    filename.write_bytes(value)
+    monkeypatch.delenv("ORCA_RUNTIME_BUNDLE", raising=False)
+    monkeypatch.setenv("ORCA_RUNTIME_BUNDLE_FILE", str(filename))
+    assert read_bundle() == value
+    monkeypatch.setenv("ORCA_RUNTIME_BUNDLE", "another-source")
+    with pytest.raises(ValueError, match="only one"):
+        read_bundle()
+    monkeypatch.delenv("ORCA_RUNTIME_BUNDLE")
+    filename.write_bytes(b"x" * 1_048_577)
+    with pytest.raises(ValueError, match="size"):
+        read_bundle()

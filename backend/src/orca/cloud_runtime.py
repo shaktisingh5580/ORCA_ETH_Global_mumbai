@@ -43,6 +43,24 @@ def private_file(path: Path, value: str) -> None:
     path.chmod(0o600)
 
 
+def read_bundle() -> bytes:
+    """Load the deployment secret from exactly one private runtime source."""
+    raw = os.environ.get("ORCA_RUNTIME_BUNDLE", "")
+    filename = os.environ.get("ORCA_RUNTIME_BUNDLE_FILE", "")
+    if raw and filename:
+        raise ValueError("configure only one runtime bundle source")
+    if filename:
+        with Path(filename).open("rb") as stream:
+            value = stream.read(1_048_577)
+    elif raw:
+        value = raw.encode("utf-8")
+    else:
+        raise ValueError("private runtime bundle required")
+    if not value or len(value) > 1_048_576:
+        raise ValueError("invalid runtime bundle size")
+    return value
+
+
 def env_text(values: dict[str, Any]) -> str:
     return (
         "\n".join(
@@ -240,10 +258,7 @@ def main(
     parser = argparse.ArgumentParser()
     parser.add_argument("--check-only", action="store_true")
     args = parser.parse_args()
-    raw = os.environ.get("ORCA_RUNTIME_BUNDLE", "")
-    if not raw:
-        raise SystemExit("Set the private ORCA_RUNTIME_BUNDLE secret in Render")
-    bundle = CloudBundle.model_validate(strict_json(raw))
+    bundle = CloudBundle.model_validate(strict_json(read_bundle()))
     state = Path(os.environ.get("ORCA_PERSISTENT_DIR", "/var/data/orca"))
     if not state.is_absolute():
         raise SystemExit("persistent state directory must be absolute")
