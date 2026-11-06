@@ -1,0 +1,63 @@
+{
+  "purpose": "Synthetic frontend scenarios only. No retrieved data or production fallback.",
+  "origin": "hand-authored test fixture",
+  "license": "project-owned synthetic fixture",
+  "scenarios": {
+    "success": {
+      "schema": "ProjectPage",
+      "status": 200,
+      "body": {
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "organization_id": "00000000-0000-4000-8000-000000000002",
+            "name": "Synthetic frontend project",
+            "description": null,
+            "access_class": "project",
+            "state": "active",
+            "created_at": "2025-01-01T00:00:00Z",
+            "updated_at": "2025-01-01T00:00:00Z",
+            "etag": "test-version-1"
+          }
+        ],
+        "next_cursor": null,
+        "page_size": 20
+      }
+    },
+    "empty": {
+      "schema": "ProjectPage",
+      "status": 200,
+      "body": {
+        "items": [],
+        "next_cursor": null,
+        "page_size": 20
+      }
+    },
+    "partial": {
+      "schema": "ScientificOutcome",
+      "status": 200,
+      "body": {
+        "status": "insufficient_evidence",
+        "claim_ids": [],
+        "artifact_ids": [],
+        "limitations": [
+          "Synthetic test: source coverage unavailable"
+        ],
+        "quality_metrics": {}
+      }
+    },
+    "error": {
+      "schema": "Problem",
+      "status": 503,
+      "body": {
+        "type": "urn:orca:problem:source-unavailable",
+        "title": "Source unavailable",
+        "status": 503,
+        "detail": "Synthetic provider outage scenario",
+        "code": "SOURCE_UNAVAILABLE",
+        "request_id": "synthetic-request",
+        "retryable": true
+      }
+    }
+  }
+}
