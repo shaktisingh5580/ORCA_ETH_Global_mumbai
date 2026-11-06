@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.1.0",
   "description": "P11 accelerated demo: explicit public result publication and independent Arkiv reads",
-  "scripts": {"publish": "node src/cli.mjs publish", "read": "node src/cli.mjs read", "check": "node --check src/cli.mjs"},
+  "scripts": {"publish": "node src/cli.mjs publish", "read": "node src/cli.mjs read", "check": "node --check src/cli.mjs && node --check src/coordination.mjs"},
   "engines": {"node": ">=22.10"},
   "dependencies": {"@arkiv-network/sdk": "1.0.1", "viem": "2.57.16"}
 }
