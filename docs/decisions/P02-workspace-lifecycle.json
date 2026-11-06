@@ -1,0 +1,36 @@
+{
+  "phase": "P02 completion repair",
+  "status": "LOCAL_G02_PASS_CLOUD_NOT_APPLIED",
+  "references": [
+    "main_implementation plan.md P02.1-P02.5",
+    "api design.md 2.2/3.2/3.3",
+    "docs/decisions/platform-completion-recovery.json"
+  ],
+  "migrations": [
+    "0011_project_authorization",
+    "0012_invitations_grants"
+  ],
+  "identity": "Project principal_id and principal_ref.id identify an existing tenant organization Membership.id; OIDC subject is not assumed to be a UUID. Snapshot project checks join this identity mapping and reject inactive membership.",
+  "project_authority": "Organization roles intersect token scopes and project roles. Private projects require explicit project membership or live read grant except organization owners/admins. Project visibility grants organization reads, not writes. Creator receives project admin membership; mutations serialize on the project lock. Revocation affects subsequent requests, and private lookup/listing conceal inaccessible projects.",
+  "grants": "Prototype supports only explicit same-organization research_project read grants with a current resource version and expiry within seven days. Dataset/cross-organization grants are rejected until license and agreement controls exist. Any project version change invalidates old read grants. Grants cannot increase the caller or target's organization/token authority.",
+  "invitations": "Tokens are HMAC-derived from a private signing key and unique invitation metadata; the database stores only the token hash. Creation is idempotent, privileged invitations require an owner, acceptance requires verified provider email and current issuer authority. Single-use acceptance is serialized; existing membership cannot be silently reactivated. Public API responses do not carry the token. Operator CLI performs deliberate out-of-band handoff; no email delivery is claimed. Uvicorn paths redact tokens; upstream proxy redaction remains a deployment responsibility.",
+  "policy": "ETag-protected organization policy bounds project count and per-file size. Existing records are preserved when limits are lowered. Retention is configuration for subsequent retention operations, not a claim of an implemented automatic research-data deletion service. License/scientific protections cannot be disabled through policy PATCH.",
+  "files": "Single-part signed uploads bind filename/media type/metadata/Content-Length and expire in 300 seconds. Prototype accepts UTF-8 CSV/JSON up to min(organization limit,16MiB). Durable validation independently reads and hashes bytes, validates format and rejects formula content. Publication writes the verified byte buffer to a separate content-addressed key, avoiding staging overwrite races. File visibility requires committed finalization; downloads are audited, scoped, attachments and expire in 60 seconds. Staging cleanup waits until the PUT window expires. This does not certify general malware absence or scientific fitness.",
+  "recovery": "Pending rows survive restart; worker row locks avoid duplicate validation, publication is retryable after database rollback and transient storage failures preserve pending work. Existing project-member identities/roles are validated without deletion or reassignment; incompatible legacy rows stop the migration transaction for explicit repair.",
+  "configuration": [
+    "ORCA_FILE_UPLOADS_ENABLED",
+    "ORCA_INVITATION_SIGNING_KEY"
+  ],
+  "external_status": "Gemini key will be added later by the user; no working AI provider call is claimed. Full frontend and science acceptance remain separate from this workspace batch.",
+  "classification": "Upload classification cannot be weaker than the project at creation. File lists filter before pagination; project-classified data needs membership/current read grant, restricted data needs project membership, and confidential data needs uploader/project-admin/org-admin authority. Project visibility changes do not downgrade file classification.",
+  "validation": {
+    "P01": "PASS",
+    "P02": "PASS",
+    "required_tests": 43,
+    "passed": 136,
+    "failed": 0,
+    "skipped": 0,
+    "selected_P02_operations": 31,
+    "evidence": "docs/gates/P02/manifest.json"
+  }
+}

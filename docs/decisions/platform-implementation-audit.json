@@ -3,8 +3,8 @@
   "scope": "Research-only federated ORCA prototype and full selected contract",
   "method": "Exact method/path comparison of selected dispositions with generated runtime OpenAPI; component inspection is documented separately",
   "selected_operations": 165,
-  "registered_selected_operations": 33,
-  "missing_selected_operations": 132,
+  "registered_selected_operations": 51,
+  "missing_selected_operations": 114,
   "demo_only_operations": [
     "POST /v1/demo/research-runs",
     "GET /v1/demo/research-runs/{result_id}",
@@ -25,32 +25,30 @@
     },
     "P02": {
       "selected_operations": 31,
-      "registered_operations": 13,
+      "registered_operations": 31,
       "registered": [
+        "POST /v1/invitations/{token}/accept",
         "GET /v1/me",
         "GET /v1/organizations",
         "POST /v1/organizations",
         "GET /v1/organizations/{org_id}",
         "PATCH /v1/organizations/{org_id}",
-        "GET /v1/organizations/{org_id}/members",
-        "DELETE /v1/organizations/{org_id}/members/{member_id}",
-        "PATCH /v1/organizations/{org_id}/members/{member_id}",
-        "GET /v1/research/projects",
-        "POST /v1/research/projects",
-        "GET /v1/research/projects/{project_id}",
-        "PATCH /v1/research/projects/{project_id}",
-        "POST /v1/research/projects/{project_id}/archive"
-      ],
-      "missing": [
-        "POST /v1/invitations/{token}/accept",
         "GET /v1/organizations/{org_id}/access-grants",
         "POST /v1/organizations/{org_id}/access-grants",
         "DELETE /v1/organizations/{org_id}/access-grants/{grant_id}",
         "POST /v1/organizations/{org_id}/invitations",
+        "GET /v1/organizations/{org_id}/members",
+        "DELETE /v1/organizations/{org_id}/members/{member_id}",
+        "PATCH /v1/organizations/{org_id}/members/{member_id}",
         "GET /v1/organizations/{org_id}/policies",
         "PATCH /v1/organizations/{org_id}/policies",
         "GET /v1/research/files/{file_id}",
         "POST /v1/research/files/{file_id}/download-intents",
+        "GET /v1/research/projects",
+        "POST /v1/research/projects",
+        "GET /v1/research/projects/{project_id}",
+        "PATCH /v1/research/projects/{project_id}",
+        "POST /v1/research/projects/{project_id}/archive",
         "GET /v1/research/projects/{project_id}/files",
         "GET /v1/research/projects/{project_id}/members",
         "POST /v1/research/projects/{project_id}/members",
@@ -61,6 +59,7 @@
         "GET /v1/research/uploads/{upload_id}",
         "POST /v1/research/uploads/{upload_id}/complete"
       ],
+      "missing": [],
       "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
     },
     "P03": {
@@ -267,11 +266,11 @@
     }
   },
   "corrections": [
-    "P02's historical G02 PASS is not evidence of full selected scope; 13 of 31 operations are registered",
+    "P02's historical G02 PASS is not evidence of full selected scope; 31 of 31 operations are registered",
     "P03 has all 16 selected handlers registered but source/QC/baseline science, permissions and deployment acceptance remain incomplete",
     "Descriptive demo computation does not implement the selected P04 anomaly method registry and scientific gates",
     "A confirmed public result reference does not implement P09 A2A, P10 ENS or the 22 P11 coordination APIs",
-    "The 109-test pass predates accelerated demo additions; it does not validate the current full platform"
+    "Historical regression passes do not establish current scientific, browser or full-platform acceptance; consult the current phase gate evidence"
   ],
   "scope_boundaries": [
     "No Marine advisory/chat/voice/general model-training expansion",

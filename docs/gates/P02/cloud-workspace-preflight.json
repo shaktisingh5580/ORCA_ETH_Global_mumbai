@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-06",
+  "mutation_performed": false,
+  "migration_head": "0010_organization_lifecycle",
+  "proposed_target": "0012_invitations_grants",
+  "new_revisions": ["0011_project_authorization", "0012_invitations_grants"],
+  "existing_projects": 0,
+  "existing_project_members": 0,
+  "unresolved_member_identities": 0,
+  "incompatible_project_roles": 0,
+  "incompatible_project_statuses": 0,
+  "actions": [
+    "Add project member versions and validate identity/role/status constraints",
+    "Add tenant-protected organization policies, invitations and access grants",
+    "Install bounded private upload lookup/worker-discovery functions",
+    "Restrict private project discovery to current membership or explicit live grants"
+  ],
+  "preservation": "No table drops, data resets, membership role promotions or deletion of research records. Existing incompatible identities would stop migration rather than be reassigned."
+}
