@@ -64,7 +64,7 @@ def test_empty_db_upgrade_head():
     with psycopg.connect(url) as connection:
         assert (
             connection.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-            == "0009_identity_directory"
+            == "0010_organization_lifecycle"
         )
 
 
@@ -154,6 +154,8 @@ def test_schema_no_old_tables_assumed():
         ("research", "demo_results"),
         ("iam", "idempotency_records"),
         ("iam", "organizations"),
+        ("iam", "organization_creation_keys"),
+        ("iam", "membership_audit"),
         ("iam", "memberships"),
         ("research", "projects"),
         ("research", "project_members"),
