@@ -1,0 +1,23 @@
+{
+  "profile": "research-federated",
+  "source": "Research-only scope guide section 8 overrides historical optional federation and old P12",
+  "completed_phases": ["P00", "P01", "P02"],
+  "current_phase": "P03",
+  "unfinished_core_phases": 6,
+  "unfinished_full_product_phases": 12,
+  "phases": [
+    {"id": "P03", "status": "IN_PROGRESS", "scope": "Catalog/acquisition, probes, grants and live scientific inputs"},
+    {"id": "P04", "status": "NOT_STARTED", "scope": "Pinned scientific methods and deterministic SST evidence"},
+    {"id": "P05", "status": "NOT_STARTED", "scope": "Durable research planning and run orchestration"},
+    {"id": "P06", "status": "NOT_STARTED", "scope": "Evidence publication, maps, reports and exports"},
+    {"id": "P07", "status": "NOT_STARTED", "scope": "Reproduction, review, challenges and replay"},
+    {"id": "P08", "status": "NOT_STARTED", "scope": "Core deployment, observability and integration"},
+    {"id": "P09", "status": "NOT_STARTED", "scope": "Provider onboarding and A2A federation"},
+    {"id": "P10", "status": "NOT_STARTED", "scope": "ENSv2 identity, delegation and signed binding"},
+    {"id": "P11", "status": "NOT_STARTED", "scope": "Arkiv coordination and public verification"},
+    {"id": "P12", "status": "NOT_STARTED", "scope": "Research-only cross-feature integration and scope regression; historical Marine scope excluded"},
+    {"id": "P13", "status": "NOT_STARTED", "scope": "Research assurance and independent benchmarking"},
+    {"id": "P14", "status": "NOT_STARTED", "scope": "Security, recovery and full release qualification"}
+  ],
+  "counting": "Counts include current unfinished P03. API contracts and scaffolding do not count as completed phase implementations. Selected product still has 165 designed operations, not 165 working operations."
+}

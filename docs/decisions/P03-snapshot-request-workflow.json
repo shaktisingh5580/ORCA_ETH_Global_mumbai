@@ -1,6 +1,7 @@
 {
   "phase": "P03.5",
-  "status": "TRACKING_AND_WORKER_ORCHESTRATION_IMPLEMENTED_ADAPTER_PENDING",
+  "status": "TRACKING_AND_CONFIGURED_WORKER_IMPLEMENTED_DEPLOYMENT_PENDING",
+  "followup": "P03-cloud-acquisition-and-fitness.json supersedes earlier pending-adapter notes.",
   "operations": ["POST /v1/catalog/snapshot-requests", "GET /v1/catalog/snapshot-requests/{request_id}"],
   "authorization": "Organization context must resolve through membership; submission requires research:plan in both token and server role. Status reads require dataset:read and tenant RLS.",
   "submission": "Requires Idempotency-Key, pinned stored version, proven preservation rights and approved native variable. Typed region/time validation limits requests to 31 days. Submission returns 503 unless application state explicitly enables an acquisition worker.",

@@ -1,6 +1,7 @@
 {
   "phase": "P03.3/P03.5",
-  "status": "ORCHESTRATION_IMPLEMENTED_ADAPTER_WIRING_PENDING",
+  "status": "ORCHESTRATION_IMPLEMENTED",
+  "followup": "P03-cloud-acquisition-and-fitness.json records adapter and worker wiring implemented subsequently; deployment acceptance remains pending.",
   "references": ["main_implementation plan.md P03.3/P03.5", "api design.md 3.4", "docs/decisions/P03-snapshot-request-workflow.json"],
   "behavior": "One tenant-scoped acquisition per invocation. The claim transaction commits before source/storage I/O; a separate transaction atomically inserts the immutable manifest and completes the fenced request.",
   "binding": "Canonical SHA-256 binds all validated request fields. Completion rejects snapshots without an identical acquisition_request_digest, including legacy snapshots. Existing manifests remain readable. Digest binding is provenance, not proof that a provider returned scientifically correct coordinates.",
