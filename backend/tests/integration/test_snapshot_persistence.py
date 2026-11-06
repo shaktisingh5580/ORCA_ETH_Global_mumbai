@@ -150,6 +150,38 @@ def test_snapshot_persistence_isolation_and_immutability():
                     )
                     assert repository.list(product_id=uuid4()) == []
                     assert repository.list(digest="sha256:" + "0" * 64) == []
+                    project, principal = uuid4(), uuid4()
+                    session.execute(
+                        text(
+                            "INSERT INTO research.projects(id,tenant_id,slug,name) VALUES(:id,:tenant,:slug,'test')"
+                        ),
+                        {"id": project, "tenant": tenant, "slug": str(project)},
+                    )
+                    assert not repository.project_member(project, str(principal))
+                    session.execute(
+                        text(
+                            "INSERT INTO research.project_members(id,tenant_id,project_id,principal_id,role) VALUES(:id,:tenant,:project,:principal,'researcher')"
+                        ),
+                        {
+                            "id": uuid4(),
+                            "tenant": tenant,
+                            "project": project,
+                            "principal": principal,
+                        },
+                    )
+                    assert repository.project_member(project, str(principal))
+                    assert repository.list(project_id=project) == []
+                    repository.grant_project(manifest.id, project)
+                    assert repository.list(project_id=project) == [manifest]
+                    repository.grant_project(
+                        manifest.id, project, datetime(2020, 1, 1, tzinfo=timezone.utc)
+                    )
+                    assert repository.list(project_id=project) == []
+                    repository.grant_project(manifest.id, project)
+                    repository.revoke_project(manifest.id, project)
+                    assert repository.list(project_id=project) == []
+                    with pytest.raises(DBAPIError), session.begin_nested():
+                        repository.grant_project(manifest.id, uuid4())
                     with pytest.raises(ValueError):
                         repository.add(
                             manifest.model_copy(
