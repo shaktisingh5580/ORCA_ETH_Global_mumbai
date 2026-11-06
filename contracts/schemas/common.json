@@ -27,6 +27,21 @@
       "title": "APIMetadata",
       "type": "object"
     },
+    "AcceptInvitation": {
+      "additionalProperties": false,
+      "properties": {
+        "accept": {
+          "const": true,
+          "title": "Accept",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "accept"
+      ],
+      "title": "AcceptInvitation",
+      "type": "object"
+    },
     "AccessDecision": {
       "additionalProperties": false,
       "properties": {
@@ -68,6 +83,87 @@
         "evaluated_at"
       ],
       "title": "AccessDecision",
+      "type": "object"
+    },
+    "AccessGrant": {
+      "additionalProperties": false,
+      "properties": {
+        "etag": {
+          "title": "Etag",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "principal_ref": {
+          "$ref": "#/$defs/PrincipalRef"
+        },
+        "resource_ref": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "revoked": {
+          "title": "Revoked",
+          "type": "boolean"
+        },
+        "scopes": {
+          "items": {
+            "const": "project:read",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "minItems": 1,
+          "title": "Scopes",
+          "type": "array"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "principal_ref",
+        "scopes",
+        "expires_at",
+        "id",
+        "version",
+        "etag",
+        "revoked"
+      ],
+      "title": "AccessGrant",
+      "type": "object"
+    },
+    "AddProjectMember": {
+      "additionalProperties": false,
+      "properties": {
+        "principal_id": {
+          "format": "uuid",
+          "title": "Principal Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "admin",
+            "editor",
+            "reviewer",
+            "viewer"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "principal_id",
+        "role"
+      ],
+      "title": "AddProjectMember",
       "type": "object"
     },
     "Capability": {
@@ -194,6 +290,97 @@
       "title": "ChainReference",
       "type": "object"
     },
+    "CompleteUpload": {
+      "additionalProperties": false,
+      "properties": {
+        "part_etags": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Part Etags",
+          "type": "array"
+        },
+        "sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sha256"
+      ],
+      "title": "CompleteUpload",
+      "type": "object"
+    },
+    "CreateInvitation": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "maxLength": 254,
+          "minLength": 3,
+          "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+          "title": "Email",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "org_owner",
+            "org_admin",
+            "principal_investigator",
+            "researcher",
+            "reviewer",
+            "viewer",
+            "source_operator"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "role",
+        "expires_at"
+      ],
+      "title": "CreateInvitation",
+      "type": "object"
+    },
+    "CreateOrganization": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "slug": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "visibility": {
+          "default": "private",
+          "enum": [
+            "private",
+            "public"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "slug"
+      ],
+      "title": "CreateOrganization",
+      "type": "object"
+    },
     "CreateProject": {
       "additionalProperties": false,
       "properties": {
@@ -246,6 +433,48 @@
       "title": "CreateProject",
       "type": "object"
     },
+    "DownloadIntent": {
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "purpose"
+      ],
+      "title": "DownloadIntent",
+      "type": "object"
+    },
+    "EphemeralDownload": {
+      "additionalProperties": false,
+      "properties": {
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "expires_at",
+        "sha256"
+      ],
+      "title": "EphemeralDownload",
+      "type": "object"
+    },
     "GeoScope": {
       "additionalProperties": false,
       "properties": {
@@ -294,6 +523,40 @@
       "title": "GeoScope",
       "type": "object"
     },
+    "GrantAccess": {
+      "additionalProperties": false,
+      "properties": {
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "principal_ref": {
+          "$ref": "#/$defs/PrincipalRef"
+        },
+        "resource_ref": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "scopes": {
+          "items": {
+            "const": "project:read",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "minItems": 1,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "principal_ref",
+        "scopes",
+        "expires_at"
+      ],
+      "title": "GrantAccess",
+      "type": "object"
+    },
     "IdentityReference": {
       "additionalProperties": false,
       "properties": {
@@ -317,6 +580,58 @@
       "title": "IdentityReference",
       "type": "object"
     },
+    "Invitation": {
+      "additionalProperties": false,
+      "properties": {
+        "delivery": {
+          "const": "operator_out_of_band",
+          "default": "operator_out_of_band",
+          "title": "Delivery",
+          "type": "string"
+        },
+        "email": {
+          "title": "Email",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "organization_id": {
+          "format": "uuid",
+          "title": "Organization Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "org_owner",
+            "org_admin",
+            "principal_investigator",
+            "researcher",
+            "reviewer",
+            "viewer",
+            "source_operator"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "organization_id",
+        "email",
+        "role",
+        "expires_at"
+      ],
+      "title": "Invitation",
+      "type": "object"
+    },
     "Liveness": {
       "additionalProperties": false,
       "properties": {
@@ -328,6 +643,66 @@
         }
       },
       "title": "Liveness",
+      "type": "object"
+    },
+    "Member": {
+      "additionalProperties": false,
+      "properties": {
+        "etag": {
+          "title": "Etag",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "organization_id": {
+          "format": "uuid",
+          "title": "Organization Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "org_owner",
+            "org_admin",
+            "principal_investigator",
+            "researcher",
+            "reviewer",
+            "viewer",
+            "source_operator"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "suspended",
+            "revoked"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "organization_id",
+        "subject",
+        "role",
+        "status",
+        "version",
+        "etag"
+      ],
+      "title": "Member",
       "type": "object"
     },
     "MethodRef": {
@@ -558,6 +933,143 @@
       "title": "Operation",
       "type": "object"
     },
+    "OrgPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "etag": {
+          "default": "\"1\"",
+          "title": "Etag",
+          "type": "string"
+        },
+        "max_projects": {
+          "default": 100,
+          "title": "Max Projects",
+          "type": "integer"
+        },
+        "max_upload_bytes": {
+          "default": 10485760,
+          "title": "Max Upload Bytes",
+          "type": "integer"
+        },
+        "retention_days": {
+          "default": 365,
+          "title": "Retention Days",
+          "type": "integer"
+        },
+        "scientific_validation_required": {
+          "const": true,
+          "default": true,
+          "title": "Scientific Validation Required",
+          "type": "boolean"
+        },
+        "source_license_enforcement": {
+          "const": true,
+          "default": true,
+          "title": "Source License Enforcement",
+          "type": "boolean"
+        },
+        "version": {
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "title": "OrgPolicy",
+      "type": "object"
+    },
+    "OrganizationDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "etag": {
+          "title": "Etag",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "settings": {
+          "$ref": "#/$defs/OrganizationSettings"
+        },
+        "slug": {
+          "title": "Slug",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "verification_status": {
+          "const": "unverified",
+          "default": "unverified",
+          "title": "Verification Status",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "visibility": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug",
+        "visibility",
+        "settings",
+        "version",
+        "etag",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "OrganizationDetail",
+      "type": "object"
+    },
+    "OrganizationSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "timezone": {
+          "default": "UTC",
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Timezone",
+          "type": "string"
+        }
+      },
+      "title": "OrganizationSettings",
+      "type": "object"
+    },
     "Page_ResearchProject_": {
       "additionalProperties": false,
       "properties": {
@@ -592,6 +1104,132 @@
         "next_cursor"
       ],
       "title": "Page[ResearchProject]",
+      "type": "object"
+    },
+    "PatchMember": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "anyOf": [
+            {
+              "enum": [
+                "org_owner",
+                "org_admin",
+                "principal_investigator",
+                "researcher",
+                "reviewer",
+                "viewer",
+                "source_operator"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "active",
+                "suspended",
+                "revoked"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        }
+      },
+      "title": "PatchMember",
+      "type": "object"
+    },
+    "PatchOrgPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "max_projects": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Projects"
+        },
+        "max_upload_bytes": {
+          "anyOf": [
+            {
+              "maximum": 104857600,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Upload Bytes"
+        },
+        "retention_days": {
+          "anyOf": [
+            {
+              "maximum": 3650,
+              "minimum": 30,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retention Days"
+        }
+      },
+      "title": "PatchOrgPolicy",
+      "type": "object"
+    },
+    "PatchOrganization": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Name"
+        },
+        "settings": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OrganizationSettings"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "PatchOrganization",
       "type": "object"
     },
     "PatchProject": {
@@ -644,6 +1282,47 @@
         }
       },
       "title": "PatchProject",
+      "type": "object"
+    },
+    "PatchProjectMember": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "anyOf": [
+            {
+              "enum": [
+                "admin",
+                "editor",
+                "reviewer",
+                "viewer"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "active",
+                "revoked"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        }
+      },
+      "title": "PatchProjectMember",
       "type": "object"
     },
     "Point": {
@@ -723,6 +1402,27 @@
       "title": "Polygon",
       "type": "object"
     },
+    "PrincipalRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "organization_member",
+          "default": "organization_member",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "PrincipalRef",
+      "type": "object"
+    },
     "Problem": {
       "additionalProperties": false,
       "properties": {
@@ -794,6 +1494,122 @@
         "request_id"
       ],
       "title": "Problem",
+      "type": "object"
+    },
+    "ProjectFile": {
+      "additionalProperties": false,
+      "properties": {
+        "classification": {
+          "enum": [
+            "organization",
+            "project",
+            "restricted",
+            "confidential"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "project_id": {
+          "format": "uuid",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "project_id",
+        "filename",
+        "media_type",
+        "size_bytes",
+        "sha256",
+        "classification",
+        "created_at"
+      ],
+      "title": "ProjectFile",
+      "type": "object"
+    },
+    "ProjectMemberDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "etag": {
+          "title": "Etag",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "principal_id": {
+          "format": "uuid",
+          "title": "Principal Id",
+          "type": "string"
+        },
+        "project_id": {
+          "format": "uuid",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "admin",
+            "editor",
+            "reviewer",
+            "viewer"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "revoked"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "project_id",
+        "principal_id",
+        "role",
+        "status",
+        "version",
+        "etag"
+      ],
+      "title": "ProjectMemberDetail",
       "type": "object"
     },
     "ProvenanceRef": {
@@ -1384,6 +2200,119 @@
         "classification"
       ],
       "title": "UploadIntent",
+      "type": "object"
+    },
+    "UploadPart": {
+      "additionalProperties": false,
+      "properties": {
+        "headers": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Headers",
+          "type": "object"
+        },
+        "method": {
+          "const": "PUT",
+          "default": "PUT",
+          "title": "Method",
+          "type": "string"
+        },
+        "number": {
+          "const": 1,
+          "default": 1,
+          "title": "Number",
+          "type": "integer"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "headers"
+      ],
+      "title": "UploadPart",
+      "type": "object"
+    },
+    "UploadSession": {
+      "additionalProperties": false,
+      "properties": {
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "parts": {
+          "items": {
+            "$ref": "#/$defs/UploadPart"
+          },
+          "title": "Parts",
+          "type": "array"
+        },
+        "upload_id": {
+          "format": "uuid",
+          "title": "Upload Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "upload_id",
+        "parts",
+        "expires_at"
+      ],
+      "title": "UploadSession",
+      "type": "object"
+    },
+    "UploadStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "project_id": {
+          "format": "uuid",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "rejection_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rejection Code"
+        },
+        "status": {
+          "enum": [
+            "staging",
+            "pending_validation",
+            "finalized",
+            "rejected",
+            "aborted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "upload_id": {
+          "format": "uuid",
+          "title": "Upload Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "upload_id",
+        "project_id",
+        "status",
+        "filename"
+      ],
+      "title": "UploadStatus",
       "type": "object"
     }
   },

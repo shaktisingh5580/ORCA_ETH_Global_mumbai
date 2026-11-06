@@ -65,6 +65,21 @@ def main() -> int:
         )
         return 2
     static = header_errors(BACKEND) + import_errors(BACKEND / "src")
+    dispositions = json.loads(
+        (ROOT / "contracts/designed/research-route-dispositions.json").read_text(encoding="utf-8")
+    )
+    runtime = json.loads((ROOT / "contracts/openapi/orca-v1.json").read_text(encoding="utf-8"))
+    selected = [
+        (item["method"].lower(), item["path"])
+        for item in dispositions["operations"]
+        if item["phase"] == "P02" and item["disposition"] in {"CORE", "FED", "OPS"}
+    ]
+    missing_routes = [
+        f"{method.upper()} {path}"
+        for method, path in selected
+        if method not in runtime["paths"].get(path, {})
+    ]
+    static += [f"unimplemented selected P02 operation: {route}" for route in missing_routes]
     junit = OUT / "test-results.xml"
     command = [sys.executable, "-m", "pytest", "-q", f"--junitxml={junit}"]
     process = subprocess.run(command, cwd=BACKEND, capture_output=True, text=True, timeout=900)
@@ -87,7 +102,14 @@ def main() -> int:
         status, reasons = "PASS", []
     paths = [
         p
-        for folder in ("backend/src", "backend/migrations", "backend/tests", "infra")
+        for folder in (
+            "backend/src",
+            "backend/migrations",
+            "backend/tests",
+            "backend/scripts",
+            "contracts",
+            "infra",
+        )
         for p in (ROOT / folder).rglob("*")
         if p.is_file() and "__pycache__" not in p.parts
     ]
@@ -96,6 +118,8 @@ def main() -> int:
         "phase": "P02",
         "gate_id": "G02",
         "status": status,
+        "selected_operation_count": len(selected),
+        "missing_selected_operations": missing_routes,
         "reasons": reasons,
         "counts": {
             "required": len(required),

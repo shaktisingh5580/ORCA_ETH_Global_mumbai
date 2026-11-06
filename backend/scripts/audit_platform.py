@@ -75,7 +75,7 @@ def main() -> None:
             "P03 has all 16 selected handlers registered but source/QC/baseline science, permissions and deployment acceptance remain incomplete",
             "Descriptive demo computation does not implement the selected P04 anomaly method registry and scientific gates",
             "A confirmed public result reference does not implement P09 A2A, P10 ENS or the 22 P11 coordination APIs",
-            "The 109-test pass predates accelerated demo additions; it does not validate the current full platform",
+            "Historical regression passes do not establish current scientific, browser or full-platform acceptance; consult the current phase gate evidence",
         ],
         "scope_boundaries": [
             "No Marine advisory/chat/voice/general model-training expansion",

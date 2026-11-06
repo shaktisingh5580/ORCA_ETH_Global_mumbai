@@ -37,7 +37,36 @@ from orca.contracts.common import (
     SourceClock,
     TimeWindow,
 )
+from orca.contracts.files import (
+    CompleteUpload,
+    DownloadIntent,
+    EphemeralDownload,
+    ProjectFile,
+    UploadSession,
+    UploadStatus,
+)
+from orca.contracts.invitations import (
+    AcceptInvitation,
+    AccessGrant,
+    CreateInvitation,
+    GrantAccess,
+    Invitation,
+)
+from orca.contracts.organizations import (
+    CreateOrganization,
+    Member,
+    OrganizationDetail,
+    PatchMember,
+    PatchOrganization,
+)
 from orca.contracts.projects import CreateProject, PatchProject, UploadIntent
+from orca.contracts.workspace_access import (
+    AddProjectMember,
+    OrgPolicy,
+    PatchOrgPolicy,
+    PatchProjectMember,
+    ProjectMemberDetail,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 MODELS: list[type[BaseModel]] = [
@@ -64,6 +93,27 @@ MODELS: list[type[BaseModel]] = [
     CreateProject,
     PatchProject,
     UploadIntent,
+    CreateOrganization,
+    PatchOrganization,
+    OrganizationDetail,
+    Member,
+    PatchMember,
+    AddProjectMember,
+    PatchProjectMember,
+    ProjectMemberDetail,
+    OrgPolicy,
+    PatchOrgPolicy,
+    CompleteUpload,
+    UploadSession,
+    UploadStatus,
+    ProjectFile,
+    DownloadIntent,
+    EphemeralDownload,
+    CreateInvitation,
+    Invitation,
+    AcceptInvitation,
+    GrantAccess,
+    AccessGrant,
 ]
 
 
@@ -179,6 +229,32 @@ def artifacts() -> dict[str, str]:
         "typescript/orca.ts": ts,
     }
     output.update(research_scope_artifacts(ROOT, designed))
+    matrix = []
+    for path, methods in designed["paths"].items():
+        for method, proposal in methods.items():
+            if proposal.get("x-orca-phase") != "P02":
+                continue
+            actual = implemented["paths"].get(path, {}).get(method)
+            matrix.append(
+                {
+                    "method": method.upper(),
+                    "path": path,
+                    "permission": proposal.get("x-orca-permission"),
+                    "registered": actual is not None,
+                    "operation_id": actual.get("operationId") if actual else None,
+                    "request": actual.get("requestBody") if actual else None,
+                    "responses": actual.get("responses") if actual else None,
+                    "parameters": actual.get("parameters", []) if actual else [],
+                }
+            )
+    output["schemas/p02-http-matrix.json"] = encode(
+        {
+            "phase": "P02",
+            "purpose": "Generated HTTP contract matrix; registration alone is not acceptance evidence",
+            "operation_count": len(matrix),
+            "operations": sorted(matrix, key=lambda row: (row["path"], row["method"])),
+        }
+    )
     return output
 
 

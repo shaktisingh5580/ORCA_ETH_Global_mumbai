@@ -1,0 +1,1857 @@
+{
+  "operation_count": 31,
+  "operations": [
+    {
+      "method": "POST",
+      "operation_id": "accept_v1_invitations__token__accept_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "token",
+          "required": true,
+          "schema": {
+            "title": "Token",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/invitations/{token}/accept",
+      "permission": "authenticated",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AcceptInvitation"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Member"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "me_v1_me_get",
+      "parameters": [],
+      "path": "/v1/me",
+      "permission": "authenticated",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentUser"
+              }
+            }
+          },
+          "description": "Successful Response"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "organizations_v1_organizations_get",
+      "parameters": [
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "cursor",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          }
+        }
+      ],
+      "path": "/v1/organizations",
+      "permission": "org:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Page_OrganizationSummary_"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "create_organization_v1_organizations_post",
+      "parameters": [
+        {
+          "in": "header",
+          "name": "idempotency-key",
+          "required": true,
+          "schema": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency-Key",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/organizations",
+      "permission": "platform/invite-policy",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateOrganization"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationDetail"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "get_organization_v1_organizations__org_id__get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}",
+      "permission": "org:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationDetail"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "operation_id": "patch_organization_v1_organizations__org_id__patch",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}",
+      "permission": "org:write",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PatchOrganization"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationDetail"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "grants_v1_organizations__org_id__access_grants_get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "cursor",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          }
+        },
+        {
+          "in": "query",
+          "name": "resource",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource"
+          }
+        },
+        {
+          "in": "query",
+          "name": "principal",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Principal"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/access-grants",
+      "permission": "org:members",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Page_AccessGrant_"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "grant_v1_organizations__org_id__access_grants_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/access-grants",
+      "permission": "org:members",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GrantAccess"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessGrant"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "operation_id": "revoke_grant_v1_organizations__org_id__access_grants__grant_id__delete",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "grant_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Grant Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/access-grants/{grant_id}",
+      "permission": "org:members",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "204": {
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "invite_v1_organizations__org_id__invitations_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "idempotency-key",
+          "required": true,
+          "schema": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency-Key",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/invitations",
+      "permission": "org:members",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateInvitation"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Invitation"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "list_members_v1_organizations__org_id__members_get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "cursor",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          }
+        },
+        {
+          "in": "query",
+          "name": "role",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "enum": [
+                  "org_owner",
+                  "org_admin",
+                  "principal_investigator",
+                  "researcher",
+                  "reviewer",
+                  "viewer",
+                  "source_operator"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/members",
+      "permission": "org:members",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Page_Member_"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "operation_id": "delete_member_v1_organizations__org_id__members__member_id__delete",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "member_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Member Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/members/{member_id}",
+      "permission": "org:members",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "204": {
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "operation_id": "patch_member_v1_organizations__org_id__members__member_id__patch",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "member_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Member Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/members/{member_id}",
+      "permission": "org:members",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PatchMember"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Member"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "read_policy_v1_organizations__org_id__policies_get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/policies",
+      "permission": "org:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgPolicy"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "operation_id": "patch_policy_v1_organizations__org_id__policies_patch",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "org_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Org Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/organizations/{org_id}/policies",
+      "permission": "org:write",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PatchOrgPolicy"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgPolicy"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "read_file_v1_research_files__file_id__get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "file_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "File Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/files/{file_id}",
+      "permission": "project:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectFile"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "download_file_v1_research_files__file_id__download_intents_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "file_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "File Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/files/{file_id}/download-intents",
+      "permission": "project:read",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DownloadIntent"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EphemeralDownload"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "list_projects_v1_research_projects_get",
+      "parameters": [
+        {
+          "in": "query",
+          "name": "organization_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "cursor",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          }
+        }
+      ],
+      "path": "/v1/research/projects",
+      "permission": "project:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Response List Projects V1 Research Projects Get",
+                "type": "object"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "create_project_v1_research_projects_post",
+      "parameters": [
+        {
+          "in": "header",
+          "name": "idempotency-key",
+          "required": true,
+          "schema": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency-Key",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/projects",
+      "permission": "project:write",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateProject"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Response Create Project V1 Research Projects Post",
+                "type": "object"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "get_project_v1_research_projects__project_id__get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}",
+      "permission": "project:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Response Get Project V1 Research Projects  Project Id  Get",
+                "type": "object"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "operation_id": "patch_project_v1_research_projects__project_id__patch",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}",
+      "permission": "project:write",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PatchProject"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Response Patch Project V1 Research Projects  Project Id  Patch",
+                "type": "object"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "archive_project_v1_research_projects__project_id__archive_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}/archive",
+      "permission": "project:write",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Response Archive Project V1 Research Projects  Project Id  Archive Post",
+                "type": "object"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "list_files_v1_research_projects__project_id__files_get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "cursor",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          }
+        },
+        {
+          "in": "query",
+          "name": "classification",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Classification"
+          }
+        },
+        {
+          "in": "query",
+          "name": "media_type",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}/files",
+      "permission": "project:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Page_ProjectFile_"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "list_project_members_v1_research_projects__project_id__members_get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "cursor",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}/members",
+      "permission": "project:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Page_ProjectMemberDetail_"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "add_project_member_v1_research_projects__project_id__members_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}/members",
+      "permission": "project:share",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AddProjectMember"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectMemberDetail"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "operation_id": "revoke_project_member_v1_research_projects__project_id__members__member_id__delete",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "member_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Member Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}/members/{member_id}",
+      "permission": "project:share",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "204": {
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "operation_id": "patch_project_member_v1_research_projects__project_id__members__member_id__patch",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "member_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Member Id",
+            "type": "string"
+          }
+        },
+        {
+          "in": "header",
+          "name": "if-match",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "If-Match"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}/members/{member_id}",
+      "permission": "project:share",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PatchProjectMember"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectMemberDetail"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "create_upload_v1_research_projects__project_id__uploads_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/projects/{project_id}/uploads",
+      "permission": "project:write",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UploadIntent"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadSession"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "operation_id": "abort_upload_v1_research_uploads__upload_id__delete",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "upload_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Upload Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/uploads/{upload_id}",
+      "permission": "project:write",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "204": {
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "operation_id": "read_upload_v1_research_uploads__upload_id__get",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "upload_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Upload Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/uploads/{upload_id}",
+      "permission": "project:read",
+      "registered": true,
+      "request": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadStatus"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "operation_id": "complete_upload_v1_research_uploads__upload_id__complete_post",
+      "parameters": [
+        {
+          "in": "path",
+          "name": "upload_id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "title": "Upload Id",
+            "type": "string"
+          }
+        }
+      ],
+      "path": "/v1/research/uploads/{upload_id}/complete",
+      "permission": "project:write",
+      "registered": true,
+      "request": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CompleteUpload"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "202": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadStatus"
+              }
+            }
+          },
+          "description": "Successful Response"
+        },
+        "422": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          },
+          "description": "Validation Error"
+        }
+      }
+    }
+  ],
+  "phase": "P02",
+  "purpose": "Generated HTTP contract matrix; registration alone is not acceptance evidence"
+}

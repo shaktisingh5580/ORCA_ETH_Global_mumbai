@@ -346,3 +346,74 @@ chain transactions. It is an operator demo using private runtime configuration;
 it does not replace the authenticated browser/API acceptance flow or full scientific
 validation. Private `.env.demo`, `.env.arkiv` and prepared local resource IDs are
 required. On RPC failure or entity expiry it stops without claiming Arkiv success.
+
+## Project access and files (P02 completion work)
+
+Apply migrations through `0012_invitations_grants` before starting this code against
+an existing database. Cloud application requires the configured project's approved
+migration step. Organization membership does not grant access to a private project.
+Project creators receive a project admin membership; owner/admin organization roles
+retain management access. Other roles need explicit project membership, an active
+read grant, or organization-visible project access. Organization and token scopes
+still limit project roles. `principal_id` in membership/grant requests is the
+organization membership UUID returned by `/v1/organizations/{org_id}/members`.
+
+Project member edits and revocation require the current `If-Match` ETag. The last
+active project administrator cannot be removed. Project-read grants expire within
+seven days and are invalidated when the project's version changes. Cross-organization
+and dataset grants are rejected until their separate license/agreement workflow exists.
+
+To use file uploads, configure private S3 storage, set `ORCA_FILE_UPLOADS_ENABLED=true`,
+and run the durable validator alongside the API using the same ignored environment:
+
+```powershell
+backend/.venv/Scripts/python -m orca.upload_worker --env-file .env.demo
+```
+
+1. Create `/v1/research/projects/{project_id}/uploads` with filename, media type,
+   size, `sha256:<hex>` and classification. The prototype accepts UTF-8 CSV/JSON,
+   bounded by the organization upload quota and a 16 MiB processing limit.
+2. PUT the exact file bytes to `parts[0].url`, including the returned headers.
+   The signed PUT also binds Content-Length. Do not send the API bearer token to S3.
+3. POST `/v1/research/uploads/{upload_id}/complete` with the same SHA-256.
+4. Poll upload status. Only `finalized` files appear in the project file listing.
+   Validation checks actual bytes, JSON/CSV format and spreadsheet formula content;
+   it does not assert scientific fitness or general antivirus certification.
+5. POST a purpose to `/v1/research/files/{file_id}/download-intents` for an audited
+   60-second attachment URL. Committed revocation prevents new URLs; an already
+   issued URL remains usable until its expiry.
+
+File classification can only be as broad as the project's classification at upload.
+Project-classified files require project membership or an explicit current read
+grant; restricted files require project membership; confidential files require the
+uploader, a project admin, or an organization owner/admin. Making a project visible
+to its organization does not publish these more restricted files. The same filter
+applies before file-list pagination and to metadata/download requests.
+
+Pending validation survives an API/validator restart. The worker removes abandoned
+and residual staging objects after the signed upload window expires. It never
+publishes partially uploaded or rejected files. Storage must permit browser PUT
+from the exact frontend origin; API CORS settings do not configure the S3 bucket's
+separate CORS policy. NetCDF input remains in the approved scientific acquisition
+pipeline rather than the user-file validator.
+
+Invitations require `ORCA_INVITATION_SIGNING_KEY` and a verified identity-provider
+email. POST creation returns metadata, not the bearer token. The prototype uses
+deliberate operator delivery through an out-of-band channel; no email is sent:
+
+```powershell
+backend/.venv/Scripts/python backend/scripts/invitation_delivery.py --env-file .env.demo --organization-id <org-uuid> --invitation-id <invite-uuid> --operator-subject <owner-or-admin-subject>
+```
+
+That command prints a private single-use token locally. Do not capture it in logs
+or publish it. Deliver it only to the invited user. The frontend accepts it using
+`POST /v1/invitations/{token}/accept` with `{"accept":true}` and the recipient's
+Bearer session. Unverified/mismatched email, expired tokens, replay, an inactive
+inviter and automatic reactivation of existing memberships are rejected. Default
+Uvicorn invitation paths are redacted; configure equivalent redaction in any proxy.
+Changing the signing key invalidates token retrieval for existing invitations.
+
+The canonical frontend DTOs are exported in `contracts/typescript/orca.ts`, and
+implemented operations are in `contracts/openapi/orca-v1.json`. These workspace
+features do not establish scientific computation, Gemini, federation or full-platform
+readiness. Refer to the current gate evidence rather than historical demo status.

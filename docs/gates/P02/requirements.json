@@ -1,13 +1,67 @@
 {
   "phase": "P02",
   "gate_id": "G02",
-  "prerequisites": ["P01"],
+  "prerequisites": [
+    "P01"
+  ],
   "required_tests": {
-    "G02.1": ["test_empty_db_upgrade_head", "test_upgrade_from_prior_revision", "test_postgis_extension_and_indexes", "test_fk_check_tenant_safely", "test_schema_no_old_tables_assumed"],
-    "G02.2": ["test_valid_local_issuer_token", "test_valid_supabase_es256_token", "test_wrong_issuer_audience_signature_kid", "test_expired_and_nbf", "test_role_scope_downgrade", "test_unknown_workspace_denied"],
-    "G02.3": ["test_two_tenant_read_write_denied", "test_cross_org_support_fk_rejected", "test_session_pool_reuse_no_leak", "test_runtime_role_bypassrls_false", "test_default_deny_no_context"],
-    "G02.4": ["test_create_once_concurrent_same_key", "test_idempotency_key_changed_body_409", "test_etag_required_428", "test_stale_edit_412", "test_last_admin_cannot_remove", "test_tenant_paginated_list"],
-    "G02.5": ["test_partial_upload_cannot_publish", "test_checksum_mismatch_reject", "test_cross_tenant_object_denied", "test_signed_url_scoped_ttl", "test_unauthorized_download_404", "test_supabase_compatible_bucket_skips_native_versioning", "test_existing_digest_object_finalizes_idempotently"]
+    "G02.1": [
+      "test_empty_db_upgrade_head",
+      "test_upgrade_from_prior_revision",
+      "test_postgis_extension_and_indexes",
+      "test_fk_check_tenant_safely",
+      "test_schema_no_old_tables_assumed"
+    ],
+    "G02.2": [
+      "test_valid_local_issuer_token",
+      "test_valid_supabase_es256_token",
+      "test_wrong_issuer_audience_signature_kid",
+      "test_expired_and_nbf",
+      "test_role_scope_downgrade",
+      "test_unknown_workspace_denied"
+    ],
+    "G02.3": [
+      "test_two_tenant_read_write_denied",
+      "test_cross_org_support_fk_rejected",
+      "test_session_pool_reuse_no_leak",
+      "test_runtime_role_bypassrls_false",
+      "test_default_deny_no_context"
+    ],
+    "G02.4": [
+      "test_create_once_concurrent_same_key",
+      "test_idempotency_key_changed_body_409",
+      "test_etag_required_428",
+      "test_stale_edit_412",
+      "test_last_admin_cannot_remove",
+      "test_tenant_paginated_list",
+      "test_organization_creation_idempotency_and_isolation",
+      "test_organization_etags_and_current_authorization",
+      "test_member_last_admin_owner_boundary_and_audit",
+      "test_private_project_hidden_until_explicit_membership_and_revocation_is_immediate",
+      "test_creator_admin_etags_last_admin_and_no_cross_tenant_grants",
+      "test_policy_versions_platform_bounds_and_real_project_quota",
+      "test_invitation_identity_binding_idempotency_and_atomic_single_use",
+      "test_explicit_read_grants_expire_revoke_and_do_not_allow_write",
+      "test_invitation_token_redaction_preserves_uvicorn_access_format"
+    ],
+    "G02.5": [
+      "test_partial_upload_cannot_publish",
+      "test_checksum_mismatch_reject",
+      "test_cross_tenant_object_denied",
+      "test_signed_url_scoped_ttl",
+      "test_unauthorized_download_404",
+      "test_supabase_compatible_bucket_skips_native_versioning",
+      "test_existing_digest_object_finalizes_idempotently",
+      "test_real_upload_quarantine_validation_download_and_revoked_access",
+      "test_real_bytes_override_forged_metadata_and_bad_formats_stay_hidden",
+      "test_expired_staging_cleanup_and_retry_after_publication_rollback",
+      "test_numerical_csv_and_structured_json_are_accepted",
+      "test_file_classification_survives_project_visibility_changes"
+    ]
   },
-  "required_live_evidence": ["postgis", "runtime_rls", "object_store"]
+  "required_live_evidence": [
+    "postgis",
+    "runtime_rls",
+    "object_store"
+  ]
 }
