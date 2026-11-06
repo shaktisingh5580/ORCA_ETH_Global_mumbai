@@ -2706,6 +2706,71 @@
         "title": "ProjectMemberDetail",
         "type": "object"
       },
+      "PrototypeConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": {
+            "title": "Baseline",
+            "type": "string"
+          },
+          "gemini_configured": {
+            "title": "Gemini Configured",
+            "type": "boolean"
+          },
+          "profile": {
+            "const": "hackathon-prototype",
+            "default": "hackathon-prototype",
+            "title": "Profile",
+            "type": "string"
+          },
+          "showcase_available": {
+            "title": "Showcase Available",
+            "type": "boolean"
+          },
+          "source_mode": {
+            "const": "real",
+            "default": "real",
+            "title": "Source Mode",
+            "type": "string"
+          },
+          "study": {
+            "title": "Study",
+            "type": "string"
+          },
+          "supabase_anon_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supabase Anon Key"
+          },
+          "supabase_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supabase Url"
+          }
+        },
+        "required": [
+          "supabase_url",
+          "supabase_anon_key",
+          "gemini_configured",
+          "study",
+          "baseline",
+          "showcase_available"
+        ],
+        "title": "PrototypeConfig",
+        "type": "object"
+      },
       "PrototypePlan": {
         "additionalProperties": false,
         "properties": {
@@ -6229,9 +6294,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Public Config V1 Prototype Config Get",
-                  "type": "object"
+                  "$ref": "#/components/schemas/PrototypeConfig"
                 }
               }
             },
@@ -6340,6 +6403,64 @@
         ]
       }
     },
+    "/v1/prototype/investigations/{investigation_id}": {
+      "get": {
+        "operationId": "read_investigation_v1_prototype_investigations__investigation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Investigation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Read Investigation",
+        "tags": [
+          "hackathon research workflow"
+        ]
+      }
+    },
     "/v1/prototype/investigations/{investigation_id}/approve": {
       "post": {
         "operationId": "approve_v1_prototype_investigations__investigation_id__approve_post",
@@ -6420,6 +6541,23 @@
               "format": "uuid",
               "title": "Project Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "investigation_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Investigation Id"
             }
           }
         ],
