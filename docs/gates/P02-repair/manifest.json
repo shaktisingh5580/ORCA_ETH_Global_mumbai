@@ -1,0 +1,26 @@
+{
+  "phase": "P02 completion repair",
+  "status": "COMPONENT_REGRESSIONS_PASS",
+  "full_G02_pass": false,
+  "counts": {
+    "collected": 117,
+    "passed": 117,
+    "failed": 0,
+    "skipped": 0
+  },
+  "services": "Isolated local PostgreSQL and S3; no Supabase production reset",
+  "cloud_migration_0010_applied": false,
+  "selected_route_coverage": {
+    "P02_registered": 13,
+    "P02_selected": 31,
+    "platform_registered": 33,
+    "platform_selected": 165
+  },
+  "evidence_hashes": {
+    "clean-install.txt": "5911b4b15dd8f68ca9c2449b5d48cd8518cd6630a7d439ef26c3bd952b276fc9",
+    "regressions.txt": "dcc4c651d61a3420a0aac381bc5b7f75af06c4e374feafb5c356893fdf88be68",
+    "regressions.xml": "1a1c7c014abf90aa2aa62a6c064cec04b7cbd0f00d34e70a87d820ad4788be30",
+    "static-checks.txt": "6e60aaa58be21f8d2a710674470f87ab3fa691fdd7fc1173982b280bee088e39"
+  },
+  "remaining": "18 selected P02 routes and full phase acceptance remain; this component pass does not establish full P02 completion."
+}
