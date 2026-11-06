@@ -1,0 +1,42 @@
+{
+  "schema_version": "orca.gate-manifest/1.0",
+  "gate_id": "G00",
+  "phase": "P00",
+  "status": "NOT_STARTED",
+  "release_profile": "core-C",
+  "upstream_gate_ids": [],
+  "contract_revision": "3.1.0-proposal",
+  "migration_head": null,
+  "subphase_tests": {
+    "G00.1": [
+      "test_source_register_has_origin_checksum_and_classification",
+      "test_docs_all_local_links_resolve",
+      "test_source_conflicts_have_adrs"
+    ],
+    "G00.2": [
+      "test_scope_bounded_area_and_time",
+      "test_each_outcome_has_acceptance_metric",
+      "test_no_claim_all_legacy_demos_complete"
+    ],
+    "G00.3": [
+      "test_product_registry_unknown_ids_not_invented",
+      "test_baseline_requires_compatible_units_depth_calendar",
+      "test_license_unknown_is_not_allowed"
+    ],
+    "G00.4": [
+      "test_adr_has_alternatives_and_rejected_options",
+      "test_runtime_version_unverified_until_installed",
+      "test_safety_no_production_mock"
+    ]
+  },
+  "required_live_evidence": [],
+  "observed_live_evidence": [],
+  "command": "python tools/run_p00_gate.py",
+  "test_file": "tests/contracts/test_p00_decisions.py",
+  "limits": [
+    "P00 documentation and decision validation only",
+    "G03 requires real source and baseline access; not satisfied",
+    "No backend routes or migrations implemented",
+    "CI execution not yet configured; report is a local run"
+  ]
+}

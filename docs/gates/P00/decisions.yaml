@@ -1,0 +1,55 @@
+# Purpose: P00 decision evidence; not runtime configuration.
+{
+  "runtime": {
+    "target_python": "3.12",
+    "exact_patch": null,
+    "installed_and_locked": false,
+    "compatibility_status": "UNVERIFIED",
+    "observed_bootstrap_python": "3.10.0",
+    "lock_gate": "G01"
+  },
+  "policy": {
+    "auth": "OIDC",
+    "queue": "PostgreSQL durable leased jobs",
+    "storage": "private versioned S3 plus Postgres/PostGIS",
+    "production_mock_allowed": false,
+    "unknown_rights_allowed": false,
+    "science_by_llm": false
+  },
+  "scope_signoff": {
+    "author": "Codex",
+    "basis": "user instruction to implement first phase",
+    "kind": "recorded engineering decision; not cryptographic or human scientific signoff",
+    "adr": "docs/adr/ADR-001-initial-sst-scope.md"
+  },
+  "conflicts": [
+    {
+      "id": "missing_companions",
+      "resolution": "docs/adr/ADR-000-authority.md"
+    },
+    {
+      "id": "embedded_vs_standalone_sections",
+      "resolution": "docs/adr/ADR-000-authority.md"
+    },
+    {
+      "id": "full_phase_plan_now_present",
+      "resolution": "docs/adr/ADR-000-authority.md"
+    },
+    {
+      "id": "source_reference_now_present",
+      "resolution": "docs/adr/ADR-000-authority.md"
+    },
+    {
+      "id": "api_version_precedence",
+      "resolution": "docs/adr/ADR-000-authority.md"
+    },
+    {
+      "id": "evidence_identifier_types",
+      "resolution": "docs/adr/ADR-000-authority.md"
+    },
+    {
+      "id": "unsafe_legacy_examples",
+      "resolution": "docs/adr/ADR-000-authority.md"
+    }
+  ]
+}

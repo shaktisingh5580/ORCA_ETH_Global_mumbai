@@ -1,0 +1,27 @@
+Command: uv sync --locked --offline --no-dev --no-editable
+Using CPython 3.12.12
+Creating virtual environment at: C:\Users\shakt\AppData\Local\Temp\pytest-of-shakt\pytest-3\test_clean_install_from_lock0\clean-runtime
+Resolved 48 packages in 4ms
+Installed 19 packages in 1.26s
+ + annotated-doc==0.0.5
+ + annotated-types==0.8.0
+ + anyio==4.16.0
+ + click==8.5.0
+ + fastapi==0.162.0
+ + h11==0.16.0
+ + idna==3.20
+ + numpy==2.5.4
+ + opentelemetry-api==1.45.2
+ + orca-backend==0.1.0 (from file:///C:/Users/shakt/Downloads/newwork/backend)
+ + pydantic==2.14.3
+ + pydantic-core==2.50.4
+ + pydantic-settings==2.16.2
+ + python-dotenv==1.2.4
+ + shapely==2.2.0
+ + starlette==1.10.0
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.5
+ + uvicorn==0.54.0
+
+Installed runtime modules import in isolated mode:
+{"annotated-doc": "0.0.5", "annotated-types": "0.8.0", "anyio": "4.16.0", "click": "8.5.0", "fastapi": "0.162.0", "h11": "0.16.0", "idna": "3.20", "numpy": "2.5.4", "opentelemetry-api": "1.45.2", "orca-backend": "0.1.0", "pydantic": "2.14.3", "pydantic-settings": "2.16.2", "pydantic_core": "2.50.4", "python-dotenv": "1.2.4", "shapely": "2.2.0", "starlette": "1.10.0", "typing-inspection": "0.4.5", "typing_extensions": "4.16.0", "uvicorn": "0.54.0"}

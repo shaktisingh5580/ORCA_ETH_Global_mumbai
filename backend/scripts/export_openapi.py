@@ -111,15 +111,19 @@ def artifacts() -> dict[str, str]:
         previous = ROOT / "contracts/designed/orca-proposal.json"
         designed = json.loads(previous.read_text(encoding="utf-8"))
         inventory = ""
-    designed = designed if not source.exists() else {
-        "openapi": "3.1.0",
-        "info": {
-            "title": "ORCA design-only inventory",
-            "version": "3.1.0-proposal",
-            "description": "Not a running API. Later-phase DTO details remain to be implemented.",
-        },
-        "paths": {},
-    }
+    designed = (
+        designed
+        if not source.exists()
+        else {
+            "openapi": "3.1.0",
+            "info": {
+                "title": "ORCA design-only inventory",
+                "version": "3.1.0-proposal",
+                "description": "Not a running API. Later-phase DTO details remain to be implemented.",
+            },
+            "paths": {},
+        }
+    )
     count = 0
     for line in inventory.splitlines():
         cells = [c.strip().strip("`") for c in line.split("|")[1:-1]]

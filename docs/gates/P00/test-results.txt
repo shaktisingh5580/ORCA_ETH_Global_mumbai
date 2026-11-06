@@ -1,0 +1,21 @@
+test_adr_has_alternatives_and_rejected_options (p00_tests.P00Decisions.test_adr_has_alternatives_and_rejected_options) ... ok
+test_baseline_requires_compatible_units_depth_calendar (p00_tests.P00Decisions.test_baseline_requires_compatible_units_depth_calendar) ... ok
+test_baseline_without_calendar_policy_is_rejected (p00_tests.P00Decisions.test_baseline_without_calendar_policy_is_rejected) ... ok
+test_docs_all_local_links_resolve (p00_tests.P00Decisions.test_docs_all_local_links_resolve) ... ok
+test_each_outcome_has_acceptance_metric (p00_tests.P00Decisions.test_each_outcome_has_acceptance_metric) ... ok
+test_license_unknown_is_not_allowed (p00_tests.P00Decisions.test_license_unknown_is_not_allowed) ... ok
+test_no_claim_all_legacy_demos_complete (p00_tests.P00Decisions.test_no_claim_all_legacy_demos_complete) ... ok
+test_product_registry_unknown_ids_not_invented (p00_tests.P00Decisions.test_product_registry_unknown_ids_not_invented) ... ok
+test_runtime_version_unverified_until_installed (p00_tests.P00Decisions.test_runtime_version_unverified_until_installed) ... ok
+test_safety_no_production_mock (p00_tests.P00Decisions.test_safety_no_production_mock) ... ok
+test_scope_bounded_area_and_time (p00_tests.P00Decisions.test_scope_bounded_area_and_time) ... ok
+test_source_conflicts_have_adrs (p00_tests.P00Decisions.test_source_conflicts_have_adrs) ... ok
+test_source_register_has_origin_checksum_and_classification (p00_tests.P00Decisions.test_source_register_has_origin_checksum_and_classification) ... ok
+test_unknown_baseline_cannot_be_enabled (p00_tests.P00Decisions.test_unknown_baseline_cannot_be_enabled) ... ok
+test_unknown_license_cannot_gain_export_permission (p00_tests.P00Decisions.test_unknown_license_cannot_gain_export_permission) ... ok
+test_unknown_license_cannot_gain_ingest_permission (p00_tests.P00Decisions.test_unknown_license_cannot_gain_ingest_permission) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.112s
+
+OK

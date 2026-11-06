@@ -1,0 +1,35 @@
+# Purpose: reproduce P00/P01 checks on a clean Linux worker.
+# Behavior: acquire locked dependencies and verify committed code; local source docs stay private.
+# Refs: main_implementation plan.md P01.4; Phase: P01.
+name: Backend phase gates
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
+      UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/.cache/python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.9.30'
+      - run: uv python install 3.12.12
+      - run: uv sync --project backend --locked
+      - run: uv build --project backend --out-dir backend/dist
+      # Full G00/G01 also checks local research references intentionally excluded from Git.
+      - run: backend/.venv/bin/python backend/scripts/export_openapi.py --check
+      - run: backend/.venv/bin/python backend/scripts/check_file_headers.py
+      - run: backend/.venv/bin/python backend/scripts/check_import_boundaries.py
+      - run: backend/.venv/bin/python -m ruff check backend
+      - run: backend/.venv/bin/python -m ruff format --check backend
+      - run: backend/.venv/bin/python -m mypy backend/src backend/scripts
+      - run: backend/.venv/bin/python -m pytest -c backend/pyproject.toml backend/tests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase-gate-evidence
+          path: docs/gates/

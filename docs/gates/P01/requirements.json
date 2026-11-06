@@ -1,0 +1,38 @@
+{
+  "phase": "P01",
+  "gate_id": "G01",
+  "prerequisites": [
+    "P00"
+  ],
+  "required_tests": {
+    "G01.1": [
+      "test_clean_install_from_lock",
+      "test_import_production_graph",
+      "test_invalid_secretless_config_fails_fast",
+      "test_lint_type_format",
+      "test_no_committed_secrets"
+    ],
+    "G01.2": [
+      "test_uuid_and_id_serialization",
+      "test_timezone_required_utc",
+      "test_geojson_lon_lat_bounds",
+      "test_unknown_fields_rejected",
+      "test_problem_9457_stable_codes",
+      "test_money_decimal_string"
+    ],
+    "G01.3": [
+      "test_fixture_success_empty_partial_error_validate_contract",
+      "test_mock_harness_not_in_release_build",
+      "test_mock_runtime_imports_forbidden"
+    ],
+    "G01.4": [
+      "test_gate_no_tests_collected_fails",
+      "test_gate_required_skip_fails",
+      "test_gate_missing_prerequisite_blocks",
+      "test_gate_live_block_is_not_pass",
+      "test_openapi_export_deterministic",
+      "test_generated_ts_reproducible"
+    ]
+  },
+  "required_live_evidence": []
+}

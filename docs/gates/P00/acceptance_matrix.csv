@@ -1,0 +1,5 @@
+id,outcome,metric,owner,required_gate,status
+OUT-01,Contract and tenant foundation,Generated contract tests and two-tenant read/write/FK isolation pass,backend,G02,NOT_IMPLEMENTED
+OUT-02,Real bounded SST investigation,Real subset plus compatible baseline retained; reference numeric checks and restart/cancel tests pass,backend with scientific reviewer,G05,NOT_IMPLEMENTED
+OUT-03,Reproducible core release,Export reproduces retained result after fresh-environment restore; authorized consumer completes workflow,backend; user owns frontend,G08,NOT_IMPLEMENTED
+OUT-04,Optional federation,Separate provider keys; live ENS revoke and Arkiv multi-wallet read/write; verifier works without ORCA API,backend and provider operators,G11,NOT_IMPLEMENTED

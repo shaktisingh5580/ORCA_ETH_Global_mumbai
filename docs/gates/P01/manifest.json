@@ -1,0 +1,106 @@
+{
+  "phase": "P01",
+  "gate_id": "G01",
+  "status": "PASS",
+  "reasons": [],
+  "execution": "local; no remote CI run claimed",
+  "environment": {
+    "python": "3.12.12 (main, Feb  3 2026, 22:54:57) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "win32"
+  },
+  "commands": [
+    [
+      "uv",
+      "build",
+      "--offline",
+      "--out-dir",
+      "dist"
+    ],
+    [
+      "C:\\Users\\shakt\\Downloads\\newwork\\backend\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "--junitxml=C:\\Users\\shakt\\Downloads\\newwork\\docs\\gates\\P01\\test-results.xml"
+    ]
+  ],
+  "input_hashes": {
+    ".github/workflows/ci.yml": "b57518dbf4fa2a67e1d13302f94fd41e72727b736d512dabca9b5ea93f12cdc5",
+    "api design.md": "4384d317467d0194db36d95b41c917f2a8f83f57b1ecefa136f681097dc6a178",
+    "backend/.env.example": "d3db29979b36d98fc47691bc2a6daafc883ccba7a420b180a5e7fe7df8763941",
+    "backend/.python-version": "f01d748a75eb195e6fd73201279bfb23f09036ddd360eb3e9ff40ef042acbc8a",
+    "backend/fixtures/api/scenarios.json": "5fa1cfe578ad93ba8a47b6aed00441ece271ee0ef57cdb15702aa607717c2a27",
+    "backend/pyproject.toml": "0eca29e5ad5b5a4cc52b67be37c6aa86842e330ee84268a207b1eec401d0ca72",
+    "backend/README.md": "1e394a3408ca6e5c4005954458cfa9a859a6a5281d7917d4171982efa08bc7d5",
+    "backend/scripts/check_file_headers.py": "bad1c5aec230c3a131cdcf283e876ef3bd75150b355e970b74363b9e45dd8eee",
+    "backend/scripts/check_import_boundaries.py": "d165967c4755bddcb64af4413c9ccaf89d42baf61da7a9d598b9f8e32e36da5f",
+    "backend/scripts/export_openapi.py": "0795036f77038550dc9e45abbaef0b792a89c3302d3e031f464ab54cc2e65faf",
+    "backend/scripts/run_phase_gate.py": "0715c3442da820e3866dfc29139d1c6b35dd4e49c5d77140023683d4d49c5621",
+    "backend/src/orca/__init__.py": "0644cd50ad23ca267c5c588996c16a64ae687d45fc278968c77a1d574d5b2189",
+    "backend/src/orca/api/app.py": "95db51cb8fd26f182651c55a2e1839fc1cf25c2d38236f909650009738e06ab1",
+    "backend/src/orca/api/errors.py": "9d6595cb89b238ee2f27fccf3003e08ac6dc9002cd0a61190d75e76dacb1fe92",
+    "backend/src/orca/bootstrap.py": "06688bbfe7a7574be746f25ed3331f99923bbb4f746cc111a10c59d85a149635",
+    "backend/src/orca/config.py": "147d7350647ae162e207d6c93a381a7c69671ee748bdd5f63fa60cc2a692d309",
+    "backend/src/orca/contracts/common.py": "4c3a07c6857d47827912f32bce5786f969b9d13b5ee1e6c980e1bbcc04bb21b6",
+    "backend/tests/conftest.py": "c5baf66f0eb76501d95c26f4ffa06c905cf82522000bcf7e2a199b06b763e2b4",
+    "backend/tests/contracts/test_common_schemas.py": "6f368906220ed3dae143f43e4be4d43eee1984eb0ad41ea556b1d77520faad68",
+    "backend/tests/contracts/test_gate_and_openapi.py": "566b0aa3814918e57a11a5fedc8b21beef4cd049ca9c002442a5e09c64f501fa",
+    "backend/tests/contracts/test_mock_scenarios.py": "6633d7f8e0f608c7c7d3ea6b1b94150d2508bc38dbbdde39fdade821a5c63875",
+    "backend/tests/support/mock_server.py": "f9d2fa25b50d7a4888a157749c805ca3703c6fe34153ec10db6f6d97cfc563a9",
+    "backend/tests/unit/test_foundation.py": "46a50b81ed03041292f48b676851cb86c8a8a4273393cc93ebab0bfabd99bc7d",
+    "backend/uv.lock": "359aadba12bd18dd7c44a52caffbb00f61806dfffb58b75b95e90fb213e0a7ff",
+    "contracts/designed/orca-proposal.json": "408a454d9cfe49c663d4025cf39190a575c53d60fec891dc9ef5bd9cda1757a8",
+    "contracts/openapi/orca-v1.json": "6f24eb8e4a1b9a54c6b3d94dbee9ef3b9e0220009024ed78db794b4a87dc3027",
+    "contracts/schemas/common.json": "d80e43893eb0f85122202b0dffb8b6c95dd70b510ec9a83751ea2f465a77817e",
+    "contracts/typescript/orca.ts": "4ee37b552576fc2e34ec24395c0781c6c062512c0b6601d4c30b93b5e1e24c4d",
+    "docs/decisions/P01-contract-reconciliation.md": "d7e56394be83a4c8f905d4461fa5cb35b0e301cecb9d44a31773017ac19f0807",
+    "docs/gates/P00/manifest.json": "c7d1ca68e60f1003271b3674f50123cac57d212d55bdd47b1d8d31b2d68266b4",
+    "docs/gates/P01/requirements.json": "ee0d8d6bb965340307262e29d7f7d13dfc580743105c0f5749c5cc0eea206185",
+    "main_implementation plan.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad"
+  },
+  "source_tree_sha256": "a5789db155c7e5e4799596c81de6786c62a5ecec748746a5c0f1d93dac578a56",
+  "counts": {
+    "required": 20,
+    "collected": 23,
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0
+  },
+  "required_test_results": {
+    "test_clean_install_from_lock": "PASS",
+    "test_import_production_graph": "PASS",
+    "test_invalid_secretless_config_fails_fast": "PASS",
+    "test_lint_type_format": "PASS",
+    "test_no_committed_secrets": "PASS",
+    "test_uuid_and_id_serialization": "PASS",
+    "test_timezone_required_utc": "PASS",
+    "test_geojson_lon_lat_bounds": "PASS",
+    "test_unknown_fields_rejected": "PASS",
+    "test_problem_9457_stable_codes": "PASS",
+    "test_money_decimal_string": "PASS",
+    "test_fixture_success_empty_partial_error_validate_contract": "PASS",
+    "test_mock_harness_not_in_release_build": "PASS",
+    "test_mock_runtime_imports_forbidden": "PASS",
+    "test_gate_no_tests_collected_fails": "PASS",
+    "test_gate_required_skip_fails": "PASS",
+    "test_gate_missing_prerequisite_blocks": "PASS",
+    "test_gate_live_block_is_not_pass": "PASS",
+    "test_openapi_export_deterministic": "PASS",
+    "test_generated_ts_reproducible": "PASS"
+  },
+  "subphase_results": {
+    "G01.1": "PASS",
+    "G01.2": "PASS",
+    "G01.3": "PASS",
+    "G01.4": "PASS"
+  },
+  "evidence_hashes": {
+    "build.txt": "b9fc3ac193ea90c9091bfe0ee1ca6ee1302b53cb66ba00636a552c7238f4d7e4",
+    "clean-install.txt": "4866906b4f1469cae597c8044461fcd7360767bb7924eb40f03b2101145799b0",
+    "static-checks.txt": "e75536ab4c308779621f12c1956be9c20c034cb9c1de59e53691c3f90c1c63d0",
+    "test-results.txt": "e2af36f179ed16d720f07d9dfbe008ad7b0bde1eb86b09210376735b4d9332e7",
+    "test-results.xml": "21a289993a0f08f306da4b0cb54ae21e319e4d6f9e87dcdbca30aa902bbc711a"
+  },
+  "next_phase": "P02",
+  "generated_at": "2026-11-06T01:33:51.806619+00:00"
+}

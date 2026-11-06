@@ -1,0 +1,16 @@
+[
+  {
+    "case": "changed_source",
+    "passed": true,
+    "exit_code": 1,
+    "latest_gate_status": "FAIL",
+    "environment": "isolated temporary copy; original inputs untouched"
+  },
+  {
+    "case": "missing_test_file",
+    "passed": true,
+    "exit_code": 1,
+    "latest_gate_status": "FAIL",
+    "environment": "isolated temporary copy; original inputs untouched"
+  }
+]
