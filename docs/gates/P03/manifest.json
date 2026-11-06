@@ -7,10 +7,11 @@
     "Tenant-scoped catalog contracts, persistence and immutable versions",
     "Bounded ERDDAP retrieval and metadata parsing",
     "Local exact-byte snapshot preservation and immutable manifest persistence",
-    "Provider/product/version/variable/coverage/license and snapshot read APIs"
+    "Provider/product/version/variable/coverage/license and snapshot read APIs",
+    "Durable snapshot-request tracking, idempotency, lease recovery and fenced completion; executor pending"
   ],
   "remaining_work": [
-    "Durable source-probe and snapshot-request workflow APIs",
+    "Durable source-probe workflow APIs and snapshot acquisition executor",
     "Fitness and compatibility-check APIs",
     "Project-scoped snapshot grants and remaining selected query semantics",
     "Production object-store ingestion integration and recovery verification",
