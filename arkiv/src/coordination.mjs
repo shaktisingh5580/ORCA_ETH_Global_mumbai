@@ -31,11 +31,12 @@ export function validateRecord(envelope, publicKey) {
   if (!p || Object.keys(p).length !== acceptedFields.length || acceptedFields.some(k => !Object.hasOwn(p,k)) ||
       Object.values(p).some(v => typeof v !== "string" || Buffer.byteLength(v) > 128) ||
       !["orca.public-coordination/1.0","orca.public-coordination/2.0"].includes(p.schema_version) || p.domain !== "orca.agent-coordination/hackathon-v1" || p.audience !== "public" || p.chain_id !== "7794095" ||
-      !["task","claim","assignment","result","review","cancellation"].includes(p.kind) || !/^[0-9]+$/.test(p.assignment_generation) ||
+      !["task","claim","assignment","result","review","cancellation","evidence"].includes(p.kind) || !/^[0-9]+$/.test(p.assignment_generation) ||
       !/^sha256:[0-9a-f]{64}$/.test(p.recipe_digest) || !/^sha256:[0-9a-f]{64}$/.test(p.reference_digest) ||
       envelope.algorithm !== "Ed25519" || hash(canonicalStrings(p)) !== envelope.content_digest) throw new Error("Invalid public coordination payload");
   for (const key of ["task_id", "event_id", "actor_id", "binding_version", "subject_id"]) if (!/^[0-9a-f-]{36}$/i.test(p[key])) throw new Error("Invalid coordination identity");
-  if(p.schema_version.endsWith("/2.0") && (!["sst_reproduction","sst_review"].includes(p.capability) || !["real","synthetic_demo"].includes(p.source_mode) || !/^[a-z0-9_]{1,64}$/.test(p.region))) throw new Error("Invalid discovery/source labels");
+  if(p.schema_version.endsWith("/2.0") && (!["sst_reproduction","sst_review","research_evidence"].includes(p.capability) || !["real","synthetic_demo","uploaded"].includes(p.source_mode) || !/^[a-z0-9_]{1,64}$/.test(p.region))) throw new Error("Invalid discovery/source labels");
+  if ((p.kind === "evidence") !== (p.capability === "research_evidence")) throw new Error("Evidence attestations cannot impersonate coordination events");
   if (p.parent_key && !/^0x[0-9a-f]{64}$/i.test(p.parent_key)) throw new Error("Invalid parent key");
   const statement = { schema_version: "orca.detached-agent-signature/1.0", domain:p.domain, audience:p.audience, task_id:p.task_id, assignment_generation:p.assignment_generation, binding_version:p.binding_version, content_digest:envelope.content_digest, key_id:envelope.key_id };
   const bytes = Buffer.from(publicKey, "base64url");

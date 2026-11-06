@@ -1,0 +1,8 @@
+{
+  "phase": "A04 evidence publication increment",
+  "reason": "Preserve the working Oracle SST A2A runtime while delivering a bounded CSV/JSON reasoning demonstration",
+  "implemented_scope": ["Consent-bound immutable evidence manifest", "Real coordinator-signed Arkiv evidence record", "Tenant-scoped receipts and private review lineage"],
+  "not_claimed": ["CSV/JSON agents discovering and claiming tasks through Arkiv", "New reasoning roles executing through the existing SST A2A providers", "Independent institutional review"],
+  "dashboard_increment": "May expose the independently gated A01-A03 reasoning and A04 evidence publication features, with the above limitation visible",
+  "full_A04_status": "INCOMPLETE: tabular A2A delegation remains separate follow-up work"
+}
