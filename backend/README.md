@@ -1,6 +1,6 @@
-# ORCA P01 backend
+# ORCA research-foundation backend
 
-Python **3.12.12**; exact dependencies in `uv.lock`. No database, provider connector or scientific calculation is implemented at P01.
+Python **3.12.12**; exact dependencies in `uv.lock`. P01 is complete and P02 code is present, but G02 remains blocked until the dedicated staging PostGIS/RLS and object-store checks run. No provider connector or scientific calculation is implemented yet.
 
 From `backend/`:
 
@@ -13,9 +13,9 @@ $env:ORCA_MONITORING_TOKEN = (uv run python -c "import secrets; print(secrets.to
 uv run uvicorn orca.bootstrap:create_application --factory --host 127.0.0.1
 ```
 
-GET `/livez` and `/v1/meta` are public. GET `/readyz` requires the generated token as `Authorization: Bearer ...` and returns **503** because core G02–G08 capabilities are not implemented. This operational token does not authenticate application users; OIDC/membership work is P02. GET `/openapi.json` uses the same token unless `ORCA_DOCS_PUBLIC=true` in development. Production forbids public schema exposure. Do not put tokens in query strings.
+GET `/livez` and `/v1/meta` are public. GET `/readyz` requires the generated token as `Authorization: Bearer ...` and returns **503** while G02 lacks live evidence. This operational token does not authenticate application users. GET `/openapi.json` uses the same token unless `ORCA_DOCS_PUBLIC=true` in development. Production forbids public schema exposure. Do not put tokens in query strings.
 
-The implemented OpenAPI contains four operations. The separate design-only document inventories all 220 proposed operations with source metadata; later DTO schemas/handlers are not fabricated. Shared typed models include projects, errors, time/geometry/IDs, budgets and scientific outcome envelopes. They do not claim a working project or science endpoint.
+The runtime OpenAPI contains only implemented health/metadata and project operations. The historical design inventory preserves all 220 old operations; `contracts/designed/research-route-dispositions.json` records the exact research-only decision, and `orca-research-selected.json` contains the 165 CORE/FED/OPS design ceiling. Neither design file claims those routes are implemented. Marine companion, alerts, consumer conversations/voice and model-training routes are absent from the selected and runtime contracts.
 
 ## Frontend test harness
 

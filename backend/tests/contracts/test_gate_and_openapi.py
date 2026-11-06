@@ -91,6 +91,8 @@ def test_openapi_export_deterministic(tmp_path):
     operations = [op for path in designed["paths"].values() for op in path.values()]
     assert len(operations) == 220
     assert all(op["x-orca-implementation-status"] == "DESIGNED" for op in operations)
+    selected = json.loads(one["designed/orca-research-selected.json"])
+    assert sum(len(methods) for methods in selected["paths"].values()) == 165
     (tmp_path / "openapi/orca-v1.json").write_text("{}")
     with pytest.raises(ValueError, match="drift"):
         export(tmp_path, check=True)
@@ -129,7 +131,8 @@ def test_foundation_routes_do_not_claim_core_readiness():
         assert client.get("/readyz").headers["www-authenticate"] == "Bearer"
         ready = client.get("/readyz", headers={"Authorization": f"Bearer {token}"})
         assert ready.status_code == 503
-        assert ready.json()["blocked_gates"] == [f"G{i:02}" for i in range(2, 9)]
+        assert ready.json()["release_profile"] == "research-foundation"
+        assert ready.json()["blocked_gates"] == ["G02"]
         assert token not in ready.text
         assert client.get("/openapi.json").status_code == 401
         assert (

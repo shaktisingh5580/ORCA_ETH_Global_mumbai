@@ -1,6 +1,6 @@
-"""Purpose: serve only the four implemented P01 metadata/health operations.
-Behavior: readiness fails closed; no science, auth-for-users or provider stub routes.
-Refs: API section 3.1; docs/decisions/P01-contract-reconciliation.md; Phase: P01.
+"""Purpose: serve implemented research-foundation routes and truthful operational metadata.
+Behavior: readiness fails closed; excluded Marine/chat/training routes are never registered.
+Refs: API section 3.1; research-only guide sections 3 and 10.3; Phase: scope migration.
 """
 
 import secrets
@@ -24,7 +24,11 @@ from orca.infrastructure.db.engine import create_runtime_engine
 
 def create_app(settings: Settings) -> FastAPI:
     app = FastAPI(
-        title="ORCA P01", version="0.1.0", openapi_url=None, docs_url=None, redoc_url=None
+        title="ORCA research foundation",
+        version="0.2.0",
+        openapi_url=None,
+        docs_url=None,
+        redoc_url=None,
     )
     app.add_exception_handler(RequestValidationError, validation_error)  # type: ignore[arg-type]
     if settings.database_url:
@@ -93,8 +97,8 @@ def create_app(settings: Settings) -> FastAPI:
             return denied(request)
         body = ReadinessReport(
             components={"core_backend": "not_implemented"},
-            release_profile="core-C",
-            blocked_gates=[f"G{i:02}" for i in range(2, 9)],
+            release_profile="research-foundation",
+            blocked_gates=["G02"],
         )
         return JSONResponse(body.model_dump(mode="json"), status_code=503)
 
@@ -103,7 +107,9 @@ def create_app(settings: Settings) -> FastAPI:
     )
     def meta() -> APIMetadata:
         return APIMetadata(
-            revision="3.1.0-proposal", release_profile="P01-foundation", enabled_capabilities=[]
+            revision="3.2.0-research-scope",
+            release_profile="research-foundation",
+            enabled_capabilities=[],
         )
 
     @app.get(
