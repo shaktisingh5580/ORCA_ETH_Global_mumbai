@@ -1,0 +1,52 @@
+{
+  "id": "P03-research-scope",
+  "status": "ACCEPTED_FOR_IMPLEMENTATION",
+  "implementation_status": "NOT_STARTED",
+  "authority": "User directed implementation of the reduced research product rather than the whole historical plan.",
+  "references": [
+    "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md sections 3.4, 5, 8 and 11",
+    "main_implementation plan.md P03.1-P03.5",
+    "api design.md sections 3.4, 4.2, 7 and 8",
+    "docs/03_data_processing.md",
+    "docs/07_scientific_engine.md",
+    "docs/adr/ADR-001-initial-sst-scope.md",
+    "docs/adr/ADR-R01-research-only-scope.json"
+  ],
+  "precedence": "Research-only guide and ADR-R01 override historical feature breadth; retained wire contracts and mandatory tests remain binding.",
+  "prerequisite": "G02 PASS with current source hashes",
+  "route_manifest": "contracts/designed/research-route-dispositions.json",
+  "selected_operations": 16,
+  "deferred_operations": [
+    "GET /v1/catalog/providers/{provider_id}",
+    "GET /v1/catalog/products/{product_id}/versions/{version_id}",
+    "GET /v1/catalog/products/{product_id}/distributions",
+    "GET /v1/catalog/variable-definitions"
+  ],
+  "subphases": [
+    {"id": "P03.1", "scope": "Minimal tenant-aware scientific catalog, product versions, rights and measurement semantics for one SST product pair."},
+    {"id": "P03.2", "scope": "One ERDDAP connector with metadata-derived dimensions, approved endpoints, bounded requests and SSRF protection."},
+    {"id": "P03.3", "scope": "Exact-byte immutable snapshots, content hashes, provenance, QC and truthful availability times; preserve only where licensed."},
+    {"id": "P03.4", "scope": "Real bounded SST and compatible seasonal baseline retrieval with source rights and metadata evidence; missing evidence blocks G03."},
+    {"id": "P03.5", "scope": "Only the 16 selected catalog operations, with tenant/license-scoped access, cache keys, pagination and failure behavior."}
+  ],
+  "study": {
+    "longitude": [68, 69],
+    "latitude": [20, 21],
+    "start_inclusive": "2025-01-01T00:00:00Z",
+    "end_exclusive": "2025-02-01T00:00:00Z",
+    "coverage_verified": false,
+    "product_id": null,
+    "baseline_id": null,
+    "provider": "INCOIS ERDDAP candidate; alternatives require an explicit source ADR"
+  },
+  "not_in_this_phase": [
+    "multi-provider ingestion platform",
+    "SST numerical engine (P04)",
+    "durable investigation execution (P05)",
+    "A2A, ENSv2 and Arkiv integration (P09-P11)",
+    "chlorophyll and model-observation methods (deferred)",
+    "fisheries, alerts, consumer chat/voice, route advice and general model training (excluded)"
+  ],
+  "gate_policy": "Retain every named P03 test from the main plan. No mock substitutes for real product/baseline/rights evidence. Selected contracts are not evidence that handlers exist.",
+  "source_policy": "Preserve registered source documents byte-for-byte; this reconciliation controls implementation instead of editing historical snapshots."
+}
