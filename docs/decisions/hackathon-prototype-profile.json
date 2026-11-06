@@ -1,0 +1,30 @@
+{
+  "profile": "hackathon-prototype",
+  "authority": "Latest explicit user instruction: prioritize a complete hackathon demonstration, allow labelled mock data, modify the plan and defer production-level scope",
+  "active_plan": "HACKATHON_IMPLEMENTATION_PLAN.md",
+  "main_plan_revised": true,
+  "previous_main_plan_sha256": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
+  "original_archive": ".cache/reference-history/",
+  "phase_sequence": [
+    "H01",
+    "H02",
+    "H03",
+    "H04"
+  ],
+  "full_research_gates": "deferred, historical reports are not current prototype acceptance",
+  "retained_controls": [
+    "credentials excluded from Git",
+    "verified authentication and tenant/project access",
+    "clear real/demo labels",
+    "focused functional and numerical checks",
+    "no fake on-chain or independent-review claims"
+  ],
+  "current_phase": "H02",
+  "status": "IMPLEMENTATION_IN_PROGRESS",
+  "completed_phases": [
+    "H01"
+  ],
+  "phase_evidence": {
+    "H01": "docs/gates/HACKATHON/H01.json"
+  }
+}

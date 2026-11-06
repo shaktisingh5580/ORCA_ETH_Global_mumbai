@@ -1,0 +1,17 @@
+{
+  "id": "ADR-R02",
+  "phase": "P03.4",
+  "status": "ACCEPTED_ENGINEERING_PROBE_SCOPE_NOT_SCIENTIFIC_ACCEPTANCE",
+  "authority": "User requested completing the full research prototype; ADR-001 permits a documented bounded source/scope revision during P03",
+  "references": ["docs/adr/ADR-001-initial-sst-scope.md", "docs/07_scientific_engine.md", "main_implementation plan.md P03.4", "https://coastwatch.pfeg.noaa.gov/erddap/info/jplMURSST41/index.html", "https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1"],
+  "source": {"host": "coastwatch.pfeg.noaa.gov", "dataset": "jplMURSST41", "vendor_product": "MUR-JPL-L4-GLOB-v4.1", "variables": ["analysed_sst", "analysis_error", "mask"]},
+  "spatial_scope": {"west": 68.45, "south": 20.45, "east": 68.55, "north": 20.55, "crs": "EPSG:4326", "native_grid_stride": 1},
+  "scope_rationale": "Use the central 0.1-degree square within the original 1-degree study region at full native grid support. The earlier stride-10 access sample does not establish the regional native-grid scientific result. This narrower first benchmark bounds retrieval without pretending skipped native cells represent complete area coverage.",
+  "current_period": {"start_inclusive": "2025-01-01T00:00:00Z", "end_exclusive": "2025-02-01T00:00:00Z"},
+  "baseline_policy": {"candidate_years": [2003, 2022], "season": "January, matching Gregorian month/day", "required_complete_years": 20, "expected_days_per_year": 31, "label": "20-year product-specific seasonal reference; not a 30-year WMO climate normal"},
+  "measurement": "Same source product, foundation-SST CF semantics and units for current and baseline. No fixed-depth value is invented for foundation temperature. Missing or inconsistent metadata blocks compatibility.",
+  "qc": "Inspect source mask definitions and valid ranges before acceptance. Only finite SST with unambiguous open-sea mask and valid nonnegative source analysis-error values can qualify. L4 analysis-error is not independent uncertainty for an aggregated anomaly.",
+  "availability": "Preserve retrieval timestamps and byte identities. First observed availability is bounded by actual retrieval; historical 2025 publication/availability cannot be reconstructed from a 2026 retrieval. This is an analysis using data available at execution, not a historical-as-of replay.",
+  "rights": "Require preserved primary metadata license text and hash confirming use/preservation. Preserve JPL/NASA acknowledgment in evidence. No provider key or private source URL is required.",
+  "gate": "Probe failure, missing years/days, inconsistent grid/season/units/mask/rights or insufficient support must block G03. No baseline is fabricated and this ADR does not establish a numerical science or independent review PASS."
+}
