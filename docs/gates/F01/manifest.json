@@ -25,7 +25,7 @@
     "signed_out_overview": "PASS",
     "console_errors": 0,
     "authenticated_registered_agent_fetch": "NOT_TESTED_IN_BROWSER; existing API authorization covered in integration tests",
-    "cloud_browser": "pending deployment"
+    "cloud_browser": "PASS: deployed signed-out agent overview and Backend connected observed; authenticated fetch remains separate"
   },
   "preserved_sources": "Five critical source hashes unchanged; inventory records actual bytes",
   "not_claimed": [
@@ -38,5 +38,14 @@
   ],
   "next_phase": "F02 onboarding; no F02 implementation in this increment",
   "live_identity_preflight": "ens-preflight.json",
-  "deployed_health_baseline": "cloud-baseline.json"
+  "deployed_health_baseline": "cloud-baseline.json",
+  "deployment": {
+    "revision": "bdac4fc",
+    "dashboard": "https://orca.130.210.15.82.sslip.io/research#collaboration",
+    "health_http": 200,
+    "html_http": 200,
+    "agent_overview_asset_verified": true,
+    "schema_changes": false,
+    "rollback_image": "orca-oracle-backend:pre-f01"
+  }
 }
