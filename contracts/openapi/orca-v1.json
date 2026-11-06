@@ -85,7 +85,10 @@
             "type": "string"
           },
           "standard_name": {
-            "const": "sea_surface_temperature",
+            "enum": [
+              "sea_surface_temperature",
+              "sea_surface_foundation_temperature"
+            ],
             "title": "Standard Name",
             "type": "string"
           },
@@ -132,6 +135,61 @@
           "name"
         ],
         "title": "Capability",
+        "type": "object"
+      },
+      "CompatibilityReport": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_ref": {
+            "format": "uuid",
+            "title": "Baseline Ref",
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/FitnessCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "method_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Method Id",
+            "type": "string"
+          },
+          "scientific_validation": {
+            "const": "not_validated",
+            "default": "not_validated",
+            "title": "Scientific Validation",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "incompatible",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Version Refs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "method_id",
+          "version_refs",
+          "checks",
+          "baseline_ref"
+        ],
+        "title": "CompatibilityReport",
         "type": "object"
       },
       "Coverage": {
@@ -231,6 +289,54 @@
           "name"
         ],
         "title": "CreateProject",
+        "type": "object"
+      },
+      "DataCompatibilityRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_ref": {
+            "format": "uuid",
+            "title": "Baseline Ref",
+            "type": "string"
+          },
+          "geo_scope": {
+            "$ref": "#/components/schemas/GeoScope"
+          },
+          "method_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Method Id",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "products": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Products",
+            "type": "array"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/TimeWindow"
+          }
+        },
+        "required": [
+          "organization_id",
+          "method_id",
+          "products",
+          "baseline_ref",
+          "geo_scope",
+          "time_window"
+        ],
+        "title": "DataCompatibilityRequest",
         "type": "object"
       },
       "DatasetSnapshot": {
@@ -364,6 +470,145 @@
           "origin_uri"
         ],
         "title": "DatasetSnapshotManifest",
+        "type": "object"
+      },
+      "FitnessCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "reason"
+        ],
+        "title": "FitnessCheck",
+        "type": "object"
+      },
+      "FitnessReport": {
+        "additionalProperties": false,
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/FitnessCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "method_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Method Id",
+            "type": "string"
+          },
+          "scientific_validation": {
+            "const": "not_validated",
+            "default": "not_validated",
+            "title": "Scientific Validation",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "incompatible",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Version Refs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "method_id",
+          "version_refs",
+          "checks"
+        ],
+        "title": "FitnessReport",
+        "type": "object"
+      },
+      "FitnessRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "depth": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depth"
+          },
+          "geo_scope": {
+            "$ref": "#/components/schemas/GeoScope"
+          },
+          "method_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Method Id",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/TimeWindow"
+          },
+          "version_ref": {
+            "format": "uuid",
+            "title": "Version Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "method_id",
+          "version_ref",
+          "geo_scope",
+          "time_window"
+        ],
+        "title": "FitnessRequest",
         "type": "object"
       },
       "GeoScope": {
@@ -1039,7 +1284,8 @@
             "enum": [
               "K",
               "degree_Celsius",
-              "Degree C"
+              "Degree C",
+              "degree_C"
             ],
             "title": "Native Units",
             "type": "string"
@@ -1085,7 +1331,10 @@
             "type": "string"
           },
           "standard_name": {
-            "const": "sea_surface_temperature",
+            "enum": [
+              "sea_surface_temperature",
+              "sea_surface_foundation_temperature"
+            ],
             "title": "Standard Name",
             "type": "string"
           },
@@ -1741,6 +1990,52 @@
         "x-orca-phase": "P01"
       }
     },
+    "/v1/catalog/compatibility-checks": {
+      "post": {
+        "operationId": "compatibility_check_v1_catalog_compatibility_checks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataCompatibilityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompatibilityReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Compatibility Check",
+        "tags": [
+          "scientific metadata checks"
+        ]
+      }
+    },
     "/v1/catalog/products": {
       "get": {
         "operationId": "list_products_v1_catalog_products_get",
@@ -2058,6 +2353,64 @@
         "summary": "Product Coverage",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/v1/catalog/products/{product_id}/fitness-checks": {
+      "post": {
+        "operationId": "fitness_check_v1_catalog_products__product_id__fitness_checks_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Product Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FitnessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitnessReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Fitness Check",
+        "tags": [
+          "scientific metadata checks"
         ]
       }
     },
