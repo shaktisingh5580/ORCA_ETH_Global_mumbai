@@ -1,0 +1,293 @@
+{
+  "audit_date": "2026-11-06",
+  "scope": "Research-only federated ORCA prototype and full selected contract",
+  "method": "Exact method/path comparison of selected dispositions with generated runtime OpenAPI; component inspection is documented separately",
+  "selected_operations": 165,
+  "registered_selected_operations": 27,
+  "missing_selected_operations": 138,
+  "demo_only_operations": [
+    "POST /v1/demo/research-runs",
+    "GET /v1/demo/research-runs/{result_id}",
+    "POST /v1/demo/research-runs/{result_id}/public-export"
+  ],
+  "phases": {
+    "P01": {
+      "selected_operations": 4,
+      "registered_operations": 4,
+      "registered": [
+        "GET /livez",
+        "GET /openapi.json",
+        "GET /readyz",
+        "GET /v1/meta"
+      ],
+      "missing": [],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P02": {
+      "selected_operations": 31,
+      "registered_operations": 7,
+      "registered": [
+        "GET /v1/me",
+        "GET /v1/organizations",
+        "GET /v1/research/projects",
+        "POST /v1/research/projects",
+        "GET /v1/research/projects/{project_id}",
+        "PATCH /v1/research/projects/{project_id}",
+        "POST /v1/research/projects/{project_id}/archive"
+      ],
+      "missing": [
+        "POST /v1/invitations/{token}/accept",
+        "POST /v1/organizations",
+        "GET /v1/organizations/{org_id}",
+        "PATCH /v1/organizations/{org_id}",
+        "GET /v1/organizations/{org_id}/access-grants",
+        "POST /v1/organizations/{org_id}/access-grants",
+        "DELETE /v1/organizations/{org_id}/access-grants/{grant_id}",
+        "POST /v1/organizations/{org_id}/invitations",
+        "GET /v1/organizations/{org_id}/members",
+        "DELETE /v1/organizations/{org_id}/members/{member_id}",
+        "PATCH /v1/organizations/{org_id}/members/{member_id}",
+        "GET /v1/organizations/{org_id}/policies",
+        "PATCH /v1/organizations/{org_id}/policies",
+        "GET /v1/research/files/{file_id}",
+        "POST /v1/research/files/{file_id}/download-intents",
+        "GET /v1/research/projects/{project_id}/files",
+        "GET /v1/research/projects/{project_id}/members",
+        "POST /v1/research/projects/{project_id}/members",
+        "DELETE /v1/research/projects/{project_id}/members/{member_id}",
+        "PATCH /v1/research/projects/{project_id}/members/{member_id}",
+        "POST /v1/research/projects/{project_id}/uploads",
+        "DELETE /v1/research/uploads/{upload_id}",
+        "GET /v1/research/uploads/{upload_id}",
+        "POST /v1/research/uploads/{upload_id}/complete"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P03": {
+      "selected_operations": 16,
+      "registered_operations": 16,
+      "registered": [
+        "POST /v1/catalog/compatibility-checks",
+        "GET /v1/catalog/products",
+        "GET /v1/catalog/products/{product_id}",
+        "GET /v1/catalog/products/{product_id}/coverage",
+        "POST /v1/catalog/products/{product_id}/fitness-checks",
+        "GET /v1/catalog/products/{product_id}/licenses",
+        "GET /v1/catalog/products/{product_id}/variables",
+        "GET /v1/catalog/products/{product_id}/versions",
+        "GET /v1/catalog/providers",
+        "POST /v1/catalog/snapshot-requests",
+        "GET /v1/catalog/snapshot-requests/{request_id}",
+        "GET /v1/catalog/snapshots",
+        "GET /v1/catalog/snapshots/{snapshot_id}",
+        "GET /v1/catalog/snapshots/{snapshot_id}/manifest",
+        "POST /v1/catalog/source-probes",
+        "GET /v1/catalog/source-probes/{probe_id}"
+      ],
+      "missing": [],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P04": {
+      "selected_operations": 8,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/science/methods",
+        "GET /v1/science/methods/{method_id}",
+        "GET /v1/science/methods/{method_id}/versions/{version}",
+        "GET /v1/science/policies",
+        "GET /v1/science/quality-codebook",
+        "GET /v1/science/recipe-templates",
+        "GET /v1/science/recipe-templates/{template_id}",
+        "POST /v1/science/recipe-validations"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P05": {
+      "selected_operations": 18,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/research/investigations",
+        "POST /v1/research/investigations",
+        "GET /v1/research/investigations/{investigation_id}",
+        "PATCH /v1/research/investigations/{investigation_id}",
+        "GET /v1/research/investigations/{investigation_id}/activity",
+        "GET /v1/research/investigations/{investigation_id}/events",
+        "GET /v1/research/investigations/{investigation_id}/events/stream",
+        "GET /v1/research/investigations/{investigation_id}/outcome",
+        "GET /v1/research/investigations/{investigation_id}/plans",
+        "POST /v1/research/investigations/{investigation_id}/plans",
+        "GET /v1/research/investigations/{investigation_id}/plans/{plan_id}",
+        "POST /v1/research/investigations/{investigation_id}/plans/{plan_id}/approve",
+        "GET /v1/research/investigations/{investigation_id}/runs",
+        "POST /v1/research/investigations/{investigation_id}/runs",
+        "GET /v1/research/investigations/{investigation_id}/runs/{run_id}",
+        "POST /v1/research/investigations/{investigation_id}/runs/{run_id}/cancel",
+        "POST /v1/research/investigations/{investigation_id}/runs/{run_id}/retry",
+        "GET /v1/research/investigations/{investigation_id}/task-graph"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P06": {
+      "selected_operations": 14,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/research/artifacts/{artifact_id}",
+        "GET /v1/research/artifacts/{artifact_id}/lineage",
+        "GET /v1/research/artifacts/{artifact_id}/manifest",
+        "GET /v1/research/exports/{export_id}",
+        "POST /v1/research/exports/{export_id}/download-intents",
+        "GET /v1/research/investigations/{investigation_id}/artifacts",
+        "GET /v1/research/investigations/{investigation_id}/evidence-summary",
+        "POST /v1/research/investigations/{investigation_id}/exports",
+        "GET /v1/research/investigations/{investigation_id}/map-layers",
+        "GET /v1/research/investigations/{investigation_id}/reports",
+        "POST /v1/research/investigations/{investigation_id}/reports",
+        "GET /v1/research/map-layers/{layer_id}",
+        "POST /v1/research/map-layers/{layer_id}/access",
+        "GET /v1/research/reports/{report_id}"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P07": {
+      "selected_operations": 10,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/research/artifacts/{artifact_id}/challenges",
+        "POST /v1/research/artifacts/{artifact_id}/challenges",
+        "GET /v1/research/artifacts/{artifact_id}/reproductions",
+        "POST /v1/research/artifacts/{artifact_id}/reproductions",
+        "GET /v1/research/artifacts/{artifact_id}/reviews",
+        "POST /v1/research/artifacts/{artifact_id}/reviews",
+        "POST /v1/research/challenges/{challenge_id}/resolve",
+        "POST /v1/research/challenges/{challenge_id}/responses",
+        "GET /v1/research/reproductions/{reproduction_id}",
+        "GET /v1/research/reviews/{review_id}"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P08": {
+      "selected_operations": 12,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/admin/data-rights",
+        "GET /v1/admin/job-health",
+        "GET /v1/admin/retention",
+        "POST /v1/admin/retention/preview",
+        "GET /v1/admin/source-health",
+        "GET /v1/operations",
+        "GET /v1/operations/{operation_id}",
+        "GET /v1/organizations/{org_id}/audit-events",
+        "GET /v1/organizations/{org_id}/quotas",
+        "PATCH /v1/organizations/{org_id}/quotas",
+        "GET /v1/organizations/{org_id}/usage",
+        "GET /v1/research/projects/{project_id}/access-decisions"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P09": {
+      "selected_operations": 14,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/network/agents",
+        "POST /v1/network/agents",
+        "GET /v1/network/agents/{agent_id}",
+        "PATCH /v1/network/agents/{agent_id}",
+        "GET /v1/network/agents/{agent_id}/capabilities",
+        "POST /v1/network/agents/{agent_id}/capabilities",
+        "PATCH /v1/network/agents/{agent_id}/capabilities/{capability_id}",
+        "POST /v1/network/agents/{agent_id}/endpoint-checks",
+        "GET /v1/network/agents/{agent_id}/endpoints",
+        "POST /v1/network/agents/{agent_id}/endpoints",
+        "GET /v1/network/agents/{agent_id}/health",
+        "POST /v1/network/agents/{agent_id}/suspend",
+        "POST /v1/network/discovery",
+        "GET /v1/network/provider-onboarding/{agent_id}/checklist"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P10": {
+      "selected_operations": 16,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/identity/agent-bindings",
+        "POST /v1/identity/agent-bindings",
+        "POST /v1/identity/agent-bindings/challenges",
+        "GET /v1/identity/agent-bindings/{binding_id}",
+        "POST /v1/identity/agent-bindings/{binding_id}/revoke",
+        "POST /v1/identity/agent-bindings/{binding_id}/verify",
+        "GET /v1/identity/ens/names/{encoded_name}",
+        "POST /v1/identity/ens/permission-grants",
+        "POST /v1/identity/ens/permission-revocations",
+        "POST /v1/identity/ens/record-updates",
+        "POST /v1/identity/ens/registrations",
+        "POST /v1/identity/ens/resolutions",
+        "GET /v1/identity/ens/transactions/{transaction_id}",
+        "GET /v1/identity/institution-credentials",
+        "POST /v1/identity/institution-credentials",
+        "POST /v1/identity/institution-credentials/{credential_id}/decisions"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    },
+    "P11": {
+      "selected_operations": 22,
+      "registered_operations": 0,
+      "registered": [],
+      "missing": [
+        "GET /v1/network/arkiv/entities/{entity_key}",
+        "GET /v1/network/arkiv/indexer-status",
+        "POST /v1/network/arkiv/queries",
+        "POST /v1/network/arkiv/reconciliation-requests",
+        "GET /v1/network/arkiv/transactions/{transaction_id}",
+        "GET /v1/network/investigations/{public_task_id}/timeline",
+        "GET /v1/network/results",
+        "POST /v1/network/results",
+        "GET /v1/network/results/{result_ref_id}",
+        "GET /v1/network/reviews",
+        "POST /v1/network/reviews",
+        "GET /v1/network/tasks",
+        "POST /v1/network/tasks",
+        "GET /v1/network/tasks/{external_task_id}",
+        "GET /v1/network/tasks/{external_task_id}/a2a-sessions",
+        "GET /v1/network/tasks/{external_task_id}/assignments",
+        "POST /v1/network/tasks/{external_task_id}/assignments",
+        "GET /v1/network/tasks/{external_task_id}/claims",
+        "POST /v1/network/tasks/{external_task_id}/claims",
+        "POST /v1/network/tasks/{external_task_id}/dispatch",
+        "POST /v1/network/verifications",
+        "GET /v1/network/verifications/{verification_id}"
+      ],
+      "completion": "NOT_ESTABLISHED_BY_ROUTE_REGISTRATION"
+    }
+  },
+  "corrections": [
+    "P02's historical G02 PASS is not evidence that all 31 selected P02 operations were implemented; only 7 are registered",
+    "P03 has all 16 selected handlers registered but source/QC/baseline science, permissions and deployment acceptance remain incomplete",
+    "Descriptive demo computation does not implement the selected P04 anomaly method registry and scientific gates",
+    "A confirmed public result reference does not implement P09 A2A, P10 ENS or the 22 P11 coordination APIs",
+    "The 109-test pass predates accelerated demo additions; it does not validate the current full platform"
+  ],
+  "scope_boundaries": [
+    "No Marine advisory/chat/voice/general model-training expansion",
+    "P12 is research integration and scope regression, not the old 42 legacy operations",
+    "P13/P14 acceptance work is additional to route counts"
+  ],
+  "evidence": [
+    "docs/gates/P03/manifest.json",
+    "docs/gates/DEMO/manifest.json",
+    "docs/gates/DEMO/terminal-demo.json",
+    "docs/gates/DEMO/arkiv-publication.json"
+  ],
+  "not_verified_by_this_audit": [
+    "Frontend repository implementation",
+    "Current authenticated end-to-end browser journey",
+    "Current full automated regressions",
+    "Scientific correctness and institutional independence"
+  ]
+}
