@@ -41,3 +41,18 @@ class ObjectStore(Protocol):
     def download_url(
         self, object_key: str, authorized_tenant: str, expires_in: int = 300
     ) -> str: ...
+
+
+class ValidatingObjectStore(ObjectStore, Protocol):
+    def stage_checked(
+        self,
+        tenant: str,
+        project: str,
+        upload: str,
+        filename: str,
+        sha256: str,
+        media_type: str,
+        size: int,
+    ) -> StagedObject: ...
+    def read_checked(self, key: str, size: int, digest: str) -> bytes: ...
+    def publish(self, key: str, body: bytes, digest: str, media_type: str) -> VerifiedObject: ...
