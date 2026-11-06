@@ -1,0 +1,27 @@
+{
+  "status": "ACCEPTED_ENGINEERING_SCOPE_FOR_USER_REQUEST",
+  "phase": "F01.2",
+  "profile": "institutional collaboration prototype",
+  "preserve": [
+    "Oracle /research and Vercel contracts",
+    "Supabase records through 0018",
+    "Existing SST A2A and tabular reasoning"
+  ],
+  "original_mapping": {
+    "P09": "F02 provider registration/external A2A",
+    "P10": "F03 ENS authority",
+    "P11": "F05/F06 shared coordination",
+    "P12": "F07/F08 integrated research journey"
+  },
+  "original_core_gates": "No G03-G14 PASS inferred from prototype evidence",
+  "required_invariants": [
+    "tenant/project authorization",
+    "immutable source/results",
+    "explicit plan/correction approval",
+    "exclusive assignment generation",
+    "detached signature validation",
+    "bounded recovery"
+  ],
+  "external_gate_policy": "Missing live evidence is BLOCKED, never inferred from static implementation",
+  "runtime_feature_scope": "Read-only dashboard overview of existing registered services only; no new agent activation"
+}

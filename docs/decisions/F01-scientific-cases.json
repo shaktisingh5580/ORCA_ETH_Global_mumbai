@@ -1,0 +1,35 @@
+{
+  "phase": "F01.5",
+  "cases": [
+    {
+      "id": "synthetic-normalization",
+      "source_mode": "synthetic_demo",
+      "fixture_location": "tests/support only",
+      "expected": "26 and 28 Celsius mean 27; equivalent explicitly declared Kelvin values yield same numeric result; original files remain unchanged"
+    },
+    {
+      "id": "clean-review",
+      "expected": "Candidate 27 agrees with recomputed evidence"
+    },
+    {
+      "id": "numerical-challenge",
+      "expected": "Candidate 28 challenged then approved correction 27 agrees; preserve original"
+    },
+    {
+      "id": "semantic-challenge",
+      "status": "F06 FUTURE ACCEPTANCE",
+      "expected": "Different baseline/sample membership must produce evidence-supported finding, not forced prompt"
+    },
+    {
+      "id": "missing-evidence",
+      "expected": "Unsupported variable/causation or unavailable evidence blocks supported plan"
+    },
+    {
+      "id": "real-MUR-regression",
+      "source_mode": "real",
+      "reference": "existing immutable captured MUR source manifests and prototype tests; preserve rights/version/code hashes",
+      "qualification": "Current bounded descriptive calculation; not full anomaly/causal scientific engine"
+    }
+  ],
+  "data_policy": "No source values or credentials invented; future independent dataset rights must be verified before federation"
+}
