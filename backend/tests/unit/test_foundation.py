@@ -142,6 +142,24 @@ def test_invalid_secretless_config_fails_fast(monkeypatch):
         Settings(monitoring_token=SecretStr(token), undocumented=True)
 
 
+def test_production_requires_complete_supabase_configuration():
+    token = SecretStr(secrets.token_urlsafe(48))
+    base = {"monitoring_token": token, "environment": "production"}
+    with pytest.raises(ValidationError, match="database"):
+        Settings(**base)
+    settings = Settings(
+        **base,
+        database_url="postgresql+psycopg://runtime:secret@db.example/postgres",
+        oidc_issuer="https://project.supabase.co/auth/v1",
+        oidc_audience="authenticated",
+        oidc_jwks_url="https://project.supabase.co/auth/v1/.well-known/jwks.json",
+        object_store_endpoint="https://project.storage.supabase.co/storage/v1/s3",
+        object_store_access_key=SecretStr("access-key"),
+        object_store_secret_key=SecretStr("secret-key"),
+    )
+    assert settings.environment == "production"
+
+
 def test_lint_type_format():
     outputs = []
     for args in (

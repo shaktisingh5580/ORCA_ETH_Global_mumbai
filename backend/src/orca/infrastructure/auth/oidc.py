@@ -1,5 +1,5 @@
 """Purpose: verify externally issued OIDC access tokens with pinned claims and keys.
-Behavior: accept RS256 only, refresh JWKS on unknown kid, and never mint local tokens.
+Behavior: accept pinned asymmetric algorithms, refresh JWKS on unknown kid, and never mint tokens.
 Refs: API sections 2.2,16; main plan P02.2; Phase: P02.
 """
 
@@ -39,6 +39,7 @@ class OIDCVerifier:
         self.cache_seconds = cache_seconds
         self._keys: dict[str, PyJWK] = {}
         self._expires_at = 0.0
+        self.algorithms = ("ES256", "RS256")
 
     def _fetch(self) -> dict[str, Any]:
         with urlopen(self.jwks_url, timeout=5) as response:  # noqa: S310 - URL is pinned config
@@ -56,8 +57,13 @@ class OIDCVerifier:
             raise InvalidTokenError("JWKS contains no keys")
         parsed: dict[str, PyJWK] = {}
         for value in keys:
-            if isinstance(value, dict) and value.get("kid") and value.get("kty") == "RSA":
-                parsed[str(value["kid"])] = PyJWK.from_dict(value, algorithm="RS256")
+            if (
+                isinstance(value, dict)
+                and value.get("kid")
+                and value.get("alg") in self.algorithms
+                and value.get("kty") in {"EC", "RSA"}
+            ):
+                parsed[str(value["kid"])] = PyJWK.from_dict(value)
         if not parsed:
             raise InvalidTokenError("JWKS contains no supported keys")
         self._keys = parsed
@@ -65,7 +71,7 @@ class OIDCVerifier:
 
     def verify(self, token: str) -> Principal:
         header = jwt.get_unverified_header(token)
-        if header.get("alg") != "RS256" or not isinstance(header.get("kid"), str):
+        if header.get("alg") not in self.algorithms or not isinstance(header.get("kid"), str):
             raise InvalidTokenError("Unsupported token header")
         kid = header["kid"]
         if time.monotonic() >= self._expires_at or kid not in self._keys:
@@ -76,7 +82,7 @@ class OIDCVerifier:
         claims = jwt.decode(
             token,
             key.key,
-            algorithms=["RS256"],
+            algorithms=list(self.algorithms),
             audience=self.audience,
             issuer=self.issuer,
             options={"require": ["iss", "aud", "sub", "exp", "nbf", "iat"]},

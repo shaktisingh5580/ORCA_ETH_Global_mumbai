@@ -8,7 +8,7 @@ from typing import Any
 
 import jwt
 import pytest
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from jwt import InvalidTokenError
 
 from orca.domain.identity import Principal
@@ -26,9 +26,10 @@ def issuer() -> tuple[OIDCVerifier, Any, dict[str, Any]]:
     return OIDCVerifier(ISSUER, AUDIENCE, ISSUER + "/jwks", lambda: document), key, document
 
 
-def json_web_key(key: Any, kid: str) -> dict[str, Any]:
-    value = jwt.algorithms.RSAAlgorithm.to_jwk(key, as_dict=True)
-    value.update({"kid": kid, "use": "sig", "alg": "RS256"})
+def json_web_key(key: Any, kid: str, algorithm: str = "RS256") -> dict[str, Any]:
+    converter = jwt.algorithms.ECAlgorithm if algorithm == "ES256" else jwt.algorithms.RSAAlgorithm
+    value = converter.to_jwk(key, as_dict=True)
+    value.update({"kid": kid, "use": "sig", "alg": algorithm})
     return value
 
 
@@ -53,6 +54,28 @@ def test_valid_local_issuer_token(issuer):
     assert principal.subject == "user-123"
     assert principal.issuer == ISSUER
     assert "project:read" in principal.token_scopes
+
+
+def test_valid_supabase_es256_token():
+    key = ec.generate_private_key(ec.SECP256R1())
+    document = {"keys": [json_web_key(key.public_key(), "supabase-key", "ES256")]}
+    verifier = OIDCVerifier(ISSUER, AUDIENCE, ISSUER + "/jwks", lambda: document)
+    now = datetime.now(timezone.utc)
+    value = jwt.encode(
+        {
+            "iss": ISSUER,
+            "aud": AUDIENCE,
+            "sub": "supabase-user",
+            "iat": now,
+            "nbf": now - timedelta(seconds=1),
+            "exp": now + timedelta(minutes=5),
+            "scope": "project:read",
+        },
+        key,
+        algorithm="ES256",
+        headers={"kid": "supabase-key"},
+    )
+    assert verifier.verify(value).subject == "supabase-user"
 
 
 def test_wrong_issuer_audience_signature_kid(issuer):

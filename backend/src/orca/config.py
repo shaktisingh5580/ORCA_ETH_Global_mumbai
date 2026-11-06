@@ -42,4 +42,11 @@ class Settings(BaseSettings):
             raise ValueError(
                 "object-store endpoint and both credentials must be configured together"
             )
+        if self.environment == "production":
+            if not self.database_url:
+                raise ValueError("production requires the non-owner database URL")
+            if not all(configured_oidc):
+                raise ValueError("production requires OIDC issuer, audience and JWKS URL")
+            if not all(configured_store):
+                raise ValueError("production requires object-store endpoint and credentials")
         return self
