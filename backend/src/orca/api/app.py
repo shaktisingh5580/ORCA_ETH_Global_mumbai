@@ -18,22 +18,27 @@ from starlette.responses import Response
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
+from orca.api.routers.files import router as files_router
 from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.identity import router as identity_router
+from orca.api.routers.invitations import router as invitations_router
 from orca.api.routers.organizations import router as organizations_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
 from orca.api.routers.source_probes import router as source_probes_router
+from orca.api.routers.workspace_access import router as workspace_access_router
 from orca.config import Settings
 from orca.contracts.common import APIMetadata, Liveness, ReadinessReport
+from orca.infrastructure.auth.access_logging import install_invitation_redaction
 from orca.infrastructure.auth.oidc import OIDCVerifier
 from orca.infrastructure.auth.supabase import SupabaseVerifier
 from orca.infrastructure.db.engine import create_runtime_engine
-from orca.infrastructure.storage.composition import snapshot_store
+from orca.infrastructure.storage.composition import snapshot_store, upload_store
 
 
 def create_app(settings: Settings) -> FastAPI:
+    install_invitation_redaction()
     app = FastAPI(
         title="ORCA research foundation",
         version="0.2.0",
@@ -72,6 +77,9 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.source_probes_enabled = settings.source_probes_enabled
     app.state.acquisition_sources = settings.acquisition_sources
     app.state.organization_creation_enabled = settings.organization_creation_enabled
+    app.state.invitation_signing_key = settings.invitation_signing_key
+    if settings.file_uploads_enabled:
+        app.state.upload_store = upload_store(settings)
     if settings.research_demo_enabled:
         app.state.demo_snapshot_store = snapshot_store(settings)
     if settings.database_url:
@@ -87,6 +95,9 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(projects_router)
     app.include_router(identity_router)
     app.include_router(organizations_router)
+    app.include_router(workspace_access_router)
+    app.include_router(files_router)
+    app.include_router(invitations_router)
     app.include_router(catalog_router)
     app.include_router(fitness_router)
     app.include_router(snapshots_router)

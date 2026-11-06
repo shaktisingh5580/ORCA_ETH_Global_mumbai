@@ -10,6 +10,7 @@ from botocore.config import Config
 
 from orca.config import Settings
 from orca.infrastructure.storage.snapshot_s3 import SnapshotS3, SnapshotS3Client
+from orca.infrastructure.storage.uploads import UploadClient, ValidatedUploadStore
 
 
 def snapshot_store(settings: Settings) -> SnapshotS3:
@@ -31,3 +32,8 @@ def snapshot_store(settings: Settings) -> SnapshotS3:
         ),
     )
     return SnapshotS3(cast(SnapshotS3Client, client), settings.object_store_bucket)
+
+
+def upload_store(settings: Settings) -> ValidatedUploadStore:
+    store = snapshot_store(settings)
+    return ValidatedUploadStore(cast(UploadClient, store.client), store.bucket)

@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     source_probes_enabled: bool = False
     research_demo_enabled: bool = False
     organization_creation_enabled: bool = False
+    file_uploads_enabled: bool = False
+    invitation_signing_key: SecretStr | None = Field(default=None, min_length=32)
     acquisition_sources: tuple[SourceBinding, ...] = ()
 
     @model_validator(mode="after")
@@ -78,6 +80,8 @@ class Settings(BaseSettings):
             raise ValueError("source probes require database and approved sources")
         if self.research_demo_enabled and (not self.database_url or not all(configured_store)):
             raise ValueError("research demo requires runtime database and private storage")
+        if self.file_uploads_enabled and (not self.database_url or not all(configured_store)):
+            raise ValueError("file uploads require runtime database and private storage")
         if self.acquisition_enabled:
             if not self.database_url or not all(configured_store) or not self.acquisition_sources:
                 raise ValueError(
