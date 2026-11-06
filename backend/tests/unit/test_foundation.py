@@ -104,7 +104,9 @@ def test_clean_install_from_lock(tmp_path):
         locked.get(re.sub(r"[-_.]+", "-", name).lower()) == version
         for name, version in installed.items()
     )
-    assert "pytest" not in installed and "httpx" not in installed
+    # H04 uses httpx in the real A2A client; it is now a locked runtime dependency.
+    assert not {"pytest", "ruff", "mypy", "pytest-socket"}.intersection(installed)
+    assert installed["httpx"] == locked["httpx"]
 
 
 def test_import_production_graph():

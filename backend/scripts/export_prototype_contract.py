@@ -4,7 +4,9 @@ Refs: HACKATHON_IMPLEMENTATION_PLAN.md H03; FRONTEND_BACKEND_HANDOFF.md; Phase: 
 """
 
 import argparse
+import importlib
 import json
+import sys
 from pathlib import Path
 from uuid import UUID
 
@@ -18,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TARGET = ROOT / "contracts/openapi/orca-prototype.json"
 
 
-def contract() -> str:
+def contract(include_demo: bool = False) -> str:
     app = create_app(
         Settings(  # type: ignore[call-arg]
             _env_file=None,
@@ -36,6 +38,10 @@ def contract() -> str:
     )
     # Export the explicitly enabled handoff profile without loading private runtime identities.
     app.include_router(network_router)
+    if include_demo:
+        # Contract generation is development tooling; runtime wheels never import fixtures.
+        sys.path.insert(0, str(ROOT / "backend/tests/support"))
+        app.include_router(importlib.import_module("disagreement_demo").router)
     try:
         return json.dumps(app.openapi(), indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     finally:
@@ -45,8 +51,11 @@ def contract() -> str:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--include-demo", action="store_true")
     args = parser.parse_args()
-    value = contract()
+    if args.include_demo:
+        TARGET = ROOT / "contracts/openapi/orca-hackathon-demo.json"
+    value = contract(args.include_demo)
     if args.check:
         if not TARGET.exists() or TARGET.read_text(encoding="utf-8") != value:
             raise SystemExit("Prototype OpenAPI drift; regenerate the implemented contract")

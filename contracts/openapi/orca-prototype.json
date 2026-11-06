@@ -557,6 +557,18 @@
             "title": "Capability",
             "type": "string"
           },
+          "correction_of": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correction Of"
+          },
           "deadline_seconds": {
             "default": 3600,
             "maximum": 86400.0,
@@ -1314,6 +1326,27 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "ImportClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "entity_key": {
+            "pattern": "^0x[0-9a-fA-F]{64}$",
+            "title": "Entity Key",
+            "type": "string"
+          },
+          "provider_id": {
+            "format": "uuid",
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "entity_key"
+        ],
+        "title": "ImportClaim",
+        "type": "object"
+      },
       "Investigation": {
         "additionalProperties": false,
         "properties": {
@@ -1666,6 +1699,18 @@
             },
             "title": "Claims",
             "type": "array"
+          },
+          "correction_of": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correction Of"
           },
           "created_at": {
             "format": "date-time",
@@ -5775,6 +5820,83 @@
         ]
       }
     },
+    "/v1/network/board": {
+      "get": {
+        "operationId": "board_v1_network_board_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capability",
+            "required": true,
+            "schema": {
+              "enum": [
+                "sst_reproduction",
+                "sst_review"
+              ],
+              "title": "Capability",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source_mode",
+            "required": false,
+            "schema": {
+              "default": "real",
+              "enum": [
+                "real",
+                "synthetic_demo"
+              ],
+              "title": "Source Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Board V1 Network Board Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Board",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
     "/v1/network/config": {
       "get": {
         "operationId": "capabilities_v1_network_config_get",
@@ -6255,6 +6377,85 @@
           }
         ],
         "summary": "Claim",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}/claims/import": {
+      "post": {
+        "operationId": "import_claim_v1_network_tasks__task_id__claims_import_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportClaim"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkOperation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Import Claim",
         "tags": [
           "agent coordination"
         ]
