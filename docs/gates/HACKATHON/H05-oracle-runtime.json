@@ -1,0 +1,91 @@
+{
+  "phase": "H05",
+  "status": "ORACLE_INTERNAL_RUNTIME_PASS_PUBLIC_INGRESS_PENDING",
+  "phase_complete": false,
+  "deployed_code_commit": "bf03afd",
+  "cloud": {
+    "provider": "Oracle Cloud",
+    "architecture": "aarch64",
+    "observed_memory_gib": 5.8,
+    "observed_root_disk_gib": 45,
+    "docker_engine": "29.9.3",
+    "compose": "5.7.0",
+    "arm_image_build": "PASS",
+    "private_configuration_validation": "PASS",
+    "backend_health": "PASS",
+    "local_workers_stopped": true,
+    "local_journals_preserved": true,
+    "initial_readonly_federation_audit": {"succeeded": 6, "unfinished_or_uncertain": 0},
+    "post_stop_local_audit": "Laptop DNS resolution failed; initial audit and cloud startup check passed",
+    "source_csv_files_restored": 21
+  },
+  "http_checks_inside_vm": {
+    "GET /livez": 200,
+    "GET /v1/me without access token": 401,
+    "GET /v1/network/config": 200,
+    "OPTIONS /v1/me from configured Vercel origin": 200,
+    "allowed_origin": "https://orca-seven-phi.vercel.app"
+  },
+  "real_research": {
+    "entrypoint": "trusted operator application service with project authorization; not a browser session",
+    "run_id": "55ea4442-5a97-48de-89e5-0626129f114e",
+    "status": "succeeded",
+    "source_mode": "real",
+    "anomaly_celsius": 0.623497279140075,
+    "result_digest": "sha256:7558b490057d47b9f1330adb2066036e85467da0ab1e88ac5a67d5a8faae1197",
+    "generated_report_present": true
+  },
+  "intentional_disagreement": {
+    "entrypoint": "authorized project operator with independent worker permission rechecks",
+    "run_id": "74f32bda-8a6a-415b-922c-993a9104a900",
+    "state": "resolved",
+    "version": 6,
+    "source_mode": "synthetic_demo",
+    "publication_mode": "private",
+    "anomalies_celsius": [1.9999999999999964, 1.0, 1.0, 1.0],
+    "verdicts": ["reproduced", "challenged", "reproduced", "reproduced"],
+    "actual_A2A_tasks": [
+      "a8dd52f6-0874-49cd-9dc1-9f54c3dd86fc",
+      "b1d9b1c3-c340-4515-8853-3e959981d9e4",
+      "17c06688-ffd1-4687-8768-65e6041c73b3",
+      "29782dd9-2460-4e48-a17a-76d12e47180e"
+    ],
+    "artifact_digests": [
+      "sha256:d385195e2669c296247d356cc713a1eed05abd4b987684e289f597912dbe444a",
+      "sha256:193f05b3116aba35fdc1855abfdbb5b17bd4a887676bed4219b96bfaeaa0f299",
+      "sha256:578c30821d3f32776fd6b471ef4d05276b0f532a5a87ec05762192ac2cb60366",
+      "sha256:33795580ce3f417a973d477f83e9c048246c2a2f9a0bcd26b26cd1e1e07f2758"
+    ],
+    "same_resolved_state_and_all_four_artifacts_after_backend_restart": true,
+    "onchain_publication_claimed": false
+  },
+  "arkiv": {
+    "cloud_readonly_query": "PASS",
+    "task_id": "84410849-a102-4269-b52f-d7d3333ec626",
+    "retained_records_read": 4,
+    "truncated": false,
+    "new_cloud_chain_write_acceptance": "NOT_RUN"
+  },
+  "public_access": {
+    "intended_api_origin": "https://orca.130.210.15.82.sslip.io",
+    "public_tcp_80": "TIMED_OUT",
+    "public_tcp_443": "TIMED_OUT",
+    "public_tls_certificate": "PENDING: CA connection challenge timed out",
+    "public_api_verified": false,
+    "actual_vercel_browser_session_verified": false
+  },
+  "frontend_readonly_review": {
+    "repository": "https://github.com/vinit-singh2007/ORCA",
+    "commit": "65b9eb83812b7207060f694e2509ad123b66f364",
+    "code_changed_or_pushed": false,
+    "findings": ["Old proposal-shaped network adapters", "Missing required project query parameters", "Missing isolated disagreement API controls"],
+    "private_handoff": "ORACLE_FRONTEND_CONNECTION_HANDOFF.md"
+  },
+  "remaining": [
+    "Add public-subnet stateful ingress TCP 80 and 443",
+    "Verify actual public HTTPS and certificate issuance",
+    "Redeploy Vercel with the Oracle API origin",
+    "Reconcile frontend adapters and complete authenticated browser workflow",
+    "Optional Gemini key, external independent providers and ENS remain outside this acceptance"
+  ]
+}

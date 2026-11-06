@@ -21,6 +21,8 @@ The frontend is a separate existing Vercel application. The selected backend des
 
 No public deployment URL is claimed until the service reports Live and HTTPS checks pass. The frontend must use the resulting HTTPS backend origin, with its exact Vercel origin allowed by CORS. Private local deployment/handoff documents are excluded from this public repository by user policy; request those from the project operator.
 
+Oracle ARM build and internal runtime checks have passed: real research execution/report generation, actual private A2A disagreement/correction, historical Arkiv reads, and persistence across a backend restart. Public ingress/TLS and the authenticated Vercel browser walkthrough remain pending. See `docs/gates/HACKATHON/H05-oracle-runtime.json`; internal liveness is not a claim of public deployment acceptance.
+
 ## Reproduce the development environment
 
 Use Python 3.12.12, Node 22+, and uv 0.9.30:
