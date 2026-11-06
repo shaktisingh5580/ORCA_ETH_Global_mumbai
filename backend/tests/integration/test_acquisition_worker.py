@@ -3,10 +3,12 @@ Behavior: inject source bytes only in tests; verify failures, recovery and stale
 Refs: main implementation plan P03.3/P03.5; API 3.4; Phase: P03.
 """
 
+import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -20,10 +22,14 @@ from orca.application.acquisition_worker import (
 from orca.application.catalog import CatalogService
 from orca.application.snapshot_requests import SnapshotRequests
 from orca.application.snapshots import SnapshotRepository
+from orca.application.source_probes import SourceProbes
+from orca.contracts.acquisition import SourceBinding
 from orca.contracts.catalog import ProductVersion, ScientificProduct
 from orca.contracts.snapshot_requests import SnapshotRequest, request_digest
+from orca.contracts.source_probes import ProbeRequest
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.infrastructure.storage.snapshot_files import SnapshotFiles
+from orca.probe_worker import run_once as run_probe
 
 
 @pytest.fixture(scope="module")
@@ -180,6 +186,42 @@ def test_acquisition_atomic_publication_and_recovery(tmp_path, outcome, worker_s
                 )
         if outcome != "expired":
             assert worker.run_once() == "idle"
+        with transaction() as session:
+            probe = SourceProbes(session, tenant).create(
+                ProbeRequest(
+                    organization_id=org,
+                    provider_id="test",
+                    distribution_id=version.id,
+                    region=body.geo_scope,
+                    time_window=body.time_window,
+                ),
+                "probe",
+            )
+        metadata = json.dumps(
+            {
+                "table": {
+                    "columnNames": [
+                        "Row Type",
+                        "Variable Name",
+                        "Attribute Name",
+                        "Data Type",
+                        "Value",
+                    ],
+                    "rows": [["variable", "sst", "", "float", "time, latitude, longitude"]],
+                }
+            }
+        ).encode()
+        binding = SourceBinding(
+            tenant_id=tenant, version_id=version.id, host="coastwatch.pfeg.noaa.gov", dataset="test"
+        )
+        with patch("orca.probe_worker.ERDDAP._get", return_value=metadata):
+            assert run_probe(tenant, transaction, (binding,)) == "succeeded"
+        with transaction() as session:
+            result = SourceProbes(session, tenant).get(probe.operation.id)
+            assert result.evidence.response_bytes == len(metadata)
+            assert not result.evidence.metadata_matches_pinned_version
+            assert result.evidence.scientific_status == "not_validated"
+        assert run_probe(tenant, transaction, (binding,)) == "idle"
     finally:
         engine.dispose()
         owner.dispose()
