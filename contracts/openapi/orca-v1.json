@@ -1168,6 +1168,67 @@
         "title": "Polygon",
         "type": "object"
       },
+      "ProbeLimits": {
+        "additionalProperties": false,
+        "properties": {
+          "max_bytes": {
+            "default": 1048576,
+            "maximum": 1048576.0,
+            "minimum": 1.0,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 20,
+            "exclusiveMinimum": 0.0,
+            "maximum": 20.0,
+            "title": "Timeout Seconds",
+            "type": "number"
+          }
+        },
+        "title": "ProbeLimits",
+        "type": "object"
+      },
+      "ProbeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "distribution_id": {
+            "format": "uuid",
+            "title": "Distribution Id",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/ProbeLimits"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "region": {
+            "$ref": "#/components/schemas/GeoScope"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/TimeWindow"
+          }
+        },
+        "required": [
+          "organization_id",
+          "provider_id",
+          "distribution_id",
+          "region",
+          "time_window"
+        ],
+        "title": "ProbeRequest",
+        "type": "object"
+      },
       "ProductCoverage": {
         "additionalProperties": false,
         "properties": {
@@ -1627,6 +1688,103 @@
           "attempts"
         ],
         "title": "SnapshotRequestStatus",
+        "type": "object"
+      },
+      "SourceProbeEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "metadata_matches_pinned_version": {
+            "title": "Metadata Matches Pinned Version",
+            "type": "boolean"
+          },
+          "region_and_time_verified": {
+            "const": false,
+            "default": false,
+            "title": "Region And Time Verified",
+            "type": "boolean"
+          },
+          "response_bytes": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1048576.0,
+            "title": "Response Bytes",
+            "type": "integer"
+          },
+          "response_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Response Digest",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "scientific_status": {
+            "const": "not_validated",
+            "default": "not_validated",
+            "title": "Scientific Status",
+            "type": "string"
+          },
+          "scope": {
+            "const": "metadata_access_only",
+            "default": "metadata_access_only",
+            "title": "Scope",
+            "type": "string"
+          },
+          "variable_count": {
+            "minimum": 0.0,
+            "title": "Variable Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "response_digest",
+          "response_bytes",
+          "retrieved_at",
+          "metadata_matches_pinned_version",
+          "variable_count"
+        ],
+        "title": "SourceProbeEvidence",
+        "type": "object"
+      },
+      "SourceProbeStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceProbeEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operation": {
+            "$ref": "#/components/schemas/Operation"
+          }
+        },
+        "required": [
+          "operation",
+          "attempts",
+          "error_code",
+          "evidence"
+        ],
+        "title": "SourceProbeStatus",
         "type": "object"
       },
       "SourceProvider": {
@@ -3117,6 +3275,123 @@
         "summary": "Get Manifest",
         "tags": [
           "snapshots"
+        ]
+      }
+    },
+    "/v1/catalog/source-probes": {
+      "post": {
+        "operationId": "create_probe_v1_catalog_source_probes_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Probe",
+        "tags": [
+          "operator source probes"
+        ]
+      }
+    },
+    "/v1/catalog/source-probes/{probe_id}": {
+      "get": {
+        "operationId": "get_probe_v1_catalog_source_probes__probe_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "probe_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Probe Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceProbeStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Probe",
+        "tags": [
+          "operator source probes"
         ]
       }
     },

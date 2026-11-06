@@ -1,0 +1,12 @@
+{
+  "phase": "P03.2/P03.4/P03.5",
+  "status": "METADATA_PROBE_WORKFLOW_IMPLEMENTED",
+  "references": ["api design.md 3.4 source-probes", "main_implementation plan.md P03.2/P03.4", "Research-only scope guide section 5"],
+  "contract": "distribution_id is an operator-configured stored version UUID. Provider ID must match that version's catalog product. region/time_window are recorded request context but this initial workflow checks metadata access only. Evidence explicitly states region_and_time_verified=false and scientific_status=not_validated.",
+  "authorization": "New source_operator membership role grants source:manage, intersected with token scopes. No automatic source-management grant to researchers or administrators. Both submission and status reads require active organization membership and source:manage.",
+  "durability": "Tenant RLS, composite distribution ownership, request-hash idempotency, committed claims, 60-second lease recovery, fencing tokens and terminal publication. Transient infrastructure errors leave recoverable claims; expected provider/metadata errors publish sanitized SOURCE_PROBE_REJECTED. A successful access probe may report metadata_matches_pinned_version=false; this is source drift evidence, not scientific success.",
+  "limits": "Approved configured hosts/datasets only, no caller URL. Metadata HTTP is limited to at most 1 MiB and 20 seconds, rejects redirects/private DNS/compressed responses through existing ERDDAP transport. Operator scheduling and infrastructure rate quotas remain deployment responsibilities.",
+  "runtime": "ORCA_SOURCE_PROBES_ENABLED defaults false. Requires runtime database URL and ORCA_ACQUISITION_SOURCES bindings, without enabling snapshot acquisition or requiring S3. Run python -m orca.probe_worker --tenant UUID --watch. Configuration acknowledgement is not a worker heartbeat.",
+  "deployment": "Only isolated local migration/test execution; production Supabase unchanged.",
+  "remaining": ["Subset, QC, rights and compatible baseline scientific probes", "Full G03 mandatory inventory and runner", "Live deployment acceptance and operational quotas", "Worker heartbeat and stress testing"]
+}

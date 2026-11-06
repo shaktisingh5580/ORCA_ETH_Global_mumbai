@@ -147,3 +147,23 @@ unknowns. They cannot report overall compatibility until method/QC evidence exis
 Project-scoped grants, durable source probes and full G03 remain unfinished. See
 `docs/decisions/delivery-progress.json` for phase counts and
 `docs/decisions/P03-cloud-acquisition-and-fitness.json` for exact limitations.
+
+## Durable operator metadata probes (P03)
+
+Assign the explicit `source_operator` organization membership role to authorized
+operators and issue tokens with `source:manage`. Set `ORCA_SOURCE_PROBES_ENABLED=true`
+and the approved `ORCA_ACQUISITION_SOURCES` bindings in the API and probe worker.
+Start `python -m orca.probe_worker --tenant <tenant-uuid> --watch` using the runtime
+database URL. Snapshot acquisition and S3 configuration are not required for probes.
+
+`POST /v1/catalog/source-probes` accepts organization/provider IDs, `distribution_id`
+(the configured version UUID), region, time window and optional byte/time limits;
+it requires `Idempotency-Key`. Poll `GET /v1/catalog/source-probes/{id}` with
+`organization_id`. Requests are durable, tenant isolated and recoverable after
+expired leases. Status reads require the same operator authorization.
+
+This workflow checks metadata access. Region/time are recorded context; evidence
+explicitly says they have not been verified. Metadata drift is reported as a
+nonmatching digest. A completed access probe does not validate scientific coverage,
+source rights, QC, seasonal baselines or P03 readiness. Deploy rate quotas and
+supervise worker health before enabling it in production.
