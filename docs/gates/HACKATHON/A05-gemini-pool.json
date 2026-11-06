@@ -15,7 +15,28 @@
     "Keys remain secret; single-key config remains compatible"
   ],
   "limits": [
-    "Pool cursor is per worker process, not globally coordinated",
-    "Cloud acceptance pending rollout"
-  ]
+    "Pool cursor and cooldowns are per worker process, not globally coordinated",
+    "Institutional independence and unified tabular A2A delegation remain pending"
+  ],
+  "deployed_revision": "831673d",
+  "model": "gemini-3.1-flash-lite",
+  "live_key_checks": {
+    "slot_1": "HTTP 200, actual function call",
+    "slot_2": "HTTP 200, actual function call"
+  },
+  "cloud_run_id": "c32eeea0-c77e-403d-ac7b-4ed2b0de0999",
+  "cloud_state": "PASS",
+  "cloud_acceptance": {
+    "mean_celsius": 27,
+    "original_candidate": 28,
+    "review": "challenged",
+    "correction": "agrees",
+    "arkiv_state": "indexed",
+    "fresh_readback": true,
+    "tx_hash": "0x9abbce4dfe5341e0b9e6cc48a5e46902d12b0e96151a2100efbe0db289087e75",
+    "entity_key": "0x455f5bb430dc8b6e78c33e4b1fb608cb11888838476ed68efa1f9af1cce2e356",
+    "source_mode": "synthetic_demo",
+    "publication_kind": "coordinator_attestation_not_a2a_execution",
+    "authenticated_browser_flow_tested": false
+  }
 }
