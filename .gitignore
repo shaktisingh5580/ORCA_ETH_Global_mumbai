@@ -18,5 +18,11 @@ node_modules/
 *.md
 !/AGENTS.md
 !/backend/README.md
+!/README.md
+!/arkiv/schema.md
+!/arkiv/friction.md
+!/arkiv/reach.md
+!/arkiv/why-arkiv.md
+!/arkiv/how-you-use-arkiv.md
 /ORCA_Architecture_Diagram.tex
 backend/.tmp-*/
