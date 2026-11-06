@@ -18,6 +18,8 @@ if ($ConfigureFirewall) {
 $orcaListener = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
 if ($orcaListener) { throw 'Port 8000 already has a listener; stop the previous ORCA server before restarting' }
 $orcaArgs = @('-m','uvicorn','orca.bootstrap:create_application','--factory','--env-file',('"' + $orcaEnv + '"'),'--host','0.0.0.0','--port','8000')
+$env:OPENBLAS_NUM_THREADS='1'
+$env:OMP_NUM_THREADS='1'
 $orcaProcess = Start-Process -FilePath $orcaPython -ArgumentList $orcaArgs -WorkingDirectory $orcaRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $orcaCache 'stdout.log') -RedirectStandardError (Join-Path $orcaCache 'stderr.log') -PassThru
 @{ process_id=$orcaProcess.Id; port=8000; bind_address='0.0.0.0'; started_at=(Get-Date).ToString('o') } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $orcaCache 'server.json') -Encoding utf8
 Write-Output ('ORCA LAN server started; launcher PID ' + $orcaProcess.Id)
