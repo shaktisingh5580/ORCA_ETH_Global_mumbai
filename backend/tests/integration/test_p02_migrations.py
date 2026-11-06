@@ -145,6 +145,7 @@ def test_schema_no_old_tables_assumed():
             "SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema IN ('iam','research')"
         ).fetchall()
     assert set(rows) == {
+        ("iam", "idempotency_records"),
         ("iam", "organizations"),
         ("iam", "memberships"),
         ("research", "projects"),
