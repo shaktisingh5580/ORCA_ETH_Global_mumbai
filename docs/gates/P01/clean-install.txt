@@ -1,8 +1,8 @@
 Command: uv sync --locked --no-dev --no-install-project --offline
 Using CPython 3.12.12
-Creating virtual environment at: C:\Users\shakt\AppData\Local\Temp\pytest-of-shakt\pytest-14\test_clean_install_from_lock0\clean-runtime
-Resolved 69 packages in 4ms
-Installed 36 packages in 3.53s
+Creating virtual environment at: C:\Users\shakt\Downloads\newwork\.cache\gate-temp-p02-supabase\pytest-of-shakt\pytest-0\test_clean_install_from_lock0\clean-runtime
+Resolved 69 packages in 28ms
+Installed 36 packages in 10.30s
  + alembic==1.20.1
  + annotated-doc==0.0.5
  + annotated-types==0.8.0
@@ -40,10 +40,10 @@ Installed 36 packages in 3.53s
  + urllib3==2.8.0
  + uvicorn==0.54.0
 
-Command: uv pip install --python C:\Users\shakt\AppData\Local\Temp\pytest-of-shakt\pytest-14\test_clean_install_from_lock0\clean-runtime\Scripts\python.exe --offline --no-deps C:\Users\shakt\Downloads\newwork\backend\dist\orca_backend-0.1.0-py3-none-any.whl
-Using Python 3.12.12 environment at: C:\Users\shakt\AppData\Local\Temp\pytest-of-shakt\pytest-14\test_clean_install_from_lock0\clean-runtime
-Resolved 1 package in 17ms
-Installed 1 package in 63ms
+Command: uv pip install --python C:\Users\shakt\Downloads\newwork\.cache\gate-temp-p02-supabase\pytest-of-shakt\pytest-0\test_clean_install_from_lock0\clean-runtime\Scripts\python.exe --offline --no-deps C:\Users\shakt\Downloads\newwork\backend\dist\orca_backend-0.1.0-py3-none-any.whl
+Using Python 3.12.12 environment at: C:\Users\shakt\Downloads\newwork\.cache\gate-temp-p02-supabase\pytest-of-shakt\pytest-0\test_clean_install_from_lock0\clean-runtime
+Resolved 1 package in 95ms
+Installed 1 package in 121ms
  + orca-backend==0.1.0 (from file:///C:/Users/shakt/Downloads/newwork/backend/dist/orca_backend-0.1.0-py3-none-any.whl)
 
 Installed runtime modules import in isolated mode:

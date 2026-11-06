@@ -78,3 +78,35 @@ uv run python scripts/run_p02_gate.py
 ```
 
 The migration tests refuse a database whose name does not end in `_test`. G02 reports `BLOCKED` when these services are unavailable and never converts skipped live tests into a pass. The local cryptographic issuer tests prove verifier behavior; deployment still needs a selected issuer, audience and HTTPS JWKS URL.
+
+## Supabase production and staging
+
+ORCA supports Supabase as the managed production data layer: PostgreSQL/PostGIS,
+Auth/JWKS and the Storage S3 endpoint. The FastAPI application remains a separate
+service and must be deployed to an application host. Use two Supabase projects:
+
+- `orca-production` contains real data and is never assigned to an `ORCA_TEST_*` variable.
+- `orca-staging` is disposable integration infrastructure. P02 tests drop and rebuild
+  the `iam` and `research` schemas, so do not point them at production.
+
+Run `../infra/supabase/bootstrap.sql` once against each project with an admin/direct
+connection and a generated `runtime_password`. Run Alembic from a deployment job with
+the admin/direct or session-pooler URL. The running API receives only the custom
+`orca_runtime` role URL, which is deliberately non-owner and cannot bypass RLS.
+
+For a dedicated staging project, set the admin and runtime database URLs plus the
+explicit safety acknowledgement before running G02:
+
+```powershell
+$env:ORCA_TEST_DATABASE_PURPOSE = 'dedicated-staging'
+$env:ORCA_TEST_DATABASE_URL = '<staging admin/session-pooler URL>'
+$env:ORCA_TEST_RUNTIME_DATABASE_URL = '<staging orca_runtime session-pooler URL>'
+```
+
+Production startup additionally requires `ORCA_ENVIRONMENT=production`, the runtime
+database URL, Supabase Auth issuer/audience/JWKS URL, and Storage S3 endpoint/access
+keys. Store these in the deployment platform's secret manager; never commit or paste
+them into logs. Supabase Storage does not expose native S3 bucket versioning, so ORCA
+publishes verified objects to immutable SHA-256-addressed final keys and records the
+digest as the application-level version. Local MinIO may still enable native versions
+by constructing `S3ObjectStore(..., native_versioning=True)`.
