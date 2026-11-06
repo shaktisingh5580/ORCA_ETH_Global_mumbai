@@ -84,4 +84,13 @@ class SupabaseVerifier:
             else frozenset().union(*ROLE_SCOPES.values())
         )
         # Membership and operation role checks still run against the private database on each request.
-        return Principal(subject=subject, issuer=self.issuer, token_scopes=capabilities)
+        return Principal(
+            subject=subject,
+            issuer=self.issuer,
+            token_scopes=capabilities,
+            verified_email=user["email"].casefold()
+            if user.get("email_confirmed_at")
+            and isinstance(user.get("email"), str)
+            and len(user["email"]) <= 254
+            else None,
+        )

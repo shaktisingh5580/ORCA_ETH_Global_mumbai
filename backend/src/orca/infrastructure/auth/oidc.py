@@ -95,5 +95,12 @@ class OIDCVerifier:
         if not isinstance(raw_scope, str):
             raise InvalidTokenError("Invalid scope")
         return Principal(
-            subject=subject, issuer=self.issuer, token_scopes=frozenset(raw_scope.split())
+            subject=subject,
+            issuer=self.issuer,
+            token_scopes=frozenset(raw_scope.split()),
+            verified_email=claims["email"].casefold()
+            if claims.get("email_verified") is True
+            and isinstance(claims.get("email"), str)
+            and len(claims["email"]) <= 254
+            else None,
         )

@@ -55,6 +55,7 @@ class Principal:
     subject: str
     issuer: str
     token_scopes: frozenset[str]
+    verified_email: str | None = None
 
     def effective_scopes(self, roles: set[str]) -> frozenset[str]:
         allowed = frozenset().union(*(ROLE_SCOPES.get(role, frozenset()) for role in roles))
