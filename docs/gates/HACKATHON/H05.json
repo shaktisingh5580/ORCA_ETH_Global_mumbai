@@ -1,0 +1,64 @@
+{
+  "phase": "H05",
+  "status": "LOCAL_BACKEND_CHECKS_PASS_CLOUD_GATE_PENDING",
+  "phase_complete": false,
+  "deployment_live": false,
+  "browser_acceptance_passed": false,
+  "unique_selected_tests_passed": 68,
+  "test_accounting": "66 passed in broad run; its one database-reset interference error passed in sequential rerun; one additional HTTP boundary test passed. Discovery and package-isolation failures from earlier attempts were fixed and passed in the broad run.",
+  "checks": {
+    "ruff": "PASS",
+    "ruff_format": "PASS",
+    "mypy": "PASS: 109 source files",
+    "purpose_headers": "PASS",
+    "import_boundaries": "PASS",
+    "prototype_and_demo_contract_drift": "PASS",
+    "node_syntax": "PASS",
+    "backend_wheel_build": "PASS",
+    "clean_locked_runtime_install": "PASS"
+  },
+  "demonstration": {
+    "source_mode": "synthetic_demo",
+    "real_A2A_processes": true,
+    "observed_anomalies_celsius": [
+      2,
+      1,
+      1,
+      1
+    ],
+    "observed_verdicts": [
+      "reproduced",
+      "challenged",
+      "reproduced",
+      "reproduced"
+    ],
+    "original_evidence_immutable": true,
+    "test_chain_publication": false
+  },
+  "arkiv_readonly_compatibility": {
+    "task_id": "84410849-a102-4269-b52f-d7d3333ec626",
+    "records_read": 4,
+    "schema": "orca.public-coordination/1.0",
+    "truncated": false
+  },
+  "not_claimed": [
+    "Render deployment",
+    "Container startup acceptance",
+    "Actual Vercel browser walkthrough",
+    "Live v2 discovery/import smoke test",
+    "Live synthetic-chain publication",
+    "ENS verification",
+    "External independent operators"
+  ],
+  "remaining": [
+    "Local Docker daemon did not respond to build or image-inspect commands; only those task CLI processes were stopped",
+    "Render sign-in and paid-resource estimate approval",
+    "Cloud cutover drain and signing-journal preservation",
+    "Exact Vercel origin and authenticated browser acceptance"
+  ],
+  "private_handoffs": [
+    "DISAGREEMENT_FRONTEND_HANDOFF.md",
+    "RENDER_DEPLOYMENT_HANDOFF.md"
+  ],
+  "new_database_migration_required": false
+}
