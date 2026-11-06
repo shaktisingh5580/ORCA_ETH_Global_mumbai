@@ -22,6 +22,7 @@ from orca.api.routers.files import router as files_router
 from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.identity import router as identity_router
 from orca.api.routers.invitations import router as invitations_router
+from orca.api.routers.network import router as network_router
 from orca.api.routers.organizations import router as organizations_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.prototype import router as prototype_router
@@ -35,6 +36,7 @@ from orca.infrastructure.auth.access_logging import install_invitation_redaction
 from orca.infrastructure.auth.oidc import OIDCVerifier
 from orca.infrastructure.auth.supabase import SupabaseVerifier
 from orca.infrastructure.db.engine import create_runtime_engine
+from orca.infrastructure.federation.runtime import load_runtime
 from orca.infrastructure.storage.composition import snapshot_store, upload_store
 
 
@@ -83,6 +85,8 @@ def create_app(settings: Settings) -> FastAPI:
         app.state.upload_store = upload_store(settings)
     if settings.prototype_enabled:
         app.state.prototype_settings = settings
+    if settings.network_enabled:
+        app.state.network_runtime = load_runtime(settings)
     if settings.research_demo_enabled:
         app.state.demo_snapshot_store = snapshot_store(settings)
     if settings.database_url:
@@ -110,6 +114,8 @@ def create_app(settings: Settings) -> FastAPI:
         app.include_router(demo_router)
     if settings.prototype_enabled:
         app.include_router(prototype_router)
+    if settings.network_enabled:
+        app.include_router(network_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:
