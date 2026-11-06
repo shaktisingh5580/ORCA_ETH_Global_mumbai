@@ -13,8 +13,11 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from orca.application.catalog import CatalogService
+from orca.application.projects import IdempotencyConflict
+from orca.application.snapshot_requests import SnapshotRequests
 from orca.application.snapshots import SnapshotRepository
 from orca.contracts.catalog import ProductVersion, ScientificProduct
+from orca.contracts.snapshot_requests import SnapshotRequest
 from orca.contracts.snapshots import DatasetSnapshotManifest
 
 
@@ -84,6 +87,46 @@ def test_snapshot_persistence_isolation_and_immutability():
                     repository = SnapshotRepository(session, tenant)
                     repository.add(manifest)
                     assert repository.get(manifest.id) == manifest
+                    body = SnapshotRequest(
+                        organization_id=uuid4(),
+                        product_version_id=version.id,
+                        geo_scope={
+                            "type": "Point",
+                            "geometry": {"type": "Point", "coordinates": [68.5, 20.5]},
+                        },
+                        time_window={
+                            "start": "2025-01-01T00:00:00Z",
+                            "end": "2025-02-01T00:00:00Z",
+                        },
+                        variables=["sst"],
+                    )
+                    requests = SnapshotRequests(session, tenant)
+                    queued = requests.create(body, "test-key")
+                    assert requests.create(body, "test-key").operation.id == queued.operation.id
+                    with pytest.raises(IdempotencyConflict):
+                        requests.create(
+                            body.model_copy(update={"organization_id": uuid4()}), "test-key"
+                        )
+                    claim = requests.claim()
+                    assert claim is not None and requests.claim() is None
+                    assert not requests.complete(queued.operation.id, uuid4(), manifest.id)
+                    session.execute(
+                        text(
+                            "UPDATE research.snapshot_requests SET lease_until=clock_timestamp()-interval '1 second'"
+                        )
+                    )
+                    recovered = requests.claim()
+                    assert recovered is not None and recovered["attempts"] == 2
+                    assert not requests.complete(
+                        queued.operation.id, claim["lease_token"], manifest.id
+                    )
+                    assert requests.complete(
+                        queued.operation.id, recovered["lease_token"], manifest.id
+                    )
+                    assert not requests.fail(
+                        queued.operation.id, recovered["lease_token"], "SOURCE_TIMEOUT"
+                    )
+                    assert requests.get(queued.operation.id).snapshot_id == manifest.id
                     second = manifest.model_copy(update={"id": uuid4()})
                     repository.add(second)
                     ordered = sorted([manifest, second], key=lambda item: item.id)
@@ -119,6 +162,7 @@ def test_snapshot_persistence_isolation_and_immutability():
                     )
                     assert SnapshotRepository(session, other).get(manifest.id) is None
                     assert repository.get(manifest.id) is None
+                    assert SnapshotRequests(session, other).get(queued.operation.id) is None
                     assert repository.list() == []
                     session.execute(text("RESET ROLE"))
                     with pytest.raises(DBAPIError), session.begin_nested():
