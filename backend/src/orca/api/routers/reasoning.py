@@ -3,19 +3,47 @@ Behavior: use existing project authentication and return real persisted workflow
 Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A02/A05; Phase: A02.
 """
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Header, Query, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request
+from pydantic import BaseModel
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.normalization import service
+from orca.application.anchors import ResearchAnchors
 from orca.application.reasoning import ResearchReasoning
 from orca.application.review import EvidenceReview
 from orca.contracts.reasoning import ReasoningApproval, ReasoningRequest
 from orca.contracts.review import CandidateResult, CorrectionApproval
 
 router = APIRouter(prefix="/v1/projects/{project_id}/reasoning", tags=["AI research"])
+
+
+class PublicationConsent(BaseModel):
+    approve_public_reference: Literal[True]
+
+
+@router.post("/{run_id}/anchors", status_code=202)
+def publish_evidence(
+    project_id: UUID,
+    run_id: UUID,
+    body: PublicationConsent,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> dict[str, Any]:
+    if not hasattr(request.app.state, "network_runtime"):
+        raise HTTPException(503, "Arkiv publication is not configured")
+    with service(request, project_id, principal) as base:
+        return ResearchAnchors(base.session, base.tenant, base.project, principal).publish(run_id)
+
+
+@router.get("/{run_id}/anchors")
+def evidence_anchors(
+    project_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> list[dict[str, Any]]:
+    with service(request, project_id, principal) as base:
+        return ResearchAnchors(base.session, base.tenant, base.project, principal).anchors(run_id)
 
 
 @router.post("/{run_id}/reviews", status_code=202)

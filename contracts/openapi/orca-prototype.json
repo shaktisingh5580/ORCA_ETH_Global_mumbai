@@ -3662,6 +3662,20 @@
         "title": "PublicDemoResult",
         "type": "object"
       },
+      "PublicationConsent": {
+        "properties": {
+          "approve_public_reference": {
+            "const": true,
+            "title": "Approve Public Reference",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "approve_public_reference"
+        ],
+        "title": "PublicationConsent",
+        "type": "object"
+      },
       "ReadinessReport": {
         "additionalProperties": false,
         "properties": {
@@ -8285,6 +8299,137 @@
           }
         ],
         "summary": "Read",
+        "tags": [
+          "AI research"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/reasoning/{run_id}/anchors": {
+      "get": {
+        "operationId": "evidence_anchors_v1_projects__project_id__reasoning__run_id__anchors_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Evidence Anchors V1 Projects  Project Id  Reasoning  Run Id  Anchors Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Evidence Anchors",
+        "tags": [
+          "AI research"
+        ]
+      },
+      "post": {
+        "operationId": "publish_evidence_v1_projects__project_id__reasoning__run_id__anchors_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationConsent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Publish Evidence V1 Projects  Project Id  Reasoning  Run Id  Anchors Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Publish Evidence",
         "tags": [
           "AI research"
         ]
