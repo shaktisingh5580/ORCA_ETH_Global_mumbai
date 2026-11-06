@@ -40,6 +40,7 @@ function updateActions() {
   $('publish-button').disabled = state.run?.state !== 'completed' || !$('publish-consent').checked || !state.config?.arkiv_configured;
 }
 function resetProject() {
+  $('network-refresh').disabled = true; empty('network-agents','Sign in and select a project to inspect registered services.'); empty('network-profile','No network configuration loaded.');
   state.generation++; state.run = null; state.datasets = []; state.selected.clear(); state.reviews = []; state.anchors = []; lastEvents = ''; clearTimeout(state.timer);
   $('run-select').innerHTML = '<option value="">Choose an investigation</option>'; $('candidate-section').hidden = true; $('mapping-section').hidden = true;
   $('selected-count').textContent = 'No evidence selected'; $('event-count').textContent = '0 events';
@@ -60,11 +61,30 @@ async function loadProjects() {
 async function loadProject() {
   state.project = $('project').value; resetProject(); $('project-title').textContent = $('project').selectedOptions[0]?.textContent || 'Overview';
   if (!state.project) { empty('dataset-list','Create a project in your existing ORCA workspace, then sign in again.'); return; }
+  void loadNetwork();
   const version = state.generation;
   const [datasets,runs] = await Promise.all([api(`${base()}/datasets`),api(`${base()}/reasoning`)]);
   if (version !== state.generation) return;
   state.datasets = datasets; renderDatasets(); renderHistory(runs); updateActions();
   if (runs.length) await chooseRun(runs[0].id);
+}
+async function loadNetwork() {
+  const generation = state.generation;
+  const organization = $('organization').value;
+  if (!state.token || !state.project || !organization) return;
+  $('network-refresh').disabled = true;
+  empty('network-agents','Loading registered services…');
+  try {
+    const [agents, profile] = await Promise.all([api(`/v1/network/agents?organization_id=${encodeURIComponent(organization)}`),api('/v1/network/config')]);
+    if (generation !== state.generation) return;
+    if (!agents.length) empty('network-agents','No active services are registered for this organization.');
+    else fill('network-agents',agents.map(a=>`<div class="review-card"><strong>${esc(a.name)}</strong><p>${esc(a.capability)}</p>${badge(a.operator_mode)}<p class="muted">${esc(a.identity_status)}</p></div>`).join(''));
+    fill('network-profile',`<p>A2A ${esc(profile.a2a_protocol)} · ${esc(profile.chain)} (${esc(profile.chain_id)})</p><p>ENS identity: ${profile.ens_verified === true ? 'verified by configured profile' : 'not verified'}</p><p>Institutional affiliation: ${profile.institution_verified === true ? 'verified by configured profile' : 'not verified'}</p><p class="muted">Network configuration describes execution services; it does not establish scientific correctness.</p>`);
+  } catch (error) {
+    if (generation !== state.generation) return;
+    empty('network-agents',`Network unavailable: ${error.message}`);
+    empty('network-profile','The research workspace remains available. Retry the network separately.');
+  } finally { if (generation === state.generation) $('network-refresh').disabled = !state.project; }
 }
 function renderHistory(runs) {
   $('run-select').innerHTML = '<option value="">Choose an investigation</option>' + runs.map(r => `<option value="${esc(r.id)}">${esc(r.request.question.slice(0,55))} · ${esc(r.state)}</option>`).join('');
@@ -147,6 +167,7 @@ async function refreshRun() {
   finally { state.polling=false; if(state.run&&state.token){clearTimeout(state.timer);state.timer=setTimeout(refreshRun,5000);} }
 }
 function bind() {
+  $('network-refresh').onclick=()=>loadNetwork();
   $('account-button').onclick=()=>{if(state.token){state.token=null;state.refresh=null;state.project=null;resetProject();$('account-button').textContent='Sign in';$('account-state').textContent='Signed out';$('organization').disabled=true;$('project').disabled=true;empty('dataset-list','Sign in to load your evidence.');}else $('login-dialog').showModal();};
   $('login-close').onclick=()=>$('login-dialog').close();
   $('login-form').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;$('login-error').textContent='';try{const session=await authRequest('password',{email:$('email').value,password:$('password').value});$('password').value='';$('account-state').textContent=session.user.email;$('account-button').textContent='Sign out';$('login-dialog').close();await loadOrganizations();}catch(error){$('login-error').textContent=error.message;notice(error.message);}finally{button.disabled=false;}};

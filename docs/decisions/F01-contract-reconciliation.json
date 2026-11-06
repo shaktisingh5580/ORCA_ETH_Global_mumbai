@@ -1,0 +1,19 @@
+{
+  "phase": "F01.4",
+  "status": "DESIGN_FROZEN_NOT_NEW_API_DELIVERY",
+  "source_reference": {
+    "existing": "CreateNetworkTask.source_run_id refers to legacy prototype workflow",
+    "next": "Add discriminated source kind plus validated approved reasoning/task reference; migrate additively; exactly one valid source",
+    "forbidden": "Never pass reasoning UUID into legacy prototype FK"
+  },
+  "reuse": [
+    "iam organization/membership/project authorization",
+    "federation agent/task/claim/assignment/operation records",
+    "reasoning run and immutable review records",
+    "durable Arkiv writer/outbox patterns"
+  ],
+  "new_registry": "F02 organization-owned versions and qualification; migration number allocated at implementation",
+  "frontend": "Extend backend-owned /research; teammate Vercel frontend remains separate preserved deployment",
+  "ui_increment": "Read-only organization-authorized agent list and configured protocol; no registration API yet",
+  "proposed_routes_are_implemented": false
+}
