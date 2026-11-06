@@ -16,7 +16,9 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
     "principal_investigator": frozenset(
         {"org:read", "project:read", "project:write", "project:share"}
     ),
-    "researcher": frozenset({"org:read", "project:read", "project:write", "dataset:read"}),
+    "researcher": frozenset(
+        {"org:read", "project:read", "project:write", "dataset:read", "research:plan"}
+    ),
     "reviewer": frozenset({"org:read", "project:read", "dataset:read"}),
     "viewer": frozenset({"org:read", "project:read"}),
 }

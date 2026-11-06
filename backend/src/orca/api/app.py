@@ -17,6 +17,7 @@ from starlette.responses import Response
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.projects import router as projects_router
+from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
 from orca.config import Settings
 from orca.contracts.common import APIMetadata, Liveness, ReadinessReport
@@ -42,6 +43,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(projects_router)
     app.include_router(catalog_router)
     app.include_router(snapshots_router)
+    app.include_router(snapshot_requests_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:

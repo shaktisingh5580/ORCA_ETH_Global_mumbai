@@ -1,0 +1,10 @@
+{
+  "phase": "P03.5",
+  "status": "IMPLEMENTED_TRACKING_EXECUTOR_PENDING",
+  "operations": ["POST /v1/catalog/snapshot-requests", "GET /v1/catalog/snapshot-requests/{request_id}"],
+  "authorization": "Organization context must resolve through membership; submission requires research:plan in both token and server role. Status reads require dataset:read and tenant RLS.",
+  "submission": "Requires Idempotency-Key, pinned stored version, proven preservation rights and approved native variable. Typed region/time validation limits requests to 31 days. Submission returns 503 unless application state explicitly enables an acquisition worker.",
+  "durability": "Requests persist in PostgreSQL. Workers claim under SKIP LOCKED, receive expiring fencing tokens, and can recover expired leases. Late completions cannot overwrite recovered attempts. Success requires a snapshot from the same tenant and version.",
+  "pending": "Production executor configuration, source-specific geometry/index bounds, project entitlements, ingestion-result/request semantic binding, concurrency stress tests and full G03 remain unfinished.",
+  "baseline": "Deferred by user; no scientific readiness claim."
+}
