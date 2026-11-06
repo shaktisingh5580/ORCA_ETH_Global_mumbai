@@ -23,6 +23,7 @@ from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.identity import router as identity_router
 from orca.api.routers.invitations import router as invitations_router
 from orca.api.routers.network import router as network_router
+from orca.api.routers.normalization import router as normalization_router
 from orca.api.routers.organizations import router as organizations_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.prototype import router as prototype_router
@@ -114,6 +115,7 @@ def create_app(settings: Settings) -> FastAPI:
         app.include_router(demo_router)
     if settings.prototype_enabled:
         app.include_router(prototype_router)
+        app.include_router(normalization_router)
     if settings.network_enabled:
         app.include_router(network_router)
 

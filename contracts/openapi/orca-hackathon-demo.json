@@ -821,6 +821,47 @@
         "title": "DataCompatibilityRequest",
         "type": "object"
       },
+      "DatasetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 5242880,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "json"
+            ],
+            "title": "Format",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "source_mode": {
+            "default": "uploaded",
+            "enum": [
+              "uploaded",
+              "synthetic_demo"
+            ],
+            "title": "Source Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "format",
+          "content"
+        ],
+        "title": "DatasetInput",
+        "type": "object"
+      },
       "DatasetSnapshot": {
         "additionalProperties": false,
         "properties": {
@@ -952,6 +993,48 @@
           "origin_uri"
         ],
         "title": "DatasetSnapshotManifest",
+        "type": "object"
+      },
+      "DatasetView": {
+        "additionalProperties": false,
+        "properties": {
+          "content_digest": {
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "inspection": {
+            "additionalProperties": true,
+            "title": "Inspection",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_mode": {
+            "title": "Source Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "source_mode",
+          "content_digest",
+          "inspection"
+        ],
+        "title": "DatasetView",
         "type": "object"
       },
       "DemoResult": {
@@ -1513,6 +1596,101 @@
         "title": "Liveness",
         "type": "object"
       },
+      "Mapping": {
+        "additionalProperties": false,
+        "properties": {
+          "duplicate_policy": {
+            "default": "reject",
+            "enum": [
+              "reject",
+              "keep_first"
+            ],
+            "title": "Duplicate Policy",
+            "type": "string"
+          },
+          "id_column": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id Column"
+          },
+          "latitude_column": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude Column"
+          },
+          "longitude_column": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude Column"
+          },
+          "naive_timezone": {
+            "anyOf": [
+              {
+                "const": "UTC",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Naive Timezone"
+          },
+          "timestamp_column": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Timestamp Column",
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "C",
+              "K"
+            ],
+            "title": "Unit",
+            "type": "string"
+          },
+          "value_column": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Value Column",
+            "type": "string"
+          },
+          "variable": {
+            "const": "sea_surface_temperature",
+            "default": "sea_surface_temperature",
+            "title": "Variable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp_column",
+          "value_column",
+          "unit"
+        ],
+        "title": "Mapping",
+        "type": "object"
+      },
       "Member": {
         "additionalProperties": false,
         "properties": {
@@ -1807,6 +1985,61 @@
           "created_at"
         ],
         "title": "NetworkTask",
+        "type": "object"
+      },
+      "NormalizationView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_digest": {
+            "title": "Artifact Digest",
+            "type": "string"
+          },
+          "dataset_id": {
+            "format": "uuid",
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/Mapping"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "dataset_id",
+          "mapping",
+          "artifact_digest",
+          "result"
+        ],
+        "title": "NormalizationView",
+        "type": "object"
+      },
+      "NormalizeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "approve": {
+            "const": true,
+            "title": "Approve",
+            "type": "boolean"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/Mapping"
+          }
+        },
+        "required": [
+          "mapping",
+          "approve"
+        ],
+        "title": "NormalizeRequest",
         "type": "object"
       },
       "Operation": {
@@ -7715,6 +7948,312 @@
         "summary": "Patch Policy",
         "tags": [
           "workspace access"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/datasets": {
+      "get": {
+        "operationId": "listing_v1_projects__project_id__datasets_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DatasetView"
+                  },
+                  "title": "Response Listing V1 Projects  Project Id  Datasets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Listing",
+        "tags": [
+          "tabular evidence"
+        ]
+      },
+      "post": {
+        "operationId": "create_v1_projects__project_id__datasets_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "tabular evidence"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/datasets/{dataset_id}/normalizations": {
+      "get": {
+        "operationId": "normalizations_v1_projects__project_id__datasets__dataset_id__normalizations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "dataset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Dataset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NormalizationView"
+                  },
+                  "title": "Response Normalizations V1 Projects  Project Id  Datasets  Dataset Id  Normalizations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Normalizations",
+        "tags": [
+          "tabular evidence"
+        ]
+      },
+      "post": {
+        "operationId": "approve_v1_projects__project_id__datasets__dataset_id__normalizations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "dataset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Dataset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NormalizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NormalizationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Approve",
+        "tags": [
+          "tabular evidence"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/datasets/{dataset_id}/preview": {
+      "post": {
+        "operationId": "preview_v1_projects__project_id__datasets__dataset_id__preview_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "dataset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Dataset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mapping"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Preview V1 Projects  Project Id  Datasets  Dataset Id  Preview Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Preview",
+        "tags": [
+          "tabular evidence"
         ]
       }
     },
