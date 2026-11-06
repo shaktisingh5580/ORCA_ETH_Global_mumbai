@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-06",
+  "authority": "User requested deferring baseline work and continuing remaining implementation.",
+  "decision": "Pause baseline acquisition and continue independent P03 implementation.",
+  "g03_status": "INCOMPLETE",
+  "scientific_readiness": "NOT_VERIFIED",
+  "baseline_waived_as_scientific_requirement": false,
+  "next_work": "Snapshot ingestion and manifests, followed by remaining catalog workflow APIs and gates.",
+  "references": ["research-only guide sections 5.1-5.3 and 8.1", "main implementation plan P03.3-P03.5"]
+}
