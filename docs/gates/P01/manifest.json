@@ -25,6 +25,7 @@
       "tests/contracts/test_common_schemas.py",
       "tests/contracts/test_mock_scenarios.py",
       "tests/contracts/test_gate_and_openapi.py",
+      "tests/contracts/test_research_scope.py",
       "--junitxml=C:\\Users\\shakt\\Downloads\\newwork\\docs\\gates\\P01\\test-results.xml"
     ]
   ],
@@ -35,14 +36,15 @@
     "backend/.python-version": "f01d748a75eb195e6fd73201279bfb23f09036ddd360eb3e9ff40ef042acbc8a",
     "backend/fixtures/api/scenarios.json": "5fa1cfe578ad93ba8a47b6aed00441ece271ee0ef57cdb15702aa607717c2a27",
     "backend/pyproject.toml": "9058a6b545551a19ca6f8c003f0d7b8ce5e876323ca0eec77a53d81402536df3",
-    "backend/README.md": "10bc16cf803cd76f9198ce4c6858f346d9c6e6c1dd385059068fdc73fa64463a",
+    "backend/README.md": "555c7b6fee81eb4b18363ba341f1c4ef7530e6577bb2cc2fea3e0509a24ad696",
     "backend/scripts/check_file_headers.py": "bad1c5aec230c3a131cdcf283e876ef3bd75150b355e970b74363b9e45dd8eee",
     "backend/scripts/check_import_boundaries.py": "d165967c4755bddcb64af4413c9ccaf89d42baf61da7a9d598b9f8e32e36da5f",
-    "backend/scripts/export_openapi.py": "87a45bb5cf335549d80a9d4530f96eaf478ba3f1e5e1442788e4935d53655fbf",
+    "backend/scripts/export_openapi.py": "5515debf9d79fe162aadfe8126de97bf14784814179536e3e4794a44ed0be411",
+    "backend/scripts/export_research_scope.py": "434f47325dfec72b93816b8955b93c319af3ca8c4fb1f8a3a933078c9c640fb4",
     "backend/scripts/run_p02_gate.py": "26a413cddc1642c807da0bb79284b629e19f58045b5c03c2e3dda182f6281558",
-    "backend/scripts/run_phase_gate.py": "4d8431b5b21fc9fd7752e568032e0b7b0653558f4fd52ddb2e8e56ee2e99ae7a",
+    "backend/scripts/run_phase_gate.py": "498eb8abfd1ffc5259142c5753da61b14003e510068eade7feda42795da2cad9",
     "backend/src/orca/__init__.py": "0644cd50ad23ca267c5c588996c16a64ae687d45fc278968c77a1d574d5b2189",
-    "backend/src/orca/api/app.py": "1947ce8836d99defc52978b4e5ed0e8309524e42814a840ddd7e25ec1f8a805f",
+    "backend/src/orca/api/app.py": "f16fd41252fbea1a8779e71d7c6ac45c94489abfca416735c9316ca8955731c7",
     "backend/src/orca/api/dependencies.py": "571dfec71b6d78f06df1473a919677b2e127e8cc5ef07778d2acfae940c627ef",
     "backend/src/orca/api/errors.py": "9d6595cb89b238ee2f27fccf3003e08ac6dc9002cd0a61190d75e76dacb1fe92",
     "backend/src/orca/api/routers/projects.py": "b3af68262c6f1c0eb3a3f975ea6a150f8c0dc77fb2809c94b514bbc0a840fd25",
@@ -62,8 +64,9 @@
     "backend/src/orca/infrastructure/storage/s3_store.py": "bee05d38859585c0722c30cca9236f7fc38c0d7455ff0d1fc66e26741910006f",
     "backend/tests/conftest.py": "c5baf66f0eb76501d95c26f4ffa06c905cf82522000bcf7e2a199b06b763e2b4",
     "backend/tests/contracts/test_common_schemas.py": "6f368906220ed3dae143f43e4be4d43eee1984eb0ad41ea556b1d77520faad68",
-    "backend/tests/contracts/test_gate_and_openapi.py": "3880363b02013eb1837f604ad7468fdbe0ecf33fc6a0e6d2085a7b553f5ab178",
+    "backend/tests/contracts/test_gate_and_openapi.py": "80ebfd447c532da564085a4ab0ec1ecc14910d044421497122e3c3b01a253f4c",
     "backend/tests/contracts/test_mock_scenarios.py": "6633d7f8e0f608c7c7d3ea6b1b94150d2508bc38dbbdde39fdade821a5c63875",
+    "backend/tests/contracts/test_research_scope.py": "a05879eddd2041fe3d06ca4ef77ef96764831ef1e4fb5db527866f6b809cbf60",
     "backend/tests/integration/test_object_staging.py": "6ecdcba15040c0d61899c09cc8f6b4001d19e9678adeb0223b6fe498a572a066",
     "backend/tests/integration/test_p02_migrations.py": "3844c06451f6b33b9de10e62dba01ab8e5cb0398850f06cae479a7aeaf8213eb",
     "backend/tests/integration/test_project_crud.py": "819847221aca8ba2dd92d4f825fe0a3438a8a3405f548b899b0e9708471df6c9",
@@ -75,19 +78,21 @@
     "backend/tests/unit/test_foundation.py": "e90634260be8e0900f7e3f703f7edfbacb36fbeffb41b2e056676fe0983c4c6f",
     "backend/uv.lock": "9665ab37a66a296d1b5af2f503a6bc1ac471a350539b462c3f1824e322e10a43",
     "contracts/designed/orca-proposal.json": "408a454d9cfe49c663d4025cf39190a575c53d60fec891dc9ef5bd9cda1757a8",
-    "contracts/openapi/orca-v1.json": "ccb242f878675a1fd9353bb1598c6f1ca3902ab1a214c0d37fb16b25b8b10e46",
+    "contracts/designed/orca-research-selected.json": "e9b4d5e8557490f9e75462e3cf76aa9ed7abea63a565354ccc7a29767a99360a",
+    "contracts/designed/research-route-dispositions.json": "7ec6ef6bcd77cdf70cf17f1fa47dd0e7e3184d7bde3d24cf05a36de82dab5156",
+    "contracts/openapi/orca-v1.json": "85edcbf8fc5c1c769e24a9ea36d063e514c255fa7dedde8b43be7e21eec8782d",
     "contracts/schemas/common.json": "4904d3bc2d4dde21e7009e519a6697898b439916451493944e6f3ebee2b0514e",
     "contracts/typescript/orca.ts": "9a90204f0610703920c73053aed4adc03ba63b71e5d573f68fd18133614fe73e",
     "docs/decisions/P01-contract-reconciliation.md": "d7e56394be83a4c8f905d4461fa5cb35b0e301cecb9d44a31773017ac19f0807",
-    "docs/gates/P00/manifest.json": "c7d1ca68e60f1003271b3674f50123cac57d212d55bdd47b1d8d31b2d68266b4",
-    "docs/gates/P01/requirements.json": "ee0d8d6bb965340307262e29d7f7d13dfc580743105c0f5749c5cc0eea206185",
+    "docs/gates/P00/manifest.json": "38e6e52234a9730ab8bdb42fe80cd583a60e2af135a7bd3359f4a10251c2ad5f",
+    "docs/gates/P01/requirements.json": "d2fc89de41ff3d024c0cfde46177d8eddf57d5d6a753a7e3885eae5eb642f644",
     "main_implementation plan.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad"
   },
-  "source_tree_sha256": "934bebddae3673aae46053d727fddcb57a9ece26d12a72351ff2c5a4548b865a",
+  "source_tree_sha256": "f2b5bda5e97de61f8927017f8ce4a1ba75168fb0e046808ac669b0ab122dcefb",
   "counts": {
-    "required": 20,
-    "collected": 24,
-    "passed": 24,
+    "required": 25,
+    "collected": 29,
+    "passed": 29,
     "failed": 0,
     "skipped": 0
   },
@@ -111,21 +116,27 @@
     "test_gate_missing_prerequisite_blocks": "PASS",
     "test_gate_live_block_is_not_pass": "PASS",
     "test_openapi_export_deterministic": "PASS",
-    "test_generated_ts_reproducible": "PASS"
+    "test_generated_ts_reproducible": "PASS",
+    "test_scope_01_excluded_routes_absent_from_selected_and_runtime": "PASS",
+    "test_scope_manifest_exactly_reconciles_historical_inventory": "PASS",
+    "test_scope_05_federation_not_exposed_before_live_gates": "PASS",
+    "test_scope_09_local_sources_match_immutable_snapshot": "PASS",
+    "test_research_release_profiles_replace_expanded_product_names": "PASS"
   },
   "subphase_results": {
     "G01.1": "PASS",
     "G01.2": "PASS",
     "G01.3": "PASS",
-    "G01.4": "PASS"
+    "G01.4": "PASS",
+    "G01.5": "PASS"
   },
   "evidence_hashes": {
     "build.txt": "b9fc3ac193ea90c9091bfe0ee1ca6ee1302b53cb66ba00636a552c7238f4d7e4",
-    "clean-install.txt": "44843b104318751263efeddf1729f972c5424cd802c6f054028ee7eabf98bed8",
-    "static-checks.txt": "8709e58abe23fc4c2151f71f8796e65a2105614aa2e83db252f322f313aad414",
-    "test-results.txt": "5de19798105f9812f95fd02c051dff505c579a22a0db11e14d694df0dc176a09",
-    "test-results.xml": "09b52b3a4713e767a353b6d3be2078ef3fe750d08a67339b1d20a7bf934962f1"
+    "clean-install.txt": "514d6e923c88e097836113400302952ebfddd8b209f0e087819480035b8bcb87",
+    "static-checks.txt": "b75a62de2473cc19a40f5ef55eccb3fe2527a6550fc2a82b587381e34667bd46",
+    "test-results.txt": "588a31c81707a3b8586766d20e62356f2e8ab3b56f3000aad8135971f0ce3b25",
+    "test-results.xml": "174baf618301bec052d9433bb8284b680e67ea3aeedea361161a8c151dbaf3fe"
   },
   "next_phase": "P02",
-  "generated_at": "2026-11-06T03:55:59.111539+00:00"
+  "generated_at": "2026-11-06T08:26:56.594597+00:00"
 }

@@ -26,9 +26,9 @@
     "live prerequisite unavailable: test_unauthorized_download_404"
   ],
   "counts": {
-    "required": 26,
-    "collected": 59,
-    "passed": 38,
+    "required": 29,
+    "collected": 64,
+    "passed": 43,
     "failed": 0,
     "skipped": 21
   },
@@ -39,6 +39,7 @@
     "test_fk_check_tenant_safely": "SKIP",
     "test_schema_no_old_tables_assumed": "SKIP",
     "test_valid_local_issuer_token": "PASS",
+    "test_valid_supabase_es256_token": "PASS",
     "test_wrong_issuer_audience_signature_kid": "PASS",
     "test_expired_and_nbf": "PASS",
     "test_role_scope_downgrade": "PASS",
@@ -58,7 +59,9 @@
     "test_checksum_mismatch_reject": "SKIP",
     "test_cross_tenant_object_denied": "SKIP",
     "test_signed_url_scoped_ttl": "SKIP",
-    "test_unauthorized_download_404": "SKIP"
+    "test_unauthorized_download_404": "SKIP",
+    "test_supabase_compatible_bucket_skips_native_versioning": "PASS",
+    "test_existing_digest_object_finalizes_idempotently": "PASS"
   },
   "subphase_results": {
     "G02.1": "BLOCKED",
@@ -77,7 +80,7 @@
     "backend/migrations/versions/0001_iam.py": "c90ad8eb734fe7e8fe764ac5cd003ebf6029335ddc5df25b6c5210591b601668",
     "backend/migrations/versions/0002_projects.py": "302c5c803c30ac3a6609f48de1ccd73ee3c5795fab599fa1e48006bb3cd61c85",
     "backend/src/orca/__init__.py": "0644cd50ad23ca267c5c588996c16a64ae687d45fc278968c77a1d574d5b2189",
-    "backend/src/orca/api/app.py": "1947ce8836d99defc52978b4e5ed0e8309524e42814a840ddd7e25ec1f8a805f",
+    "backend/src/orca/api/app.py": "f16fd41252fbea1a8779e71d7c6ac45c94489abfca416735c9316ca8955731c7",
     "backend/src/orca/api/dependencies.py": "571dfec71b6d78f06df1473a919677b2e127e8cc5ef07778d2acfae940c627ef",
     "backend/src/orca/api/errors.py": "9d6595cb89b238ee2f27fccf3003e08ac6dc9002cd0a61190d75e76dacb1fe92",
     "backend/src/orca/api/routers/projects.py": "b3af68262c6f1c0eb3a3f975ea6a150f8c0dc77fb2809c94b514bbc0a840fd25",
@@ -97,8 +100,9 @@
     "backend/src/orca/infrastructure/storage/s3_store.py": "bee05d38859585c0722c30cca9236f7fc38c0d7455ff0d1fc66e26741910006f",
     "backend/tests/conftest.py": "c5baf66f0eb76501d95c26f4ffa06c905cf82522000bcf7e2a199b06b763e2b4",
     "backend/tests/contracts/test_common_schemas.py": "6f368906220ed3dae143f43e4be4d43eee1984eb0ad41ea556b1d77520faad68",
-    "backend/tests/contracts/test_gate_and_openapi.py": "3880363b02013eb1837f604ad7468fdbe0ecf33fc6a0e6d2085a7b553f5ab178",
+    "backend/tests/contracts/test_gate_and_openapi.py": "80ebfd447c532da564085a4ab0ec1ecc14910d044421497122e3c3b01a253f4c",
     "backend/tests/contracts/test_mock_scenarios.py": "6633d7f8e0f608c7c7d3ea6b1b94150d2508bc38dbbdde39fdade821a5c63875",
+    "backend/tests/contracts/test_research_scope.py": "a05879eddd2041fe3d06ca4ef77ef96764831ef1e4fb5db527866f6b809cbf60",
     "backend/tests/integration/test_object_staging.py": "6ecdcba15040c0d61899c09cc8f6b4001d19e9678adeb0223b6fe498a572a066",
     "backend/tests/integration/test_p02_migrations.py": "3844c06451f6b33b9de10e62dba01ab8e5cb0398850f06cae479a7aeaf8213eb",
     "backend/tests/integration/test_project_crud.py": "819847221aca8ba2dd92d4f825fe0a3438a8a3405f548b899b0e9708471df6c9",
@@ -112,7 +116,7 @@
     "infra/postgres/init-runtime.sh": "c7d413e186628842af12162cbbcf0f3aea444a038348a514523333ace8c9c433",
     "infra/supabase/bootstrap.sql": "c888732ef90ebfa2c4565e10cd56ef32e53f384c599eb331e453f2e1858efb57"
   },
-  "source_tree_sha256": "b394b173294f6d95f7cb6a15c1af40fc2524299c4574588d154bd3bc1d866a64",
+  "source_tree_sha256": "8fa92d9498e2274f80ce6728047237c3d3d7a75cb59cf890c2c3828dde3cbe1a",
   "next_phase": null,
-  "generated_at": "2026-11-06T03:58:20.008242+00:00"
+  "generated_at": "2026-11-06T08:27:29.844375+00:00"
 }

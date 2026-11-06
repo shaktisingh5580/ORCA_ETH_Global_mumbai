@@ -3,9 +3,9 @@
   "gate_id": "G00",
   "phase": "P00",
   "status": "PASS",
-  "release_profile": "core-C",
+  "release_profile": "research-federated",
   "upstream_gate_ids": [],
-  "contract_revision": "3.1.0-proposal",
+  "contract_revision": "3.2.0-research-scope",
   "migration_head": null,
   "subphase_tests": {
     "G00.1": [
@@ -27,6 +27,11 @@
       "test_adr_has_alternatives_and_rejected_options",
       "test_runtime_version_unverified_until_installed",
       "test_safety_no_production_mock"
+    ],
+    "G00.5": [
+      "test_research_only_scope_adr_and_snapshot",
+      "test_route_disposition_counts_and_exclusions",
+      "test_release_profiles_research_only"
     ]
   },
   "required_live_evidence": [],
@@ -36,14 +41,16 @@
   "limits": [
     "P00 documentation and decision validation only",
     "G03 requires real source and baseline access; not satisfied",
-    "No backend routes or migrations implemented",
-    "CI execution not yet configured; report is a local run"
+    "Historical P00 source evidence is preserved while route scope is narrowed",
+    "G02 remains blocked until dedicated staging Supabase live checks pass"
   ],
   "source_commit": null,
-  "source_tree_sha256": "d29a42a201cfad959ca294db648e6e403590cf90c5b4298f92d69547d26dac05",
+  "source_tree_sha256": "1d6295b0258127c2eca7227dd36dd00e0608f197cfe0f2720e27a97169cd022e",
   "source_hash_scope": "registered inputs and P00 artifacts; excludes generated reports",
   "input_hashes": {
     "api design.md": "4384d317467d0194db36d95b41c917f2a8f83f57b1ecefa136f681097dc6a178",
+    "contracts/designed/orca-research-selected.json": "e9b4d5e8557490f9e75462e3cf76aa9ed7abea63a565354ccc7a29767a99360a",
+    "contracts/designed/research-route-dispositions.json": "7ec6ef6bcd77cdf70cf17f1fa47dd0e7e3184d7bde3d24cf05a36de82dab5156",
     "design.md": "37f45ad481f3f2a508c2c8a38b04338335782901a090c5e5f6fb48dcb60674df",
     "docs/00_SOURCE_AUDIT_AND_MIGRATION.md": "84d5a87c9f6225f06f336846afed737cd75512758c32300be325efabdbbedab4",
     "docs/01_user_flows.md": "0aed2eb4e59ed47bbcb44cf7f9af6efb737f9d14b9925d3bbc51f522b26bcf53",
@@ -58,16 +65,18 @@
     "docs/adr/ADR-002-runtime-and-deps.md": "e0fee5a1a8060bec81d81ed469205188f9246fac630cf132f894f8673c722ec6",
     "docs/adr/ADR-003-auth-queue-storage.md": "f77de36ed52825eaf3ef4f7a65cad0c5fa84e96735a99b09a3a1e5b8bcd92785",
     "docs/adr/ADR-004-safety-and-tenant-policy.md": "b767dad2d5c27dbeda6b1600376689b77c5b223eb8e4668aa4fbe47c86939fb5",
+    "docs/adr/ADR-R01-research-only-scope.json": "2e53e016094ce32b1c81ce137d51e507d8c02773429aca4173c13ac39a514dca",
     "docs/gates/P00/acceptance_matrix.csv": "1e5ef627e652c4145b8647a30ba623f06b63c70ea615ef9d46cf65e7f1f00504",
     "docs/gates/P00/decisions.yaml": "e4594f06cbec4e5e31d2a14e454ce273f7effa37781fe3ac8d576580bd1b4230",
-    "docs/gates/P00/requirements.json": "a0a0b47115a2a417f37b2469f0b1c6fb37e5cb7fa79cdc34485915703fb7e8ee",
-    "docs/releases/release_profiles.yaml": "75c41e56e013e3b8edb0980a8196cd13e9100773f5cc39198b1d9b6407639b78",
+    "docs/gates/P00/requirements.json": "741ddd2f5c168067f0aaf93f3132afeeaecf0dbf6ba0c893216aaaa48162db05",
+    "docs/releases/release_profiles.yaml": "de11e77744f8676263ad3e0a009606badf77fdd76872c5ecd3d36d283adb0ef5",
+    "docs/review/research-only-source-snapshot.json": "6bdb0e1d6559bcf625851bd72174b38624805f3938af78f5e097880945b7bc4d",
     "docs/sources/candidate_products.yaml": "eb8cefcff94465502c07c75bf79bea8e6a730e7355d9df83f81d8503af45df1c",
     "docs/sources/marine_data_sources_user_2026-11-06.md": "3758bc4e6e9528d4f7b73658b1c5af6c82c39d8ecbd6b078016c1570b7d0f550",
     "docs/sources/rights_register.yaml": "77d158bedaa6933db038bed27c3d37a48e5127c4a1c177fbea9bd47a57b97517",
     "docs/sources/scientific_baselines.yaml": "fe21469833d18328831c033d2ef2bc2fc50f4c489887fb796bfaf696bd87a651",
-    "docs/sources/source_checksums.sha256": "413e6652053df060a70cfd808333d897a306ebb0fb438f67b8fef115cba8b717",
-    "docs/sources/source_register.yaml": "23a681508f1a354fae53cbb213b5092184d18f311fc3ab23d5d36169a13e7b3d",
+    "docs/sources/source_checksums.sha256": "60bec990cc22515fa062300ac6e73ba066c004ca0107c3413f116bb7fe2cc0c1",
+    "docs/sources/source_register.yaml": "1e950ed5c7a6ce73298b362891b456db7cefde92deaf81f1ebfe1fbd383885ec",
     "implementation plan.md": "1287316a9ea2c1f8284286e111b9628fdc358c2e10d7cb7a3eaf2478926a7e11",
     "main_implementation plan.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
     "missing_detaiesl_md.md": "ff44cc7ee4c7b4402a88a0fe1f68865f6dd75a8b7d59d1086b6f0a5903c80d91",
@@ -78,6 +87,7 @@
     "ORCA Architecture Document 4 \u2014 Database Design.md": "cd836c6a41970dd87c015680dbad7b7b59650924d22f01738283bf24d289c118",
     "ORCA Architecture Document 5 \u2014 Implementation Plan & PS Reminder.md": "13320382bf93be83a394e36aa501c374308f3621389a2ef50df9adf8872fd61f",
     "ORCA_3.0_Complete_Design_and_Seven_Docs.md": "cbf4004bd95e07dbc369d3dd824c4d90bf3265799741bcec31cedb531cd26367",
+    "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md": "8ba91e7d26601a70ff6e0c30752e41142901a61d73a20a48b2fd9af3dc537cb7",
     "ORCA_Combined_Architecture.md": "8e95eafd4504539502f0b5afc2d9def9e0b6ed5f965c3fafa00f163f6eb14c15",
     "ORCA_Complete_System_Diagram.md": "95f0422d97b8b87d8e22e0bb86b1efb2bd9dc0968e3722d431acb0a5ec0b941e",
     "ORCA_Core_Agentic_Layer.md": "3199e4f3e017953a263070c0201a92854b0d1d3d2312da86b78b72eb60200550",
@@ -98,20 +108,20 @@
     "ORCA_Technical_Approach.md": "ff3acf18d0a20d0938f89f4fca09305ef972077bcd4b093c054f19d30936b8d5",
     "phases and subphases.md": "83c809ce5d1f5456d712d74eb69b8b4dc25073f4c427cd6375ca2b62a7d187c6",
     "README.md": "7e3b554247f95e54159f495df5d8f70aff2adbfd9aad5f4a7c76da6e20351d78",
-    "tests/contracts/test_p00_decisions.py": "1ba6d1cfb2c17aa7c450ebac75a5af530ee8b8095a616423bb7ff18be53d969d",
-    "tools/run_p00_gate.py": "fdb5cfea42b5ac20f5ba3a48b69f86c2d39e193ed94cc4983b128fea31e50be5"
+    "tests/contracts/test_p00_decisions.py": "635a2a228db4b8a4f4733650edf7aba2043a57178bb9a7b3d450299840f415aa",
+    "tools/run_p00_gate.py": "46570f6d6562035bbeea1001f57b971ba9be1f19cf28ff06b9ee4eb089b6a3a2"
   },
-  "generated_at": "2026-11-06T01:16:38.648756+00:00",
+  "generated_at": "2026-11-06T08:24:42.423153+00:00",
   "runner_version": "p00-bootstrap/1",
   "environment": {
     "python": "3.12.12 (main, Feb  3 2026, 22:54:57) [MSC v.1944 64 bit (AMD64)]",
     "execution": "local, not CI"
   },
   "counts": {
-    "required": 12,
-    "collected": 16,
-    "run": 16,
-    "passed": 16,
+    "required": 15,
+    "collected": 19,
+    "run": 19,
+    "passed": 19,
     "failed": 0,
     "skipped": 0
   },
@@ -119,10 +129,11 @@
     "G00.1": "PASS",
     "G00.2": "PASS",
     "G00.3": "PASS",
-    "G00.4": "PASS"
+    "G00.4": "PASS",
+    "G00.5": "PASS"
   },
   "static_checks": [],
-  "test_output_sha256": "c36ded73782c573c9b898367cef526cfe986dc784f6c17ef4d30235b6581d160",
-  "unresolved_historical_links": 6,
+  "test_output_sha256": "9d68e2f9efc11526d172ef3a1c25f07a6015db27217779ac8bd3930fd3471ff1",
+  "unresolved_historical_links": 11,
   "next_phase": "P01"
 }
