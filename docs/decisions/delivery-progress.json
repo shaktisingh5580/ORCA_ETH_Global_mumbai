@@ -8,18 +8,19 @@
   ],
   "completed_phases": [
     "P00",
-    "P01"
+    "P01",
+    "P02"
   ],
-  "completion_note": "Current G00/G01 prerequisite checks and full local G02 pass. P02 registers 31/31 selected operations and passes 136 tests; its cloud migration/worker deployment is pending. No science, AI, federation or complete frontend acceptance is asserted.",
+  "completion_note": "Current G00/G01 prerequisites and full G02 pass. P02 registers 31/31 operations and passes 136 tests. Supabase is upgraded through 0012; API and validator run; actual stored MUR bytes passed signed upload/validation/download. Browser, science, AI and federation acceptance remain separate.",
   "current_audit": "docs/decisions/platform-implementation-audit.json",
-  "current_phase": "P02 cloud deployment, then P03 scientific gate",
-  "unfinished_core_phases": 7,
-  "unfinished_full_product_phases": 13,
+  "current_phase": "P03 scientific input and baseline gate",
+  "unfinished_core_phases": 6,
+  "unfinished_full_product_phases": 12,
   "phases": [
     {
       "id": "P02",
-      "status": "LOCAL_G02_PASS_CLOUD_DEPLOYMENT_PENDING",
-      "scope": "31 selected operations implemented; 136 tests pass; migrations 0011/0012 and validator startup pending"
+      "status": "G02_PASS_CLOUD_WORKSPACE_DEPLOYED",
+      "scope": "31 selected operations, 136 passing tests, migrations 0011/0012 applied, running validator and real-source file verified"
     },
     {
       "id": "P03",
@@ -82,5 +83,5 @@
       "scope": "Security, recovery and full release qualification"
     }
   ],
-  "counting": "P03-P14 remain unfinished, and a P02 completion repair is also required. Earlier counts of six core/twelve full phases omitted P02 scope debt. Exact remaining work is in the current audit; route counts do not measure percentage completion."
+  "counting": "P03-P14 remain unfinished; route counts do not measure completion percentage. P02 now has current gate and cloud workspace evidence."
 }

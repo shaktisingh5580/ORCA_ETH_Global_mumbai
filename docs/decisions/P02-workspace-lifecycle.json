@@ -1,6 +1,6 @@
 {
   "phase": "P02 completion repair",
-  "status": "LOCAL_G02_PASS_CLOUD_NOT_APPLIED",
+  "status": "G02_PASS_CLOUD_DEPLOYED_REAL_SOURCE_FILE_VERIFIED",
   "references": [
     "main_implementation plan.md P02.1-P02.5",
     "api design.md 2.2/3.2/3.3",
@@ -32,5 +32,16 @@
     "skipped": 0,
     "selected_P02_operations": 31,
     "evidence": "docs/gates/P02/manifest.json"
+  },
+  "deployment": {
+    "migration_head": "0012_invitations_grants",
+    "forced_tenant_rls": true,
+    "project_identity_constraints_validated": true,
+    "api_restarted": true,
+    "upload_validator_running": true,
+    "private_feature_configuration_updated": true,
+    "organization_roles_preserved": true,
+    "evidence": "docs/gates/P02/cloud-workspace-runtime.json",
+    "browser_authentication_acceptance": "pending"
   }
 }

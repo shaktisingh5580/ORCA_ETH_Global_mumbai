@@ -1,0 +1,18 @@
+{
+  "migration_head": "0012_invitations_grants",
+  "execution": "trusted local operator using existing real user membership; not authenticated browser acceptance",
+  "runtime_unscoped_organization_rows": 0,
+  "project_id": "bd11b1ae-1934-468e-a92a-bf57529df56f",
+  "file_id": "a9c4c053-3bbd-44bd-9ff6-2195e1cad73b",
+  "source_snapshot_id": "15378b78-c803-4b08-a490-4e1678f4694b",
+  "source_sha256": "sha256:bd7edd4f927d9a123d07524b6497156b02c79e2a6e8db587909027774b1e8c61",
+  "bytes": 169426,
+  "signed_put": "PASS",
+  "validator_status": "finalized",
+  "download_bytes_equal_source": true,
+  "download_attachment": true,
+  "download_ttl_seconds": 60,
+  "scientific_validation": "not_validated",
+  "synthetic_production_data": false,
+  "organization_role_promoted": false
+}
