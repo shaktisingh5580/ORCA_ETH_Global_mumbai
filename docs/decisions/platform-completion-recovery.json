@@ -1,0 +1,20 @@
+{
+  "status": "FULL_PROTOTYPE_WORK_RESUMED_AUDIT_COMPLETE",
+  "authority": "User requested the actual end-to-end research/federation prototype and an audit against the implementation plan, replacing the one-hour demo focus.",
+  "product": "Research question -> approved bounded plan -> real scientific execution -> evidence -> independent review -> authenticated provider collaboration -> permitted public coordination and verification",
+  "audit": "docs/decisions/platform-implementation-audit.json",
+  "local_human_report": "ORCA_PLATFORM_COMPLETION_AUDIT.md (ignored root Markdown, shared directly)",
+  "registration_counts": {"selected": 165, "registered_selected": 27, "missing_selected": 138, "additional_demo": 3},
+  "completion_correction": "Historical foundation G00/G01/G02 reports do not prove complete selected platform scope. P02 has 24 missing selected operations; P03 has 16 handlers but no full scientific gate; descriptive and Arkiv demo components do not implement P04/P11 scope.",
+  "milestones": [
+    {"id": "A", "scope": "Repair P02 scope/ID semantics and complete P03 source/baseline/scientific gate", "acceptance": "Authorized workspace/data lifecycle and pinned, permitted scientific inputs with current isolation evidence"},
+    {"id": "B", "scope": "P04 scientific registry, policies, calculation and immutable lineage", "acceptance": "Independent numerical reference checks and fail-closed incompatible input handling"},
+    {"id": "C", "scope": "P05 durable investigations/plans/runs plus P06 evidence/reporting", "acceptance": "Authenticated question-to-approved-plan-to-recoverable-run-to-evidence workflow"},
+    {"id": "D", "scope": "P07 reproduction/review/correction and core P08 acceptance", "acceptance": "Independent comparison and genuine discrepancy/challenge paths"},
+    {"id": "E", "scope": "P09 A2A providers and P10 ENS/binding identity", "acceptance": "Real separately keyed providers, approved endpoint/capability/identity and revocation checks"},
+    {"id": "F", "scope": "P11 shared Arkiv coordination and revised P12/P13/P14 qualification", "acceptance": "Task/claim/assignment/result/review journey and independently inspectable permitted public evidence"}
+  ],
+  "validation": "Retain prior evidence as historical. Current full phase completion needs relevant tests and live scientific/protocol evidence. Do not substitute the demo test deferral, hashes, self-recalculation or route counts for acceptance.",
+  "missing_external_inputs": ["Frontend repository/handoff", "AI provider and private key configuration for model planning/explanations", "Accepted scientific baseline/source policy", "Actual independent provider/reviewer and ENS deployment choices"],
+  "source_policy": "Original registered design/reference documents remain unchanged; use reconciliation decisions and this audit for execution."
+}
