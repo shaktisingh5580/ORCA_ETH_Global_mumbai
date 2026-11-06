@@ -11,9 +11,49 @@ from fastapi import APIRouter, Header, Query, Request
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.normalization import service
 from orca.application.reasoning import ResearchReasoning
+from orca.application.review import EvidenceReview
 from orca.contracts.reasoning import ReasoningApproval, ReasoningRequest
+from orca.contracts.review import CandidateResult, CorrectionApproval
 
 router = APIRouter(prefix="/v1/projects/{project_id}/reasoning", tags=["AI research"])
+
+
+@router.post("/{run_id}/reviews", status_code=202)
+def submit_review(
+    project_id: UUID,
+    run_id: UUID,
+    body: CandidateResult,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> dict[str, Any]:
+    with service(request, project_id, principal) as base:
+        return EvidenceReview(base.session, base.tenant, base.project, principal).submit_review(
+            run_id, body
+        )
+
+
+@router.get("/{run_id}/reviews")
+def list_reviews(
+    project_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> list[dict[str, Any]]:
+    with service(request, project_id, principal) as base:
+        return EvidenceReview(base.session, base.tenant, base.project, principal).reviews(run_id)
+
+
+@router.post("/{run_id}/reviews/{review_id}/correct", status_code=202)
+def correct_review(
+    project_id: UUID,
+    run_id: UUID,
+    review_id: UUID,
+    body: CorrectionApproval,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> dict[str, Any]:
+    with service(request, project_id, principal) as base:
+        app = EvidenceReview(base.session, base.tenant, base.project, principal)
+        if app.review_row(review_id)["run_id"] != run_id:
+            raise ValueError("Review belongs to another investigation")
+        return app.correct(review_id, body.candidate_digest)
 
 
 @router.post("", status_code=202)

@@ -11,12 +11,15 @@ from live_database import prepare_database
 from sqlalchemy import text
 
 from orca.application.reasoning import ResearchReasoning
+from orca.application.review import EvidenceReview
 from orca.contracts.normalization import DatasetInput
 from orca.contracts.reasoning import ReasoningRequest
+from orca.contracts.review import CandidateResult
 from orca.domain.identity import ROLE_SCOPES, Principal
 from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.reasoning_worker import execute
+from orca.review_worker import execute as review_execute
 
 
 class Model:
@@ -102,5 +105,35 @@ def test_durable_reasoning_approval_and_immutable_retry():
             assert (
                 s.execute(text("SELECT count(*) FROM research.reasoning_events")).scalar_one() == 0
             )
+        from review_test_model import ReviewModel
+
+        with TenantUnitOfWork(db, tenant) as s:
+            app = EvidenceReview(s, tenant, project, principal)
+            reference = app.reference(run["id"])
+            a = reference["artifacts"][0]
+            candidate = CandidateResult(
+                label="Synthetic injected discrepancy",
+                source_mode="synthetic_demo",
+                plan_digest=plan_digest,
+                means_celsius={a["dataset_id"]: 28},
+                evidence_digests={a["dataset_id"]: a["artifact_digest"]},
+            )
+            review = app.submit_review(run["id"], candidate)
+        assert review_execute(db, tenant, review["id"], ReviewModel())
+        with TenantUnitOfWork(db, tenant) as s:
+            app = EvidenceReview(s, tenant, project, principal)
+            original = app.review_row(review["id"])
+            assert (
+                original["state"] == "completed"
+                and original["decision"]["reviewer"]["verdict"] == "challenged"
+            )
+            corrected = app.correct(review["id"], review["candidate_digest"])
+            assert corrected["parent_review_id"] == review["id"]
+            assert app.correct(review["id"], review["candidate_digest"])["id"] == corrected["id"]
+        assert review_execute(db, tenant, corrected["id"], ReviewModel())
+        with TenantUnitOfWork(db, tenant) as s:
+            app = EvidenceReview(s, tenant, project, principal)
+            assert app.review_row(corrected["id"])["decision"]["reviewer"]["verdict"] == "agrees"
+            assert app.review_row(review["id"])["candidate"]["means_celsius"][a["dataset_id"]] == 28
     finally:
         db.dispose()

@@ -246,6 +246,58 @@
         "title": "CancelNetworkTask",
         "type": "object"
       },
+      "CandidateResult": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_digests": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 4,
+            "minProperties": 1,
+            "title": "Evidence Digests",
+            "type": "object"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "means_celsius": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "maxProperties": 4,
+            "minProperties": 1,
+            "title": "Means Celsius",
+            "type": "object"
+          },
+          "plan_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Plan Digest",
+            "type": "string"
+          },
+          "source_mode": {
+            "enum": [
+              "uploaded",
+              "synthetic_demo",
+              "computed"
+            ],
+            "title": "Source Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "source_mode",
+          "plan_digest",
+          "means_celsius",
+          "evidence_digests"
+        ],
+        "title": "CandidateResult",
+        "type": "object"
+      },
       "CanonicalVariableMapping": {
         "additionalProperties": false,
         "properties": {
@@ -446,6 +498,27 @@
           "expected_version"
         ],
         "title": "CorrectDemo",
+        "type": "object"
+      },
+      "CorrectionApproval": {
+        "additionalProperties": false,
+        "properties": {
+          "approve": {
+            "const": true,
+            "title": "Approve",
+            "type": "boolean"
+          },
+          "candidate_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Candidate Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approve",
+          "candidate_digest"
+        ],
+        "title": "CorrectionApproval",
         "type": "object"
       },
       "Coverage": {
@@ -8622,6 +8695,217 @@
           }
         ],
         "summary": "Events",
+        "tags": [
+          "AI research"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/reasoning/{run_id}/reviews": {
+      "get": {
+        "operationId": "list_reviews_v1_projects__project_id__reasoning__run_id__reviews_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response List Reviews V1 Projects  Project Id  Reasoning  Run Id  Reviews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Reviews",
+        "tags": [
+          "AI research"
+        ]
+      },
+      "post": {
+        "operationId": "submit_review_v1_projects__project_id__reasoning__run_id__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateResult"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Submit Review V1 Projects  Project Id  Reasoning  Run Id  Reviews Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Submit Review",
+        "tags": [
+          "AI research"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/reasoning/{run_id}/reviews/{review_id}/correct": {
+      "post": {
+        "operationId": "correct_review_v1_projects__project_id__reasoning__run_id__reviews__review_id__correct_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionApproval"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Correct Review V1 Projects  Project Id  Reasoning  Run Id  Reviews  Review Id  Correct Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Correct Review",
         "tags": [
           "AI research"
         ]
