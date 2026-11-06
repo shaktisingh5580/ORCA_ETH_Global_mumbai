@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "plan": {
+    "outcome": "unsupported",
+    "recipe": "normalize",
+    "summary": "The request to prove causality between ocean temperatures and an algal bloom cannot be supported by the available tools. The platform does not support causal inference or analysis of algal blooms.",
+    "datasets": [],
+    "missing_evidence": [],
+    "limitations": [
+      "Causal inference is not supported.",
+      "Analysis of algal blooms is not supported."
+    ]
+  },
+  "events": [
+    {
+      "type": "model_call",
+      "data": {
+        "turn": 1,
+        "model": "gemini-2.5-flash",
+        "usage": {
+          "promptTokenCount": 1002,
+          "candidatesTokenCount": 84,
+          "totalTokenCount": 1274,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1002
+            }
+          ],
+          "thoughtsTokenCount": 188,
+          "serviceTier": "standard"
+        },
+        "prompt_version": "orca.planner/1"
+      }
+    },
+    {
+      "type": "tool_requested",
+      "data": {
+        "tool": "submit_plan",
+        "arguments": {
+          "outcome": "unsupported",
+          "datasets": [],
+          "limitations": [
+            "Causal inference is not supported.",
+            "Analysis of algal blooms is not supported."
+          ],
+          "missing_evidence": [],
+          "summary": "The request to prove causality between ocean temperatures and an algal bloom cannot be supported by the available tools. The platform does not support causal inference or analysis of algal blooms.",
+          "recipe": "normalize"
+        }
+      }
+    },
+    {
+      "type": "plan_proposed",
+      "data": {
+        "plan": {
+          "outcome": "unsupported",
+          "recipe": "normalize",
+          "summary": "The request to prove causality between ocean temperatures and an algal bloom cannot be supported by the available tools. The platform does not support causal inference or analysis of algal blooms.",
+          "datasets": [],
+          "missing_evidence": [],
+          "limitations": [
+            "Causal inference is not supported.",
+            "Analysis of algal blooms is not supported."
+          ]
+        },
+        "plan_digest": "sha256:ea2b5cec22a32321d049a243f00014787d6ffbb28027298b5c7420a899a2e0f2"
+      }
+    }
+  ]
+}

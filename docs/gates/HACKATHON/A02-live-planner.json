@@ -1,0 +1,252 @@
+{
+  "phase": "A02",
+  "live_planner": "PASS",
+  "model": "gemini-2.5-flash",
+  "source_mode": "synthetic_demo",
+  "plan": {
+    "outcome": "supported",
+    "recipe": "normalize",
+    "summary": "Normalize sea surface temperature observations from the provided dataset, explicitly using Celsius units and UTC timestamps.",
+    "datasets": [
+      {
+        "dataset_id": "00000000-0000-0000-0000-00000000004d",
+        "role": "current",
+        "mapping": {
+          "timestamp_column": "timestamp_utc",
+          "value_column": "temperature_celsius",
+          "id_column": null,
+          "latitude_column": null,
+          "longitude_column": null,
+          "unit": "C",
+          "naive_timezone": "UTC",
+          "variable": "sea_surface_temperature",
+          "duplicate_policy": "reject"
+        }
+      }
+    ],
+    "missing_evidence": [],
+    "limitations": [
+      "The plan assumes that 'temperature_celsius' accurately represents sea surface temperature."
+    ]
+  },
+  "events": [
+    {
+      "type": "model_call",
+      "data": {
+        "turn": 1,
+        "model": "gemini-2.5-flash",
+        "usage": {
+          "promptTokenCount": 1007,
+          "candidatesTokenCount": 52,
+          "totalTokenCount": 1222,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1007
+            }
+          ],
+          "thoughtsTokenCount": 163,
+          "serviceTier": "standard"
+        },
+        "prompt_version": "orca.planner/1"
+      }
+    },
+    {
+      "type": "tool_requested",
+      "data": {
+        "tool": "inspect_dataset",
+        "arguments": {
+          "dataset_id": "00000000-0000-0000-0000-00000000004d"
+        }
+      }
+    },
+    {
+      "type": "tool_completed",
+      "data": {
+        "tool": "inspect_dataset",
+        "dataset_id": "00000000-0000-0000-0000-00000000004d",
+        "result": {
+          "row_count": 2,
+          "columns": [
+            "temperature_celsius",
+            "timestamp_utc"
+          ],
+          "preview": [
+            {
+              "timestamp_utc": "2025-01-01T00:00:00Z",
+              "temperature_celsius": "27"
+            },
+            {
+              "timestamp_utc": "2025-01-02T00:00:00Z",
+              "temperature_celsius": "28"
+            }
+          ],
+          "missing": {
+            "temperature_celsius": 0,
+            "timestamp_utc": 0
+          },
+          "requires_explicit_unit": true
+        },
+        "result_digest": "sha256:0601bb8a4ddb6f116b1ee551691f6bf6c9759f738125f02da59c105973e62145"
+      }
+    },
+    {
+      "type": "model_call",
+      "data": {
+        "turn": 2,
+        "model": "gemini-2.5-flash",
+        "usage": {
+          "promptTokenCount": 1197,
+          "candidatesTokenCount": 100,
+          "totalTokenCount": 1507,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1197
+            }
+          ],
+          "thoughtsTokenCount": 210,
+          "serviceTier": "standard"
+        },
+        "prompt_version": "orca.planner/1"
+      }
+    },
+    {
+      "type": "tool_requested",
+      "data": {
+        "tool": "preview_mapping",
+        "arguments": {
+          "dataset_id": "00000000-0000-0000-0000-00000000004d",
+          "mapping": {
+            "unit": "C",
+            "timestamp_column": "timestamp_utc",
+            "variable": "sea_surface_temperature",
+            "value_column": "temperature_celsius",
+            "naive_timezone": "UTC"
+          }
+        }
+      }
+    },
+    {
+      "type": "tool_completed",
+      "data": {
+        "tool": "preview_mapping",
+        "dataset_id": "00000000-0000-0000-0000-00000000004d",
+        "result": {
+          "schema_version": "orca.observations/1",
+          "input_rows": 2,
+          "accepted_rows": 2,
+          "rejected_rows": [],
+          "duplicate_rows_skipped": [],
+          "ready_for_analysis": true,
+          "serialization": "sorted-json/1; Celsius rounded to 10 decimal places",
+          "preview": [
+            {
+              "observation_id": "sha256:1cb38b47b8a92847f6098c774c8b605ecbd7a2868238021662183bdd2daae2cb",
+              "timestamp_utc": "2025-01-01T00:00:00+00:00",
+              "latitude": null,
+              "longitude": null,
+              "variable": "sea_surface_temperature",
+              "value": 27.0,
+              "unit": "C",
+              "source_row_id": 1
+            },
+            {
+              "observation_id": "sha256:dd24672f09144a18e1b4261229ad626d02e673acebc7f50f5b9d6eabc1ddecef",
+              "timestamp_utc": "2025-01-02T00:00:00+00:00",
+              "latitude": null,
+              "longitude": null,
+              "variable": "sea_surface_temperature",
+              "value": 28.0,
+              "unit": "C",
+              "source_row_id": 2
+            }
+          ]
+        },
+        "result_digest": "sha256:0ea46dbd5755cd46a69f10b57caaa30b01f3797b7c4a25362b455afe37453acb"
+      }
+    },
+    {
+      "type": "model_call",
+      "data": {
+        "turn": 3,
+        "model": "gemini-2.5-flash",
+        "usage": {
+          "promptTokenCount": 1643,
+          "candidatesTokenCount": 165,
+          "totalTokenCount": 2084,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1643
+            }
+          ],
+          "thoughtsTokenCount": 276,
+          "serviceTier": "standard"
+        },
+        "prompt_version": "orca.planner/1"
+      }
+    },
+    {
+      "type": "tool_requested",
+      "data": {
+        "tool": "submit_plan",
+        "arguments": {
+          "datasets": [
+            {
+              "mapping": {
+                "timestamp_column": "timestamp_utc",
+                "naive_timezone": "UTC",
+                "value_column": "temperature_celsius",
+                "variable": "sea_surface_temperature",
+                "unit": "C"
+              },
+              "role": "current",
+              "dataset_id": "00000000-0000-0000-0000-00000000004d"
+            }
+          ],
+          "outcome": "supported",
+          "summary": "Normalize sea surface temperature observations from the provided dataset, explicitly using Celsius units and UTC timestamps.",
+          "recipe": "normalize",
+          "missing_evidence": [],
+          "limitations": [
+            "The plan assumes that 'temperature_celsius' accurately represents sea surface temperature."
+          ]
+        }
+      }
+    },
+    {
+      "type": "plan_proposed",
+      "data": {
+        "plan": {
+          "outcome": "supported",
+          "recipe": "normalize",
+          "summary": "Normalize sea surface temperature observations from the provided dataset, explicitly using Celsius units and UTC timestamps.",
+          "datasets": [
+            {
+              "dataset_id": "00000000-0000-0000-0000-00000000004d",
+              "role": "current",
+              "mapping": {
+                "timestamp_column": "timestamp_utc",
+                "value_column": "temperature_celsius",
+                "id_column": null,
+                "latitude_column": null,
+                "longitude_column": null,
+                "unit": "C",
+                "naive_timezone": "UTC",
+                "variable": "sea_surface_temperature",
+                "duplicate_policy": "reject"
+              }
+            }
+          ],
+          "missing_evidence": [],
+          "limitations": [
+            "The plan assumes that 'temperature_celsius' accurately represents sea surface temperature."
+          ]
+        },
+        "plan_digest": "sha256:1745f726f3d38c66dac6cf841fdd12f4403490196c6b883ee646093da26bf815"
+      }
+    }
+  ],
+  "full_phase_complete": false
+}

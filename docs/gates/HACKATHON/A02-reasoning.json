@@ -1,0 +1,13 @@
+{
+  "phase": "A02",
+  "status": "PASS",
+  "offline_tests_passed": 130,
+  "database_tests_passed": 4,
+  "live_controls": [
+    "A02-live-planner.json",
+    "A02-live-abstention.json"
+  ],
+  "static": "ruff, mypy 120 modules, headers, boundaries passed",
+  "oracle_changed": false,
+  "remaining": "Review, Arkiv lineage and dashboard acceptance"
+}
