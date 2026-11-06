@@ -1,0 +1,12 @@
+# Purpose: package the research demo API without local data, credentials or test tooling.
+# Behavior: install the pinned runtime lock and run the API as an unprivileged user.
+# Refs: accelerated-research-arkiv-demo.json; Phase: accelerated P08 deployment demo.
+FROM python:3.12-slim
+WORKDIR /app
+COPY backend/pyproject.toml backend/uv.lock ./
+RUN pip install --no-cache-dir uv==0.9.30 && uv sync --frozen --no-dev --no-install-project
+COPY backend/src ./src
+RUN uv pip install --python .venv/bin/python --no-deps . && useradd --uid 10001 --create-home orca
+USER 10001
+EXPOSE 8000
+CMD [".venv/bin/python", "-m", "uvicorn", "orca.bootstrap:create_application", "--factory", "--host", "0.0.0.0", "--port", "8000"]

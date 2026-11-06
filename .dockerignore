@@ -1,0 +1,16 @@
+# Purpose: exclude secrets, source reference documents and local data from image builds.
+# Refs: accelerated research demo decision; Phase: accelerated P08 demo.
+**/.env
+**/.env.*
+.env*
+.git
+.cache
+**/.venv
+**/node_modules
+**/__pycache__
+backend/.tmp-*
+backend/tests
+backend/fixtures
+*.md
+docs
+arkiv

@@ -167,3 +167,75 @@ explicitly says they have not been verified. Metadata drift is reported as a
 nonmatching digest. A completed access probe does not validate scientific coverage,
 source rights, QC, seasonal baselines or P03 readiness. Deploy rate quotas and
 supervise worker health before enabling it in production.
+
+## Accelerated research + Arkiv demo
+
+This opt-in slice is descriptive SST research with a minimal public Arkiv reference.
+It is not the completed P04/P11 release. Automated test execution was deferred at
+the user's request; static checks and actual Supabase materialization are recorded
+separately in `docs/gates/DEMO/manifest.json`.
+
+The approved cloud setup has applied migrations through `0008_demo_results` and
+created private `.env.demo`. Real MUR access-sample bytes and a descriptive result
+are in Supabase. Local IDs are in `.cache/demo/cloud-demo.json`, the full private
+result in `.cache/demo/research-result.json`, and the minimal approved public
+reference in `.cache/demo/public-result.json`. These files are intentionally ignored.
+
+From the repository root, start the API:
+
+```powershell
+backend/.venv/Scripts/python -m uvicorn orca.bootstrap:create_application --factory --env-file .env.demo --host 127.0.0.1 --port 8000
+```
+
+Create a real account in Supabase Authentication. Obtain its Auth UUID, then run:
+
+```powershell
+backend/.venv/Scripts/python backend/scripts/bind_demo_user.py --subject <real-auth-user-uuid>
+backend/.venv/Scripts/python backend/scripts/demo_login.py
+$token = Get-Content .cache/demo/access-token.txt -Raw
+$demo = Get-Content .cache/demo/cloud-demo.json -Raw | ConvertFrom-Json
+Invoke-RestMethod "http://127.0.0.1:8000/v1/demo/research-runs/$($demo.result_id)?organization_id=$($demo.organization_id)" -Headers @{Authorization="Bearer $token"}
+```
+
+`POST /v1/demo/research-runs` accepts `organization_id` and `snapshot_id`; it reads
+and hashes private cloud bytes and persists a deterministic immutable result.
+`GET /v1/demo/research-runs/{id}` returns the authorized result.
+`POST /v1/demo/research-runs/{id}/public-export` accepts the same IDs and explicitly
+approves the returned minimal public reference, subject to redistribution rights.
+The full source/result, coordinates, user identity and credentials stay off Arkiv.
+
+The dedicated local demo wallet lives in ignored `.env.arkiv`. Its public address is
+`0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe`. Obtain Rabdi tGLM from
+https://hub.arkiv.network/. If the faucet requires a connected wallet, import this
+dedicated test account into your wallet using the private key from that local file;
+do not paste it into chat or a website. An optional RPC access key goes into
+`ARKIV_ACCESS_KEY` in the same file. Rabdi chain ID is `7794095`.
+
+From `arkiv/`:
+
+```powershell
+npm ci --ignore-scripts
+node --env-file=../.env.arkiv src/cli.mjs status
+node src/cli.mjs inspect --file ../.cache/demo/public-result.json
+node --env-file=../.env.arkiv src/cli.mjs publish --file ../.cache/demo/public-result.json --approve-public --receipt ../.cache/demo/arkiv-receipt.json
+```
+
+Publication writes a read-only seven-day entity, saves the transaction receipt,
+then reads it back from the chain and verifies owner, schema and expected export.
+Independently read it without private keys using the receipt's entity key and owner:
+
+```powershell
+node --env-file=../.env.arkiv src/cli.mjs read --key <entity-key> --owner <receipt-owner> --file ../.cache/demo/public-result.json
+```
+
+Wallet ownership does not establish ENS or institutional authority. Full federation,
+ENS binding, shared task/assignment coordination and review remain future work.
+Never blindly retry a `submission_started` receipt: reconcile wallet transactions
+first to avoid duplicate writes after ambiguous network failures. A confirmed
+receipt survives a later read-back failure. Public records expire; this is not a
+permanent archive. No chain write was made while the wallet was unfunded.
+
+To package the API, build `docker build -f infra/Dockerfile.demo -t orca-demo .`
+and inject `.env.demo` through the deployment platform's private environment.
+This image configuration has not yet been built/deployment-verified. Run migrations
+as a separate controlled admin step; the API always uses `orca_runtime`.
