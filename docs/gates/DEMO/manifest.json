@@ -1,12 +1,12 @@
 {
   "delivery": "accelerated-research-arkiv-demo",
-  "status": "PARTIAL_LIVE_RESEARCH_ARKIV_FUNDING_PENDING",
+  "status": "LIVE_CLOUD_RESEARCH_AND_ARKIV_REFERENCE_VERIFIED",
   "phase_gate_pass": false,
   "automated_test_execution": "NOT_RUN_USER_AUTHORIZED_DEFERRAL",
   "static_checks": {"ruff": "PASS", "format": "PASS", "mypy": "PASS", "arkiv_node_syntax": "PASS", "arkiv_public_export_validation": "PASS"},
   "supabase": {"additive_migrations": "0001 through 0008 applied with explicit user approval", "runtime_role": "orca_runtime", "private_sample_preserved": true, "immutable_result_stored": true, "finite_observations": 3751, "source_digest": "sha256:bd7edd4f927d9a123d07524b6497156b02c79e2a6e8db587909027774b1e8c61", "result_digest": "sha256:5c7b69bd47950e4936e80e733d75f5d21d16bf971ce1e8e6578ccc4d1b679e79"},
-  "arkiv": {"sdk": "1.0.1", "chain_id": 7794095, "wallet": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe", "rpc_chain_verified": true, "wallet_balance_wei_at_check": "0", "transaction": null, "public_export_digest": "sha256:38eb33a7f4ba80e2beee93b1035909c9d63b73f937f6201ce43dcc01f194a415"},
-  "manual_runtime_checks": {"local_api_liveness": "alive", "unauthenticated_private_result_read": "401", "supabase_bucket_private": true, "cloud_result_count": 1, "arkiv_access_key_rpc": "chain 7794095 verified; dedicated signer still unfunded"},
-  "remaining": ["Transfer faucet funds from user wallet to dedicated demo signer, then execute Arkiv publication/read-back", "Create and bind a real Supabase Auth user for browser/API demonstration", "Container build/deployment acceptance", "Full automated regression and scientific phase gates"],
+  "arkiv": {"sdk": "1.0.1", "chain_id": 7794095, "wallet": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe", "rpc_chain_verified": true, "wallet_funding_received_wei": "1000000000000000000", "transaction": "0x990fe04c31c81d743d79a32e633d0020781be09c5ef82ab50c71881fb976e23d", "publication_evidence": "docs/gates/DEMO/arkiv-publication.json", "public_export_digest": "sha256:38eb33a7f4ba80e2beee93b1035909c9d63b73f937f6201ce43dcc01f194a415"},
+  "manual_runtime_checks": {"local_api_liveness": "alive", "unauthenticated_private_result_read": "401", "supabase_bucket_private": true, "cloud_result_count": 1, "arkiv_access_key_rpc": "chain 7794095 verified", "arkiv_publish_and_separate_read_back": "PASS"},
+  "remaining": ["Create and bind a real Supabase Auth user for browser/API demonstration", "Container build/deployment acceptance", "Full automated regression and scientific phase gates"],
   "prior_regressions": "109-test evidence predates this accelerated demo; it must not be treated as validation of these new changes."
 }

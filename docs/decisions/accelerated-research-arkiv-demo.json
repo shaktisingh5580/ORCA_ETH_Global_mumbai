@@ -1,5 +1,5 @@
 {
-  "status": "CLOUD_RESEARCH_EXECUTED_ARKIV_FUNDING_PENDING",
+  "status": "CLOUD_RESEARCH_AND_LIVE_ARKIV_REFERENCE_VERIFIED",
   "authority": "User requested a working research demo with Arkiv within one hour and explicitly allowed skipping test execution.",
   "scope": "A narrow demo of deterministic descriptive SST analysis over preserved real snapshot bytes, explicit public export and real Arkiv publish/read tooling. Bring forward isolated P04/P06/P11 demo work without marking prerequisite gates passed.",
   "validation": "Defer automated test execution for this demo delivery. Run syntax/type/build checks where feasible. Existing gate results describe earlier snapshots only and must not claim the new demo was tested.",
@@ -9,6 +9,6 @@
   "gates": "P03/G03 and later full phase gates remain incomplete until their actual evidence is established.",
   "auth_integration": "Opt-in Supabase mode verifies the exact access token with the pinned Auth /user endpoint, validates issuer/audience/expiry/role and user ID, then uses database roles for authorization. Native tokens without custom scope may request the known ORCA capabilities, still intersected with active server memberships. Strict OIDC mode remains the default. No user_metadata authority or service-role tokens are accepted as users.",
   "demo_routes": "Three opt-in /v1/demo/research-runs operations supplement the selected release inventory as a demo-only contract addition. These do not mark historical P04/P06/P11 APIs implemented.",
-  "live_execution": "User explicitly approved additive Supabase migrations 0001-0008. A real captured MUR January 2025 access sample was preserved and analyzed in Supabase; minimal public export exists locally. No Arkiv transaction yet: dedicated wallet balance was zero. No Supabase Auth users existed during setup.",
+  "live_execution": "User explicitly approved additive Supabase migrations 0001-0008. A real captured MUR January 2025 access sample was preserved and analyzed in Supabase. After user funded the dedicated signer with 1 tGLM, the minimal public reference was published to Rabdi and verified in publication read-back and a separate read-only process. Public transaction evidence is docs/gates/DEMO/arkiv-publication.json. No Supabase Auth users existed during initial setup.",
   "scientific_detail": "3,751 finite sample observations, 31 daily sample means. No spatial cell-area weighting, QC acceptance, seasonal anomaly or institutional review is asserted. Captured file timestamps are used as retrieval provenance; source availability is unknown."
 }

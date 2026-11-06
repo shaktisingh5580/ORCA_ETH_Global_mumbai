@@ -1,0 +1,18 @@
+{
+  "state": "confirmed_and_read_back",
+  "chain": "Rabdi",
+  "chain_id": 7794095,
+  "entity_key": "0x220085ad817f225f59eb5fe21d14fcf57fe8942c3aea3aacffa4bd43fb798bcf",
+  "transaction_hash": "0x990fe04c31c81d743d79a32e633d0020781be09c5ef82ab50c71881fb976e23d",
+  "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+  "expiry_block": 594444,
+  "requested_lifetime_days": 7,
+  "result_id": "27d282f6-6cc8-538a-86cb-41033c87afbc",
+  "result_digest": "sha256:5c7b69bd47950e4936e80e733d75f5d21d16bf971ce1e8e6578ccc4d1b679e79",
+  "public_export_digest": "sha256:38eb33a7f4ba80e2beee93b1035909c9d63b73f937f6201ce43dcc01f194a415",
+  "verification": ["Transaction confirmed", "Schema, wallet owner and expected export checked during publication read-back", "Separate read-only CLI invocation returned the same owner, result and digests"],
+  "scientific_status": "not_validated",
+  "institutional_identity": "not_verified",
+  "private_source_published": false,
+  "full_phase_gate_pass": false
+}

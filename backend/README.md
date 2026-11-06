@@ -233,7 +233,10 @@ ENS binding, shared task/assignment coordination and review remain future work.
 Never blindly retry a `submission_started` receipt: reconcile wallet transactions
 first to avoid duplicate writes after ambiguous network failures. A confirmed
 receipt survives a later read-back failure. Public records expire; this is not a
-permanent archive. No chain write was made while the wallet was unfunded.
+permanent archive. The demo reference is now live on Rabdi; the confirmed transaction
+and separate read-back evidence are in `docs/gates/DEMO/arkiv-publication.json`.
+The receipt is already present locally, so do not rerun publication to the same
+receipt path. Use the read command to inspect the existing record.
 
 To package the API, build `docker build -f infra/Dockerfile.demo -t orca-demo .`
 and inject `.env.demo` through the deployment platform's private environment.
