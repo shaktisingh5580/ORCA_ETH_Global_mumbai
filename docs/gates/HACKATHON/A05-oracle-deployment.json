@@ -1,0 +1,45 @@
+{
+  "phase": "A05 dashboard deployment increment",
+  "date": "2026-11-07",
+  "deployed_revision": "1acb1c2",
+  "origin": "https://orca.130.210.15.82.sslip.io",
+  "dashboard_path": "/research",
+  "deployment_status": "HEALTHY",
+  "full_live_acceptance": "BLOCKED_PROVIDER_QUOTA",
+  "checks": {
+    "runtime_configuration": "PASS: reasoning, review and evidence workers configured alongside existing services",
+    "https_livez": 200,
+    "dashboard_html": 200,
+    "dashboard_javascript": 200,
+    "vercel_cors_preflight": 200,
+    "allowed_origin": "https://orca-seven-phi.vercel.app",
+    "browser_page": "Backend connected; login-required workspace rendered",
+    "browser_console_errors": 0,
+    "authenticated_cloud_browser_flow": "NOT_TESTED",
+    "supabase_revision": "0018_research_anchors",
+    "legacy_prototype_run_count_before": 2,
+    "legacy_prototype_run_count_after": 2
+  },
+  "live_attempt": {
+    "run_id": "fcf2082f-42ce-45f5-ae6e-96c6cf5947a5",
+    "source_mode": "synthetic_demo",
+    "model": "gemini-2.5-flash",
+    "state": "failed",
+    "error_code": "GEMINI_HTTP_429",
+    "quota_id": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+    "quota_value": 20,
+    "retry_delay_seconds_at_diagnosis": 31900,
+    "review_correction_publication": "NOT_REACHED; no receipt claimed for this attempt"
+  },
+  "rollback": {
+    "image_tag": "orca-oracle-backend:pre-ai-20261107",
+    "private_backup_directory": ".cache/oracle/pre-ai-20261107",
+    "existing_persistent_volumes": "preserved"
+  },
+  "remaining_scope": [
+    "Complete live AI/review/Arkiv acceptance after quota is available",
+    "Integrate tabular reasoning with Arkiv discovery, claims, exclusive assignment and A2A execution",
+    "Demonstrate an independently operated provider",
+    "ENS delegation, MCP scientific tooling and broader scientific methods are not claimed by this increment"
+  ]
+}
