@@ -76,7 +76,12 @@ def test_openapi_export_deterministic(tmp_path):
     for name in ("openapi/orca-v1.json", "designed/orca-proposal.json"):
         validate(json.loads(one[name]))
     implemented = json.loads(one["openapi/orca-v1.json"])
-    assert set(implemented["paths"]) == {"/livez", "/readyz", "/v1/meta", "/openapi.json"}
+    assert {"/livez", "/readyz", "/v1/meta", "/openapi.json"} <= set(implemented["paths"])
+    assert {
+        "/v1/research/projects",
+        "/v1/research/projects/{project_id}",
+        "/v1/research/projects/{project_id}/archive",
+    } <= set(implemented["paths"])
     assert implemented["paths"]["/readyz"]["get"]["security"] == [{"MonitoringBearer": []}]
     assert (
         "application/problem+json"
@@ -131,6 +136,6 @@ def test_foundation_routes_do_not_claim_core_readiness():
             client.get("/openapi.json", headers={"Authorization": f"Bearer {token}"}).status_code
             == 200
         )
-        assert client.get("/v1/research/projects").status_code == 404
+        assert client.get("/v1/research/projects").status_code == 503
     with TestClient(create_app(settings.model_copy(update={"docs_public": True}))) as client:
         assert client.get("/openapi.json").status_code == 200

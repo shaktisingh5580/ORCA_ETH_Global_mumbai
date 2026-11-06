@@ -194,6 +194,58 @@
       "title": "ChainReference",
       "type": "object"
     },
+    "CreateProject": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "organization_id": {
+          "format": "uuid",
+          "title": "Organization Id",
+          "type": "string"
+        },
+        "slug": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "visibility": {
+          "default": "project",
+          "enum": [
+            "organization",
+            "project",
+            "restricted",
+            "confidential"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "organization_id",
+        "slug",
+        "name"
+      ],
+      "title": "CreateProject",
+      "type": "object"
+    },
     "GeoScope": {
       "additionalProperties": false,
       "properties": {
@@ -540,6 +592,58 @@
         "next_cursor"
       ],
       "title": "Page[ResearchProject]",
+      "type": "object"
+    },
+    "PatchProject": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "visibility": {
+          "anyOf": [
+            {
+              "enum": [
+                "organization",
+                "project",
+                "restricted",
+                "confidential"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visibility"
+        }
+      },
+      "title": "PatchProject",
       "type": "object"
     },
     "Point": {
@@ -1233,6 +1337,53 @@
         "end"
       ],
       "title": "TimeWindow",
+      "type": "object"
+    },
+    "UploadIntent": {
+      "additionalProperties": false,
+      "properties": {
+        "classification": {
+          "enum": [
+            "organization",
+            "project",
+            "restricted",
+            "confidential"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "filename": {
+          "maxLength": 255,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "media_type": {
+          "maxLength": 127,
+          "minLength": 1,
+          "title": "Media Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "exclusiveMinimum": 0,
+          "maximum": 5000000000,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename",
+        "media_type",
+        "size_bytes",
+        "sha256",
+        "classification"
+      ],
+      "title": "UploadIntent",
       "type": "object"
     }
   },

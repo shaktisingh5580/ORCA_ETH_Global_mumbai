@@ -15,8 +15,11 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
 from orca.api.errors import Problem, problem_response, validation_error
+from orca.api.routers.projects import router as projects_router
 from orca.config import Settings
 from orca.contracts.common import APIMetadata, Liveness, ReadinessReport
+from orca.infrastructure.auth.oidc import OIDCVerifier
+from orca.infrastructure.db.engine import create_runtime_engine
 
 
 def create_app(settings: Settings) -> FastAPI:
@@ -24,6 +27,13 @@ def create_app(settings: Settings) -> FastAPI:
         title="ORCA P01", version="0.1.0", openapi_url=None, docs_url=None, redoc_url=None
     )
     app.add_exception_handler(RequestValidationError, validation_error)  # type: ignore[arg-type]
+    if settings.database_url:
+        app.state.runtime_engine = create_runtime_engine(settings.database_url)
+    if settings.oidc_issuer and settings.oidc_audience and settings.oidc_jwks_url:
+        app.state.oidc_verifier = OIDCVerifier(
+            settings.oidc_issuer, settings.oidc_audience, settings.oidc_jwks_url
+        )
+    app.include_router(projects_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:

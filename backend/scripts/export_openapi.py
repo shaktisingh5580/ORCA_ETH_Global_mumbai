@@ -36,6 +36,7 @@ from orca.contracts.common import (
     SourceClock,
     TimeWindow,
 )
+from orca.contracts.projects import CreateProject, PatchProject, UploadIntent
 
 ROOT = Path(__file__).resolve().parents[2]
 MODELS: list[type[BaseModel]] = [
@@ -59,6 +60,9 @@ MODELS: list[type[BaseModel]] = [
     ScientificOutcome,
     TimeWindow,
     Page[ResearchProject],
+    CreateProject,
+    PatchProject,
+    UploadIntent,
 ]
 
 
