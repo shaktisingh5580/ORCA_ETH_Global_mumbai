@@ -8,10 +8,11 @@
     "Bounded ERDDAP retrieval and metadata parsing",
     "Local exact-byte snapshot preservation and immutable manifest persistence",
     "Provider/product/version/variable/coverage/license and snapshot read APIs",
-    "Durable snapshot-request tracking, idempotency, lease recovery and fenced completion; executor pending"
+    "Durable snapshot-request tracking, idempotency, lease recovery and request-bound fenced completion",
+    "Acquisition worker orchestration with durable claims and atomic manifest publication; source adapter/deployment pending"
   ],
   "remaining_work": [
-    "Durable source-probe workflow APIs and snapshot acquisition executor",
+    "Durable source-probe workflow APIs and validated acquisition adapter/deployment wiring",
     "Fitness and compatibility-check APIs",
     "Project-scoped snapshot grants and remaining selected query semantics",
     "Production object-store ingestion integration and recovery verification",
