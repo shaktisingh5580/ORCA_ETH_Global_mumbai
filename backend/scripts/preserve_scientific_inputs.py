@@ -168,6 +168,10 @@ def main() -> None:
             )
             if existing is None:
                 CatalogService(session, tenant).add_version(version)
+        if store.preserve(tenant, metadata_raw, permitted=version.license.can_preserve) != digest(
+            metadata_raw
+        ):
+            raise ValueError("metadata preservation digest differs")
         references = []
         for year in (2025, *YEARS):
             record = capture["inputs"][str(year)]
