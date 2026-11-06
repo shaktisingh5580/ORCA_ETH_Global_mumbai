@@ -117,9 +117,10 @@ def main() -> None:
         raise ValueError("Database configuration required")
     db = create_runtime_engine(settings.database_url)
     key = settings.gemini_api_key.get_secret_value() if settings.gemini_api_key else ""
+    pool = settings.gemini_api_keys.get_secret_value() if settings.gemini_api_keys else key
+    model = GeminiReasoner(pool, settings.gemini_model or "gemini-2.5-flash") if pool else None
     while True:
-        if key:
-            model = GeminiReasoner(key, settings.gemini_model or "gemini-2.5-flash")
+        if model is not None:
             with db.connect() as connection:
                 jobs = connection.execute(
                     text("SELECT * FROM iam.pending_evidence_reviews()")
