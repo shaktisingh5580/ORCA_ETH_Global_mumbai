@@ -296,3 +296,29 @@ origins on localhost/127.0.0.1 ports, including caller `X-Request-ID` and
 `X-Organization-ID` headers. These headers do not confer permissions. Production
 rejects that setting; configure exact HTTPS frontend origins instead. There is
 no need to change Supabase RLS or expose private research schemas to browser roles.
+
+## Same-Wi-Fi dashboard integration
+
+The selected demo setup runs the frontend locally on the other laptop and the API
+on this laptop. The observed Wi-Fi API address is `http://10.71.71.246:8000`;
+`/livez` responds on that address from the server laptop. The frontend developer
+must check `/livez` from their own laptop before authentication troubleshooting.
+Guest/event Wi-Fi may isolate clients; server-side checks cannot prove peer reachability.
+
+`backend/scripts/start_lan_server.ps1` runs the server hidden on `0.0.0.0:8000` and
+writes PID/logs under ignored `.cache/lan-server/`. A scoped Windows firewall rule
+`ORCA-Demo-LAN-8000` allows inbound TCP 8000 from LocalSubnet; its setup helper is
+`backend/scripts/configure_lan_firewall.ps1` and requires administrator permission.
+No router port forwarding or Public-to-Private network profile change was made.
+
+The private demo environment enables `ORCA_CORS_LAN_DEVELOPMENT=true` for HTTP
+RFC1918 frontend origins in addition to localhost. Both development CORS switches
+are rejected in production. The Wi-Fi IP may change; update the frontend API base
+URL after reconnecting to another network.
+
+The comprehensive local handoff is `FRONTEND_DASHBOARD_INTEGRATION_HANDOFF.md` in the
+workspace root. It is intentionally ignored under the user's root Markdown policy;
+send that file directly to the frontend developer/AI assistant. It covers actual
+routes, dashboard changes, session headers, charts, unsupported features, LAN
+diagnostics and an optional later Vercel/HTTPS tunnel approach. The prepared tunnel
+helper has not been executed and no public tunnel is active.
