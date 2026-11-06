@@ -71,7 +71,7 @@ def main() -> None:
         ],
         "phases": phases,
         "corrections": [
-            "P02's historical G02 PASS is not evidence that all 31 selected P02 operations were implemented; only 7 are registered",
+            f"P02's historical G02 PASS is not evidence of full selected scope; {phases['P02']['registered_operations']} of {phases['P02']['selected_operations']} operations are registered",
             "P03 has all 16 selected handlers registered but source/QC/baseline science, permissions and deployment acceptance remain incomplete",
             "Descriptive demo computation does not implement the selected P04 anomaly method registry and scientific gates",
             "A confirmed public result reference does not implement P09 A2A, P10 ENS or the 22 P11 coordination APIs",

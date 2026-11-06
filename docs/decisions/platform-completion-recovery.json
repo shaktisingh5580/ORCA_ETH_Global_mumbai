@@ -4,8 +4,11 @@
   "product": "Research question -> approved bounded plan -> real scientific execution -> evidence -> independent review -> authenticated provider collaboration -> permitted public coordination and verification",
   "audit": "docs/decisions/platform-implementation-audit.json",
   "local_human_report": "ORCA_PLATFORM_COMPLETION_AUDIT.md (ignored root Markdown, shared directly)",
-  "registration_counts": {"selected": 165, "registered_selected": 27, "missing_selected": 138, "additional_demo": 3},
-  "completion_correction": "Historical foundation G00/G01/G02 reports do not prove complete selected platform scope. P02 has 24 missing selected operations; P03 has 16 handlers but no full scientific gate; descriptive and Arkiv demo components do not implement P04/P11 scope.",
+  "registration_counts": {"selected": 165, "registered_selected": 33, "missing_selected": 132, "additional_demo": 3},
+  "completion_correction": "Historical foundation reports do not prove full selected scope. After organization repair P02 has 18 missing selected operations. P03 has 16 handlers but no full scientific gate; descriptive and Arkiv demo components do not implement P04/P11 scope.",
+  "updated_human_report": "ORCA_FULL_PLATFORM_EXECUTION_STATUS.md (local ignored Markdown)",
+  "selected_ai_provider": "Gemini; integration not implemented yet",
+  "frontend_repository": "https://github.com/vinit-singh2007/ORCA (Next.js app in orca-frontend/; inspected in ignored checkout)",
   "milestones": [
     {"id": "A", "scope": "Repair P02 scope/ID semantics and complete P03 source/baseline/scientific gate", "acceptance": "Authorized workspace/data lifecycle and pinned, permitted scientific inputs with current isolation evidence"},
     {"id": "B", "scope": "P04 scientific registry, policies, calculation and immutable lineage", "acceptance": "Independent numerical reference checks and fail-closed incompatible input handling"},
