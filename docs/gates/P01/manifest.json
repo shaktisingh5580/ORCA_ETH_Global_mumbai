@@ -52,7 +52,7 @@
     "backend/src/orca/api/routers/fitness.py": "5407689089255960c512ff574ef6f12797f868926556f5f2f0d1644d264a3879",
     "backend/src/orca/api/routers/projects.py": "b3af68262c6f1c0eb3a3f975ea6a150f8c0dc77fb2809c94b514bbc0a840fd25",
     "backend/src/orca/api/routers/snapshot_requests.py": "97b155beb10ef66424e637df4d0c004af1d321ea6540d1d5d06b94080f9fce41",
-    "backend/src/orca/api/routers/snapshots.py": "cc6feea63472edcc437d2329fe6981c88e175c5451d793fba6b3c19b6980b89a",
+    "backend/src/orca/api/routers/snapshots.py": "a551967fdc04b7ba15f93c1c65e1a04e73b1a62b9553b1376630c10a1f86719d",
     "backend/src/orca/application/acquisition_worker.py": "c4d1da624f1fdccc15f6201342ea155a13c7d3b12418c288fa4d6bff7586bb9c",
     "backend/src/orca/application/catalog.py": "25db177e09d391a37ce8fcc345b1a9ee4e3d06fc026704cdffe2cb71ed079f05",
     "backend/src/orca/application/fitness.py": "5b31edc9158dc21f4403ce5a56e938c92106037b8a8188e66a2c7e183b097b36",
@@ -61,7 +61,7 @@
     "backend/src/orca/application/ports/object_store.py": "a4e768d583f70131eff2b59435a8699c3b217e4b44db527fa420e40cafc559c0",
     "backend/src/orca/application/projects.py": "10beb15d808757e14dded64044c04a366cf8908d086cff5e08c167f596195970",
     "backend/src/orca/application/snapshot_requests.py": "fa9d8ed3b1476f9b2d76b093dc1d02a9b6ca362d7f2f620d256b900a6cfe65e1",
-    "backend/src/orca/application/snapshots.py": "f872c866946a769b0384e6e126772fe9a1112919f06e2c053e585207082bc1ca",
+    "backend/src/orca/application/snapshots.py": "1a15852494c7407e97f99d4bfd3944d6f1a0e0acd3c130a44bcdef9c118f630a",
     "backend/src/orca/bootstrap.py": "06688bbfe7a7574be746f25ed3331f99923bbb4f746cc111a10c59d85a149635",
     "backend/src/orca/config.py": "9c36c84fcbcb07837dfacdcd4747808b39f6c2f255eb947c8c0408ce73c74c69",
     "backend/src/orca/contracts/acquisition.py": "5aeb55fc825aa8e3cca0148d1730c902a745f8a21e93f2a964b9c8edd37f9a8f",
@@ -92,15 +92,15 @@
     "backend/tests/contracts/test_gate_and_openapi.py": "80ebfd447c532da564085a4ab0ec1ecc14910d044421497122e3c3b01a253f4c",
     "backend/tests/contracts/test_mock_scenarios.py": "6633d7f8e0f608c7c7d3ea6b1b94150d2508bc38dbbdde39fdade821a5c63875",
     "backend/tests/contracts/test_research_scope.py": "a05879eddd2041fe3d06ca4ef77ef96764831ef1e4fb5db527866f6b809cbf60",
-    "backend/tests/contracts/test_snapshot_http.py": "028c306a815ed3918fea33481c796531a45db32e35584c0096e6d4be7d2d7c41",
+    "backend/tests/contracts/test_snapshot_http.py": "a2f2f58a5cfcbc33fe7ec0c684585dcae53b56b25f058980156a7001bd5f2365",
     "backend/tests/contracts/test_snapshot_requests.py": "344b881816a29bfe461be96313f146c11180ab9f97bd470325032cbd5460e062",
     "backend/tests/integration/test_acquisition_worker.py": "77072021a9351978127dfe3625cbd928f9bbd3b96ea3e19af918822bf4c12b65",
     "backend/tests/integration/test_catalog_persistence.py": "ab688c6e7ed21f095473797e66d5984c191d3813408280751a807dd486e1fe8b",
     "backend/tests/integration/test_object_staging.py": "74d1eab663f0d9a9cb396c320f6320e76e657d5e0059f03c1b1b463ae493c680",
-    "backend/tests/integration/test_p02_migrations.py": "565a6d49ab824bca0376fcd6bb58aaecb9a88c1ceefcd8dec8fb1cddd1762eeb",
+    "backend/tests/integration/test_p02_migrations.py": "df20b415d65b541814702906f552122e20e4d0727dae54be6e09ddf0e0dd52e1",
     "backend/tests/integration/test_project_crud.py": "819847221aca8ba2dd92d4f825fe0a3438a8a3405f548b899b0e9708471df6c9",
     "backend/tests/integration/test_snapshot_cloud.py": "13e47ebf651ad0011ff6f863c4cfc8ea31083bc681529d64816693393afc31b6",
-    "backend/tests/integration/test_snapshot_persistence.py": "08235b6c6253f87666ddc5d81b32e922ad03dc269f742d706813ee3909030325",
+    "backend/tests/integration/test_snapshot_persistence.py": "13f491d24c7d657fc8f3d9d6de2d07cbab9326d17e095ab9eb0485a1f3cdb932",
     "backend/tests/security/test_erddap_egress.py": "32b86944dd1f71b5624bc5e19b31b40127e16d05312e769f551446a81b33a4bd",
     "backend/tests/security/test_object_staging_unit.py": "a6d8519e0f56c2e78a6d8c8f05a98dc8037959b7fbdcd1cd4ab83de2a0a51fc2",
     "backend/tests/security/test_oidc_auth.py": "55d17f2c989fa379557ce20fb22e769460a8bb833735eee8ad78f92662ddfc8d",
@@ -116,7 +116,7 @@
     "contracts/designed/orca-proposal.json": "408a454d9cfe49c663d4025cf39190a575c53d60fec891dc9ef5bd9cda1757a8",
     "contracts/designed/orca-research-selected.json": "e9b4d5e8557490f9e75462e3cf76aa9ed7abea63a565354ccc7a29767a99360a",
     "contracts/designed/research-route-dispositions.json": "7ec6ef6bcd77cdf70cf17f1fa47dd0e7e3184d7bde3d24cf05a36de82dab5156",
-    "contracts/openapi/orca-v1.json": "9054a22ee0ebe9c73a169177f728bb5cdda05648d56a2f320f9ca5e207bfafe9",
+    "contracts/openapi/orca-v1.json": "9ad195f557f2769cc9ce7488b311b891b6be221788f58fa26d07b04e5eab107f",
     "contracts/schemas/common.json": "4904d3bc2d4dde21e7009e519a6697898b439916451493944e6f3ebee2b0514e",
     "contracts/typescript/orca.ts": "9a90204f0610703920c73053aed4adc03ba63b71e5d573f68fd18133614fe73e",
     "docs/decisions/P01-contract-reconciliation.md": "d7e56394be83a4c8f905d4461fa5cb35b0e301cecb9d44a31773017ac19f0807",
@@ -124,7 +124,7 @@
     "docs/gates/P01/requirements.json": "d2fc89de41ff3d024c0cfde46177d8eddf57d5d6a753a7e3885eae5eb642f644",
     "main_implementation plan.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad"
   },
-  "source_tree_sha256": "4ab7fd98c181be6f5e2ace09b3d2f5017d9809237628c10ab5a255a1be8c8dda",
+  "source_tree_sha256": "37cdc343d8031548b23fe082de9304544b63c09f1612ecfa8e714035fa94fe3a",
   "counts": {
     "required": 25,
     "collected": 29,
@@ -168,11 +168,11 @@
   },
   "evidence_hashes": {
     "build.txt": "b9fc3ac193ea90c9091bfe0ee1ca6ee1302b53cb66ba00636a552c7238f4d7e4",
-    "clean-install.txt": "93b16f46ca48a98c0aabad1d76e2060626893bc1a1c45d39561aca641919ec18",
-    "static-checks.txt": "9c5f409af96b6f01940dc54506547cee1eaff2b25c1793d758bc4717fa3f50c7",
-    "test-results.txt": "dbe02a1ee6740dac3765b3ffef6dbcf21b11a4e293dc1233ba88b0e773d537ae",
-    "test-results.xml": "30d1278e607c30367c6ccbdbeee7cbdc51fd27162b6422e89d1ef9db0319fec6"
+    "clean-install.txt": "96c923c8d68d23476208f9ded7016d7f64fe08d2dd1af74c026937584f1e5e11",
+    "static-checks.txt": "9df8bf07a11080d7b14d41a1d53295b066b8b11117e4d8352be1ff9b5fd0fc33",
+    "test-results.txt": "4ba092918453316dffb0c87ea7f5ca78f3f282a7fe2c284c07893606e65bc2f5",
+    "test-results.xml": "3f574174be034af69bdfde5e7e0011b14f868133e8875cebdfff53fb73989bed"
   },
   "next_phase": "P02",
-  "generated_at": "2026-11-06T11:49:34.896728+00:00"
+  "generated_at": "2026-11-06T11:56:31.927336+00:00"
 }

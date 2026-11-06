@@ -12,12 +12,13 @@
     "Acquisition worker with durable claims, request-bound completion and atomic publication",
     "Configured ERDDAP CSV acquisition adapter and S3-compatible exact-byte preservation",
     "Separate worker process and opt-in source-bound API submission configuration",
-    "Tenant-authorized fitness and compatibility metadata APIs with unknown scientific readiness"
+    "Tenant-authorized fitness and compatibility metadata APIs with unknown scientific readiness",
+    "Project snapshot filter with active membership, explicit grants, expiry and revocation"
   ],
   "remaining_work": [
     "Durable source-probe workflow APIs and live acquisition deployment acceptance",
     "Scientific method/QC validation beyond metadata fitness and compatibility checks",
-    "Project-scoped snapshot grants and remaining selected query semantics",
+    "Grant-management HTTP contract, project-only classification decision and remaining selected query semantics",
     "Production Supabase end-to-end acceptance and cloud recovery verification",
     "All mandatory G03 named tests and complete phase runner",
     "Compatible baseline and live scientific/QC/as-of evidence"

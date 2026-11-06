@@ -9,4 +9,4 @@ tests/unit/test_foundation.py::test_import_production_graph
     raise SocketBlockedError()
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-29 passed, 2 warnings in 31.98s
+29 passed, 2 warnings in 32.11s
