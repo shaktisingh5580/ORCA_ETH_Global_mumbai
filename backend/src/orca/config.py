@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     acquisition_enabled: bool = False
     source_probes_enabled: bool = False
     research_demo_enabled: bool = False
+    organization_creation_enabled: bool = False
     acquisition_sources: tuple[SourceBinding, ...] = ()
 
     @model_validator(mode="after")

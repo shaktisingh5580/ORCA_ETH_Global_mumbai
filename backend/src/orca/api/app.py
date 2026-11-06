@@ -20,6 +20,7 @@ from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
 from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.identity import router as identity_router
+from orca.api.routers.organizations import router as organizations_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
@@ -70,6 +71,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.snapshot_worker_enabled = settings.acquisition_enabled
     app.state.source_probes_enabled = settings.source_probes_enabled
     app.state.acquisition_sources = settings.acquisition_sources
+    app.state.organization_creation_enabled = settings.organization_creation_enabled
     if settings.research_demo_enabled:
         app.state.demo_snapshot_store = snapshot_store(settings)
     if settings.database_url:
@@ -84,6 +86,7 @@ def create_app(settings: Settings) -> FastAPI:
         )
     app.include_router(projects_router)
     app.include_router(identity_router)
+    app.include_router(organizations_router)
     app.include_router(catalog_router)
     app.include_router(fitness_router)
     app.include_router(snapshots_router)
