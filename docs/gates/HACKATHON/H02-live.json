@@ -1,0 +1,16 @@
+{
+  "profile": "hackathon-prototype",
+  "phase": "H02",
+  "execution": "real cloud inputs; trusted operator application flow, not browser login acceptance",
+  "status": "succeeded",
+  "run_id": "53d47285-ecd8-4d11-a637-ceedb3b74069",
+  "project_id": "bd11b1ae-1934-468e-a92a-bf57529df56f",
+  "result_digest": "sha256:7558b490057d47b9f1330adb2066036e85467da0ab1e88ac5a67d5a8faae1197",
+  "anomaly_c": 0.623497279140075,
+  "current_mean_c": 26.247506048156076,
+  "baseline_mean_c": 25.624008769016,
+  "daily_points": 31,
+  "source_mode": "real",
+  "synthetic_production_data": false,
+  "scientific_status": "prototype_not_independently_validated"
+}

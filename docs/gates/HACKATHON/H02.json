@@ -1,0 +1,21 @@
+{
+  "profile": "hackathon-prototype",
+  "phase": "H02",
+  "status": "PASS",
+  "focused_tests": {
+    "numerical_and_input_tests": 12,
+    "migration_and_workflow_tests": 7,
+    "failures": 0,
+    "skips": 0,
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "headers_and_import_boundaries": "PASS"
+  },
+  "cloud_migration": "0013_prototype_workflow",
+  "workflow": "question -> bounded plan -> approval -> queued run -> real result -> saved report",
+  "live_evidence": "docs/gates/HACKATHON/H02-live.json",
+  "actual_result_digest": "sha256:7558b490057d47b9f1330adb2066036e85467da0ab1e88ac5a67d5a8faae1197",
+  "gemini": "optional adapter implemented; live call not made because key is not configured",
+  "full_production_scientific_gate_claimed": false,
+  "next_phase": "H03 existing-dashboard integration"
+}
