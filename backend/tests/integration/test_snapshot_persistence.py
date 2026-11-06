@@ -17,7 +17,7 @@ from orca.application.projects import IdempotencyConflict
 from orca.application.snapshot_requests import SnapshotRequests
 from orca.application.snapshots import SnapshotRepository
 from orca.contracts.catalog import ProductVersion, ScientificProduct
-from orca.contracts.snapshot_requests import SnapshotRequest
+from orca.contracts.snapshot_requests import SnapshotRequest, request_digest
 from orca.contracts.snapshots import DatasetSnapshotManifest
 
 
@@ -118,28 +118,35 @@ def test_snapshot_persistence_isolation_and_immutability():
                     recovered = requests.claim()
                     assert recovered is not None and recovered["attempts"] == 2
                     assert not requests.complete(
+                        queued.operation.id, recovered["lease_token"], manifest.id
+                    )
+                    bound = manifest.model_copy(
+                        update={"id": uuid4(), "acquisition_request_digest": request_digest(body)}
+                    )
+                    repository.add(bound)
+                    assert not requests.complete(
                         queued.operation.id, claim["lease_token"], manifest.id
                     )
                     assert requests.complete(
-                        queued.operation.id, recovered["lease_token"], manifest.id
+                        queued.operation.id, recovered["lease_token"], bound.id
                     )
                     assert not requests.fail(
                         queued.operation.id, recovered["lease_token"], "SOURCE_TIMEOUT"
                     )
-                    assert requests.get(queued.operation.id).snapshot_id == manifest.id
+                    assert requests.get(queued.operation.id).snapshot_id == bound.id
                     second = manifest.model_copy(update={"id": uuid4()})
                     repository.add(second)
-                    ordered = sorted([manifest, second], key=lambda item: item.id)
+                    ordered = sorted([manifest, second, bound], key=lambda item: item.id)
                     assert repository.list(limit=1) == ordered[:1]
-                    assert repository.list(after=ordered[0].id, limit=1) == ordered[1:]
-                    assert repository.list(after=ordered[1].id) == []
+                    assert repository.list(after=ordered[0].id, limit=1) == ordered[1:2]
+                    assert repository.list(after=ordered[2].id) == []
                     assert (
                         len(
                             repository.list(
                                 product_id=product_id, digest=manifest.raw_content_digest
                             )
                         )
-                        == 2
+                        == 3
                     )
                     assert repository.list(product_id=uuid4()) == []
                     assert repository.list(digest="sha256:" + "0" * 64) == []

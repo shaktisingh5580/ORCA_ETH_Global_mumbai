@@ -3,7 +3,6 @@ Behavior: verify stored rights, lease requests atomically and reject stale compl
 Refs: API 3.4; main plan P03.3/P03.5; Phase: P03.5.
 """
 
-import hashlib
 import json
 from typing import Any
 from uuid import UUID, uuid4
@@ -14,7 +13,7 @@ from sqlalchemy.orm import Session
 from orca.application.projects import IdempotencyConflict
 from orca.contracts.catalog import ProductVersion
 from orca.contracts.common import Operation
-from orca.contracts.snapshot_requests import SnapshotRequest, SnapshotRequestStatus
+from orca.contracts.snapshot_requests import SnapshotRequest, SnapshotRequestStatus, request_digest
 
 
 class SnapshotRequests:
@@ -51,9 +50,7 @@ class SnapshotRequests:
         if not 1 <= len(key) <= 128:
             raise ValueError("invalid idempotency key")
         payload = body.model_dump(mode="json")
-        digest = hashlib.sha256(
-            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
-        ).hexdigest()
+        digest = request_digest(body).removeprefix("sha256:")
         stored = self.session.execute(
             text(
                 "SELECT manifest FROM research.catalog_versions WHERE tenant_id=:tenant AND id=:id"
@@ -141,7 +138,9 @@ class SnapshotRequests:
           updated_at=clock_timestamp() WHERE r.tenant_id=:tenant AND r.id=:id
           AND r.status='running' AND r.lease_token=:token AND r.lease_until>clock_timestamp()
           AND EXISTS(SELECT 1 FROM research.dataset_snapshots s WHERE s.tenant_id=r.tenant_id
-            AND s.id=:snapshot AND s.version_id=r.version_id) RETURNING r.id"""),
+            AND s.id=:snapshot AND s.version_id=r.version_id
+            AND s.manifest->>'acquisition_request_digest'='sha256:' || r.request_hash)
+          RETURNING r.id"""),
             {"tenant": self.tenant, "id": request_id, "token": token, "snapshot": snapshot_id},
         ).scalar_one_or_none()
         return result is not None
