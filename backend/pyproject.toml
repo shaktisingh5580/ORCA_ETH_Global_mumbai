@@ -38,6 +38,7 @@ addopts = "--strict-markers --disable-socket --allow-unix-socket"
 markers = ["live: explicitly enabled external integration tests"]
 
 [tool.ruff]
+extend-exclude = [".tmp-*"]
 target-version = "py312"
 line-length = 100
 

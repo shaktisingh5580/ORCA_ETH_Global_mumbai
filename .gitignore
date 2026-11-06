@@ -19,3 +19,4 @@ node_modules/
 !/AGENTS.md
 !/backend/README.md
 /ORCA_Architecture_Diagram.tex
+backend/.tmp-*/

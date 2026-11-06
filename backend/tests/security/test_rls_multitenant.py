@@ -43,6 +43,10 @@ def prepare() -> tuple[str, str, UUID, UUID, UUID, UUID]:
     )
     tenant_a, tenant_b, project_a, project_b = uuid4(), uuid4(), uuid4(), uuid4()
     with psycopg.connect(admin) as connection:
+        connection.execute("TRUNCATE TABLE iam.membership_audit")
+        connection.execute("DELETE FROM iam.organization_creation_keys")
+        connection.execute("DELETE FROM iam.invitations")
+        connection.execute("DELETE FROM iam.access_grants")
         connection.execute("DELETE FROM research.uploads")
         connection.execute("DELETE FROM research.project_members")
         connection.execute("DELETE FROM research.projects")
