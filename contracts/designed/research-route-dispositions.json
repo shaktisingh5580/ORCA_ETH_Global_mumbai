@@ -1,0 +1,1337 @@
+{
+  "counts": {
+    "CORE": 100,
+    "DEFER": 21,
+    "EXCLUDE": 34,
+    "FED": 47,
+    "OPS": 18
+  },
+  "decision": "ADR-R01-research-only-scope",
+  "decision_date": "2026-11-06",
+  "historical_operation_count": 220,
+  "operations": [
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/livez",
+      "phase": "P01"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/openapi.json",
+      "phase": "P01"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/readyz",
+      "phase": "P01"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/meta",
+      "phase": "P01"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/invitations/{token}/accept",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/me",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/organizations",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/organizations",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/organizations/{org_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "PATCH",
+      "path": "/v1/organizations/{org_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/organizations/{org_id}/access-grants",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/organizations/{org_id}/access-grants",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "DELETE",
+      "path": "/v1/organizations/{org_id}/access-grants/{grant_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/organizations/{org_id}/invitations",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/organizations/{org_id}/members",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "DELETE",
+      "path": "/v1/organizations/{org_id}/members/{member_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "PATCH",
+      "path": "/v1/organizations/{org_id}/members/{member_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/organizations/{org_id}/policies",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "PATCH",
+      "path": "/v1/organizations/{org_id}/policies",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/files/{file_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/files/{file_id}/download-intents",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/projects",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/projects",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/projects/{project_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "PATCH",
+      "path": "/v1/research/projects/{project_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/projects/{project_id}/archive",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/projects/{project_id}/files",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/projects/{project_id}/members",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/projects/{project_id}/members",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "DELETE",
+      "path": "/v1/research/projects/{project_id}/members/{member_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "PATCH",
+      "path": "/v1/research/projects/{project_id}/members/{member_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/projects/{project_id}/uploads",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "DELETE",
+      "path": "/v1/research/uploads/{upload_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/uploads/{upload_id}",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/uploads/{upload_id}/complete",
+      "phase": "P02"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/catalog/compatibility-checks",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/products",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/products/{product_id}",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/products/{product_id}/coverage",
+      "phase": "P03"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/catalog/products/{product_id}/distributions",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/catalog/products/{product_id}/fitness-checks",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/products/{product_id}/licenses",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/products/{product_id}/variables",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/products/{product_id}/versions",
+      "phase": "P03"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/catalog/products/{product_id}/versions/{version_id}",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/providers",
+      "phase": "P03"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/catalog/providers/{provider_id}",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/catalog/snapshot-requests",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/snapshot-requests/{request_id}",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/snapshots",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/snapshots/{snapshot_id}",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/snapshots/{snapshot_id}/manifest",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/catalog/source-probes",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/catalog/source-probes/{probe_id}",
+      "phase": "P03"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/catalog/variable-definitions",
+      "phase": "P03"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/science/methods",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/science/methods/{method_id}",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/science/methods/{method_id}/versions/{version}",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/science/policies",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/science/quality-codebook",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/science/recipe-templates",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/science/recipe-templates/{template_id}",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/science/recipe-validations",
+      "phase": "P04"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "PATCH",
+      "path": "/v1/research/investigations/{investigation_id}",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/activity",
+      "phase": "P05"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/costs",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/events",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/events/stream",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/outcome",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/plans",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/plans",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/plans/{plan_id}",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/plans/{plan_id}/approve",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/runs",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/runs",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/cancel",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/retry",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/task-graph",
+      "phase": "P05"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/artifacts/{artifact_id}",
+      "phase": "P06"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/artifacts/{artifact_id}/claims",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/artifacts/{artifact_id}/lineage",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/artifacts/{artifact_id}/manifest",
+      "phase": "P06"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/claims/{claim_id}",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/exports/{export_id}",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/exports/{export_id}/download-intents",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/artifacts",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/evidence-summary",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/exports",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/map-layers",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/reports",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/reports",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/map-layers/{layer_id}",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/map-layers/{layer_id}/access",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/reports/{report_id}",
+      "phase": "P06"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "POST",
+      "path": "/v1/research/reports/{report_id}/publish",
+      "phase": "P06"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/artifacts/{artifact_id}/challenges",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/artifacts/{artifact_id}/challenges",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/artifacts/{artifact_id}/reproductions",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/artifacts/{artifact_id}/reproductions",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/artifacts/{artifact_id}/reviews",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/artifacts/{artifact_id}/reviews",
+      "phase": "P07"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/benchmarks",
+      "phase": "P07"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/benchmarks/{benchmark_id}",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/challenges/{challenge_id}/resolve",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "POST",
+      "path": "/v1/research/challenges/{challenge_id}/responses",
+      "phase": "P07"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/historical-evaluations/{evaluation_id}",
+      "phase": "P07"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/investigations/{investigation_id}/historical-evaluations",
+      "phase": "P07"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "POST",
+      "path": "/v1/research/investigations/{investigation_id}/historical-evaluations",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/reproductions/{reproduction_id}",
+      "phase": "P07"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/research/reviews/{review_id}",
+      "phase": "P07"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/admin/data-rights",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/admin/job-health",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/admin/retention",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "POST",
+      "path": "/v1/admin/retention/preview",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/admin/source-health",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/operations",
+      "phase": "P08"
+    },
+    {
+      "disposition": "CORE",
+      "method": "GET",
+      "path": "/v1/operations/{operation_id}",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/organizations/{org_id}/audit-events",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/organizations/{org_id}/quotas",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "PATCH",
+      "path": "/v1/organizations/{org_id}/quotas",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/organizations/{org_id}/usage",
+      "phase": "P08"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/research/projects/{project_id}/access-decisions",
+      "phase": "P08"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/agents",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/agents",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/agents/{agent_id}",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "PATCH",
+      "path": "/v1/network/agents/{agent_id}",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/agents/{agent_id}/capabilities",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/agents/{agent_id}/capabilities",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "PATCH",
+      "path": "/v1/network/agents/{agent_id}/capabilities/{capability_id}",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/agents/{agent_id}/endpoint-checks",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/agents/{agent_id}/endpoints",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/agents/{agent_id}/endpoints",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/agents/{agent_id}/health",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/agents/{agent_id}/suspend",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/discovery",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/provider-onboarding/{agent_id}/checklist",
+      "phase": "P09"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/identity/agent-bindings",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/agent-bindings",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/agent-bindings/challenges",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/identity/agent-bindings/{binding_id}",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/agent-bindings/{binding_id}/revoke",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/agent-bindings/{binding_id}/verify",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/identity/ens/names/{encoded_name}",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/ens/permission-grants",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/ens/permission-revocations",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/ens/record-updates",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/ens/registrations",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/ens/resolutions",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/identity/ens/transactions/{transaction_id}",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/identity/institution-credentials",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/institution-credentials",
+      "phase": "P10"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/identity/institution-credentials/{credential_id}/decisions",
+      "phase": "P10"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/network/arkiv/entities/{entity_key}",
+      "phase": "P11"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/network/arkiv/indexer-status",
+      "phase": "P11"
+    },
+    {
+      "disposition": "OPS",
+      "method": "POST",
+      "path": "/v1/network/arkiv/queries",
+      "phase": "P11"
+    },
+    {
+      "disposition": "OPS",
+      "method": "POST",
+      "path": "/v1/network/arkiv/reconciliation-requests",
+      "phase": "P11"
+    },
+    {
+      "disposition": "OPS",
+      "method": "GET",
+      "path": "/v1/network/arkiv/transactions/{transaction_id}",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/investigations/{public_task_id}/timeline",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/results",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/results",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/results/{result_ref_id}",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/reviews",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/reviews",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/tasks",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/tasks",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/tasks/{external_task_id}",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/tasks/{external_task_id}/a2a-sessions",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/tasks/{external_task_id}/assignments",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/tasks/{external_task_id}/assignments",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/tasks/{external_task_id}/claims",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/tasks/{external_task_id}/claims",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/tasks/{external_task_id}/dispatch",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "POST",
+      "path": "/v1/network/verifications",
+      "phase": "P11"
+    },
+    {
+      "disposition": "FED",
+      "method": "GET",
+      "path": "/v1/network/verifications/{verification_id}",
+      "phase": "P11"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/alerts/notifications",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/alerts/notifications/{notification_id}/ack",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/alerts/subscriptions",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/alerts/subscriptions",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "DELETE",
+      "path": "/v1/alerts/subscriptions/{subscription_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "PATCH",
+      "path": "/v1/alerts/subscriptions/{subscription_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/conversations",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/conversations",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/conversations/{conversation_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "PATCH",
+      "path": "/v1/conversations/{conversation_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/conversations/{conversation_id}/events/stream",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/conversations/{conversation_id}/feedback",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/localization/languages",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/marine/conditions",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/marine/geofences",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/marine/pfz",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/marine/route-exposures",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/marine/warnings",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/me/memory",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "DELETE",
+      "path": "/v1/me/memory/{memory_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/me/preferences",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "PATCH",
+      "path": "/v1/me/preferences",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/research/model-evaluations",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/research/model-evaluations/{evaluation_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/research/model-registry",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/research/model-registry",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/research/model-registry/{model_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/monitoring-jobs",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "POST",
+      "path": "/v1/research/monitoring-jobs",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "PATCH",
+      "path": "/v1/research/monitoring-jobs/{job_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/research/monitoring-jobs/{job_id}/evaluations",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "POST",
+      "path": "/v1/research/monitoring-jobs/{job_id}/pause",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/research/training-jobs",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "GET",
+      "path": "/v1/research/training-jobs/{training_job_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/research/training-jobs/{training_job_id}/cancel",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "POST",
+      "path": "/v1/science/diagnostics",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/science/diagnostics/{diagnostic_id}",
+      "phase": "P12"
+    },
+    {
+      "disposition": "DEFER",
+      "method": "GET",
+      "path": "/v1/science/variables",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/voice/synthesis",
+      "phase": "P12"
+    },
+    {
+      "disposition": "EXCLUDE",
+      "method": "POST",
+      "path": "/v1/voice/transcriptions",
+      "phase": "P12"
+    }
+  ],
+  "schema_version": "orca.route-scope/1.0",
+  "selected_operation_count": 165,
+  "status": "IMPLEMENTATION_DIRECTIVE_RECEIVED"
+}

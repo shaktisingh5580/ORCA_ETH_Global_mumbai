@@ -1,6 +1,6 @@
-"""Purpose: generate reproducible HTTP/schema/frontend contracts from actual DTOs.
-Behavior: separate 220 designed routes from four implemented routes; export TS types.
-Refs: API sections 3,4,19; main plan P01.2/P01.4; Phase: P01.
+"""Purpose: generate reproducible runtime, research-scope and frontend contracts.
+Behavior: preserve 220 historical routes, select 165 research routes, and export implemented APIs.
+Refs: API sections 3,4,19; research-only guide sections 3 and 10.1; Phase: scope migration.
 """
 
 import argparse
@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from export_research_scope import artifacts as research_scope_artifacts
 from pydantic import BaseModel, SecretStr
 from pydantic.json_schema import models_json_schema
 
@@ -171,12 +172,14 @@ def artifacts() -> dict[str, str]:
     def encode(value: Any) -> str:
         return json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
 
-    return {
+    output = {
         "openapi/orca-v1.json": encode(implemented),
         "designed/orca-proposal.json": encode(designed),
         "schemas/common.json": encode(schemas),
         "typescript/orca.ts": ts,
     }
+    output.update(research_scope_artifacts(ROOT, designed))
+    return output
 
 
 def export(destination: Path, check: bool = False) -> None:
