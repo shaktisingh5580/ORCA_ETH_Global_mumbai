@@ -266,3 +266,33 @@ is `contracts/openapi/orca-demo.json`; the core profile schema is `orca-v1.json`
 Only implemented routes in these contracts are available. The legacy Marine
 advisory/observation UI is excluded from the selected research product and must not
 call `/v1/marine/*`. A planned route in a design document is not a live endpoint.
+
+The workspace selector now has implemented `GET /v1/me` and
+`GET /v1/organizations?limit=20&cursor=<optional-last-id>` endpoints. Both require a
+real bearer user session. `me` returns `user_id`, `orgs`, `roles`, `capabilities` and
+an optional continuation cursor; the organization endpoint returns
+`{items,next_cursor,page_size}`. Use the organization's `id` for `organization_id`
+in subsequent requests. An empty organization array differs from a failed request;
+show authentication/network errors instead of labeling them "no organizations".
+
+`contracts/javascript/orca-client.mjs` is a reusable browser client. Supply its
+`getAccessToken` callback using your initialized Supabase client:
+
+```javascript
+const api = createOrcaClient({
+  baseUrl: "http://127.0.0.1:8000",
+  getAccessToken: async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return session?.access_token;
+  },
+});
+const me = await api.me();
+const { items: organizations } = await api.organizations();
+```
+
+For the private local demo, `ORCA_CORS_LOCAL_DEVELOPMENT=true` allows HTTP browser
+origins on localhost/127.0.0.1 ports, including caller `X-Request-ID` and
+`X-Organization-ID` headers. These headers do not confer permissions. Production
+rejects that setting; configure exact HTTPS frontend origins instead. There is
+no need to change Supabase RLS or expose private research schemas to browser roles.

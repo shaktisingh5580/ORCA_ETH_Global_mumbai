@@ -291,6 +291,55 @@
         "title": "CreateProject",
         "type": "object"
       },
+      "CurrentUser": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "orgs": {
+            "items": {
+              "$ref": "#/components/schemas/OrganizationSummary"
+            },
+            "title": "Orgs",
+            "type": "array"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "orgs",
+          "roles",
+          "capabilities"
+        ],
+        "title": "CurrentUser",
+        "type": "object"
+      },
       "DataCompatibilityRequest": {
         "additionalProperties": false,
         "properties": {
@@ -862,6 +911,47 @@
         "title": "Operation",
         "type": "object"
       },
+      "OrganizationSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "tenant_id": {
+            "format": "uuid",
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "visibility": {
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_id",
+          "name",
+          "slug",
+          "visibility",
+          "role"
+        ],
+        "title": "OrganizationSummary",
+        "type": "object"
+      },
       "Page_CanonicalVariableMapping_": {
         "additionalProperties": false,
         "properties": {
@@ -932,6 +1022,42 @@
           "next_cursor"
         ],
         "title": "Page[DatasetSnapshot]",
+        "type": "object"
+      },
+      "Page_OrganizationSummary_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrganizationSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[OrganizationSummary]",
         "type": "object"
       },
       "Page_ProductVersion_": {
@@ -3395,6 +3521,32 @@
         ]
       }
     },
+    "/v1/me": {
+      "get": {
+        "operationId": "me_v1_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUser"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "current user and workspaces"
+        ]
+      }
+    },
     "/v1/meta": {
       "get": {
         "operationId": "get_meta",
@@ -3413,6 +3565,73 @@
         "summary": "Meta",
         "x-orca-implementation-status": "IMPLEMENTED",
         "x-orca-phase": "P01"
+      }
+    },
+    "/v1/organizations": {
+      "get": {
+        "operationId": "organizations_v1_organizations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_OrganizationSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Organizations",
+        "tags": [
+          "current user and workspaces"
+        ]
       }
     },
     "/v1/research/projects": {

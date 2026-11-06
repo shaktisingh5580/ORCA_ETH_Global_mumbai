@@ -1,0 +1,10 @@
+{
+  "status": "IDENTITY_DIRECTORY_IMPLEMENTED",
+  "references": ["api design.md 3.2", "backend/README.md Frontend connection"],
+  "trigger": "Workspace frontend called /v1/me and /v1/organizations without implemented directory endpoints or a visible Authorization header.",
+  "scope": "Implement the selected identity reads, exact membership-filtered enumeration, reusable browser client and local-only CORS. Organization creation remains unavailable.",
+  "database": "User explicitly approved migration 0009. A bounded SECURITY DEFINER function returns only active memberships for the server-verified subject. Execute is restricted to the private runtime role; public execution is revoked. Token scopes remain intersected with database roles.",
+  "frontend": "Sign in through this project's Supabase Auth. Use session.access_token in Authorization: Bearer for both identity reads and subsequent private requests. A user UUID, anon key or service-role key is not a user session token.",
+  "cors": "Local-development mode allows only HTTP localhost/127.0.0.1 origins and rejects enablement in production. Production uses explicit configured origins.",
+  "validation": "Static checks and manual directory/runtime checks; automated regression execution remains deferred at user's request. No broader phase completion claim."
+}
