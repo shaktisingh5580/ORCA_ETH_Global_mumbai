@@ -43,17 +43,14 @@ class SnapshotRepository:
         )
 
     def project_member(self, project_id: UUID, subject: str) -> bool:
-        try:
-            principal = UUID(subject)
-        except ValueError:
-            return False
         return (
             self.session.execute(
                 text("""SELECT 1 FROM research.project_members m
           JOIN research.projects p ON p.tenant_id=m.tenant_id AND p.id=m.project_id
-          WHERE m.tenant_id=:tenant AND m.project_id=:project AND m.principal_id=:principal
+          JOIN iam.memberships identity ON identity.tenant_id=m.tenant_id AND identity.id=m.principal_id
+          WHERE m.tenant_id=:tenant AND m.project_id=:project AND identity.subject=:principal AND identity.status='active'
           AND m.status='active' AND p.state='active' LIMIT 1"""),
-                {"tenant": self.tenant_id, "project": project_id, "principal": principal},
+                {"tenant": self.tenant_id, "project": project_id, "principal": subject},
             ).scalar_one_or_none()
             is not None
         )

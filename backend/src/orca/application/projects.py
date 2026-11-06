@@ -92,9 +92,25 @@ class ProjectService:
         return project
 
     def list(
-        self, session: Session, tenant_id: UUID, limit: int, cursor: UUID | None = None
+        self,
+        session: Session,
+        tenant_id: UUID,
+        limit: int,
+        cursor: UUID | None = None,
+        subject: str | None = None,
     ) -> ProjectPage:
         query = select(Project).where(Project.tenant_id == tenant_id)
+        if subject is not None:
+            query = query.where(
+                text("""EXISTS(SELECT 1 FROM iam.memberships m
+              WHERE m.tenant_id=research.projects.tenant_id AND m.subject=:actor AND m.status='active'
+              AND (m.role IN ('org_owner','org_admin') OR research.projects.access_class IN ('public','organization')
+                OR EXISTS(SELECT 1 FROM research.project_members pm WHERE pm.tenant_id=m.tenant_id
+                  AND pm.project_id=research.projects.id AND pm.principal_id=m.id AND pm.status='active')
+                OR EXISTS(SELECT 1 FROM iam.access_grants g WHERE g.tenant_id=m.tenant_id
+                  AND g.project_id=research.projects.id AND g.principal_id=m.id AND NOT g.revoked
+                  AND g.expires_at>clock_timestamp() AND g.resource_version=research.projects.version)))""")
+            ).params(actor=subject)
         if cursor is not None:
             query = query.where(Project.id > cursor)
         rows = list(session.scalars(query.order_by(Project.id).limit(limit + 1)))

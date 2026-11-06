@@ -4,19 +4,22 @@ Refs: API section 3.3; main plan P02.4; Phase: P02.
 """
 
 from typing import Annotated, cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from sqlalchemy import Engine, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from orca.api.dependencies import CurrentPrincipal
+from orca.application.organizations import Organizations
 from orca.application.projects import (
     IdempotencyConflict,
     PreconditionRequired,
     ProjectService,
     StaleVersion,
 )
+from orca.application.workspace_access import authorize_project, get_policy
 from orca.contracts.projects import CreateProject, PatchProject
 from orca.domain.identity import Principal
 from orca.infrastructure.db.models import Membership, Project
@@ -114,7 +117,9 @@ def list_projects(
     tenant, roles = resolve_tenant(db, principal, organization_id)
     require_scope(principal, "project:read", roles)
     with TenantUnitOfWork(db, tenant) as session:
-        page = ProjectService().list(session, tenant, limit, cursor)
+        # Re-read active membership in the same transaction as the project listing.
+        organization_authority(session, tenant, organization_id, principal, "project:read")
+        page = ProjectService().list(session, tenant, limit, cursor, principal.subject)
         return {
             "items": [project_json(item, organization_id) for item in page.items],
             "next_cursor": page.next_cursor,
@@ -141,10 +146,35 @@ def create_project(
     }
     try:
         with TenantUnitOfWork(db, tenant) as session:
+            organization_authority(
+                session, tenant, body.organization_id, principal, "project:write"
+            )
+            policy = get_policy(session, tenant)
+            count: int = session.execute(
+                text("SELECT count(*) FROM research.projects WHERE tenant_id=:t"), {"t": tenant}
+            ).scalar_one()
+            # A successful idempotent retry does not consume another project slot.
+            retry = session.execute(
+                text(
+                    "SELECT 1 FROM iam.idempotency_records WHERE tenant_id=:t AND operation='create_project' AND idempotency_key=:key"
+                ),
+                {"t": tenant, "key": idempotency_key},
+            ).scalar_one_or_none()
+            if count >= policy.max_projects and retry is None:
+                raise HTTPException(409, "Organization project quota reached")
             project = ProjectService().create(session, tenant, payload, idempotency_key)
+            session.execute(
+                text("""INSERT INTO research.project_members(id,tenant_id,project_id,principal_id,role)
+              SELECT :id,:t,:p,m.id,'admin' FROM iam.memberships m
+              WHERE m.tenant_id=:t AND m.subject=:s AND m.status='active'
+              ON CONFLICT(tenant_id,project_id,principal_id) DO NOTHING"""),
+                {"id": uuid4(), "t": tenant, "p": project.id, "s": principal.subject},
+            )
             result = project_json(project, body.organization_id)
     except IdempotencyConflict as exc:
         raise HTTPException(409, "Idempotency key was used with another request") from exc
+    except IntegrityError as exc:
+        raise HTTPException(409, "Project conflicts with an existing resource") from exc
     response.headers["Location"] = f"/v1/research/projects/{result['id']}"
     response.headers["ETag"] = str(result["etag"])
     return result
@@ -158,6 +188,7 @@ def get_project(
     tenant, roles = resolve_project(db, principal, project_id)
     require_scope(principal, "project:read", roles)
     with TenantUnitOfWork(db, tenant) as session:
+        project_authority(session, tenant, project_id, principal, "project:read")
         project = session.get(Project, project_id)
         if project is None:
             raise HTTPException(404, "Project not found")
@@ -183,6 +214,7 @@ def patch_project(
         changes["access_class"] = changes.pop("visibility")
     try:
         with TenantUnitOfWork(db, tenant) as session:
+            project_authority(session, tenant, project_id, principal, "project:write")
             project = session.get(Project, project_id)
             if project is None:
                 raise HTTPException(404, "Project not found")
@@ -211,6 +243,7 @@ def archive_project(
     require_scope(principal, "project:write", roles)
     try:
         with TenantUnitOfWork(db, tenant) as session:
+            project_authority(session, tenant, project_id, principal, "project:write")
             project = session.get(Project, project_id)
             if project is None:
                 raise HTTPException(404, "Project not found")
@@ -224,3 +257,25 @@ def archive_project(
         raise HTTPException(412, "Project version is stale") from exc
     response.headers["ETag"] = str(result["etag"])
     return result
+
+
+def project_authority(
+    session: Session, tenant: UUID, project: UUID, principal: Principal, scope: str
+) -> None:
+    try:
+        authorize_project(session, tenant, project, principal, scope)
+    except LookupError as exc:
+        raise HTTPException(404, "Project not found") from exc
+    except PermissionError as exc:
+        raise HTTPException(403, "Project action not permitted") from exc
+
+
+def organization_authority(
+    session: Session, tenant: UUID, organization: UUID, principal: Principal, scope: str
+) -> None:
+    try:
+        Organizations(session, tenant, organization).authorize(principal, scope)
+    except LookupError as exc:
+        raise HTTPException(404, "Organization not found") from exc
+    except PermissionError as exc:
+        raise HTTPException(403, "Organization action not permitted") from exc

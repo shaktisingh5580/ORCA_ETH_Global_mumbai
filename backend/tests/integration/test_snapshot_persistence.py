@@ -201,15 +201,22 @@ def test_snapshot_persistence_isolation_and_immutability():
                         {"id": project, "tenant": tenant, "slug": str(project)},
                     )
                     assert not repository.project_member(project, str(principal))
+                    identity = uuid4()
                     session.execute(
                         text(
-                            "INSERT INTO research.project_members(id,tenant_id,project_id,principal_id,role) VALUES(:id,:tenant,:project,:principal,'researcher')"
+                            "INSERT INTO iam.memberships(id,tenant_id,subject,role) VALUES(:id,:tenant,:subject,'researcher')"
+                        ),
+                        {"id": identity, "tenant": tenant, "subject": str(principal)},
+                    )
+                    session.execute(
+                        text(
+                            "INSERT INTO research.project_members(id,tenant_id,project_id,principal_id,role) VALUES(:id,:tenant,:project,:principal,'editor')"
                         ),
                         {
                             "id": uuid4(),
                             "tenant": tenant,
                             "project": project,
-                            "principal": principal,
+                            "principal": identity,
                         },
                     )
                     assert repository.project_member(project, str(principal))
