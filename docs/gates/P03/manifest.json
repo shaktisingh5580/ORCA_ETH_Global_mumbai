@@ -27,6 +27,7 @@
   "baseline_decision": "docs/decisions/P03-baseline-deferral.json",
   "live_source_evidence": "docs/gates/P03/source-probes.json",
   "regression_evidence": "docs/gates/P02/manifest.json",
-  "production_supabase_modified": false,
+  "production_supabase_modified": true,
+  "cloud_change_evidence": "docs/gates/DEMO/manifest.json",
   "next_phase": null
 }
