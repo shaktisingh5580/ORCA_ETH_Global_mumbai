@@ -1,0 +1,22 @@
+{
+  "profile": "hackathon-prototype",
+  "phase": "H01",
+  "status": "PASS",
+  "authority": "Latest user instruction to prioritize a complete hackathon demonstration with labelled mocks permitted",
+  "checks": {
+    "source_unit_and_contract_tests": 14,
+    "failed": 0,
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "real_source_snapshots_preserved_and_read_back": 21,
+    "live_cloud_project_and_upload_workflow": "PASS",
+    "input_compatibility": "VERIFIED",
+    "scientific_method_independent_validation": "DEFERRED"
+  },
+  "real_input_evidence": "docs/gates/P03/native-inputs-cloud.json",
+  "bundle_digest": "sha256:6172c78998318102e76257c3e89d855fc26a917a6ed3027bc9105d13b2436232",
+  "prototype_study_project_id": "bd11b1ae-1934-468e-a92a-bf57529df56f",
+  "original_plan_archive_sha256": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
+  "full_P03_gate_pass_claimed": false,
+  "next_phase": "H02"
+}

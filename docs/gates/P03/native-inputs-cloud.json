@@ -1,0 +1,177 @@
+{
+  "phase": "P03.4",
+  "status": "REAL_INPUTS_PRESERVED_COMPATIBILITY_VERIFIED",
+  "fixture": false,
+  "source_host": "coastwatch.pfeg.noaa.gov",
+  "source_dataset": "jplMURSST41",
+  "project_id": "bd11b1ae-1934-468e-a92a-bf57529df56f",
+  "version_id": "2a902ec6-38a0-433c-bdc5-b3f08c8b390a",
+  "bundle_digest": "sha256:6172c78998318102e76257c3e89d855fc26a917a6ed3027bc9105d13b2436232",
+  "metadata_digest": "sha256:7c2df14ba2f7ec5cbb3455fa771766fb93eb5830982b7f121525c161112e7fd4",
+  "qualification": {
+    "status": "INPUT_COMPATIBILITY_VERIFIED",
+    "method_science_validated": false,
+    "baseline_years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022
+    ],
+    "baseline_complete_years": 20,
+    "days_per_year": 31,
+    "native_latitudes": 11,
+    "native_longitudes": 11,
+    "current_cells": 3751,
+    "baseline_cells": 75020,
+    "valid_fraction": 1.0,
+    "depth_policy": "same-product foundation SST; no fixed depth inferred",
+    "uncertainty": "unknown aggregate covariance; no independent-error assumption"
+  },
+  "analysis_as_of": "2026-11-06T17:06:31.200998+00:00",
+  "snapshots": [
+    {
+      "year": 2025,
+      "id": "793fb2e1-5a2c-587c-872a-faec82efc093",
+      "sha256": "sha256:b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+      "bytes": 176308
+    },
+    {
+      "year": 2003,
+      "id": "50c7a721-b14f-5edf-bfde-b6039a139dd5",
+      "sha256": "sha256:ea76ac38737c23f8a9ce0fb5351833a6d104f1070d51f294fa6b9cfbbea431b0",
+      "bytes": 176018
+    },
+    {
+      "year": 2004,
+      "id": "7b8fbd55-ffc7-5d6f-8c35-6836da698d34",
+      "sha256": "sha256:a5a44d660a99b569b49789940a7db298ec250a9a352ce6300b6490d8e75c9170",
+      "bytes": 176065
+    },
+    {
+      "year": 2005,
+      "id": "b3b40230-da10-5701-bf89-cac1d28d6859",
+      "sha256": "sha256:3006b18cfd69f3134bdccd1a6dea870b0e0cc1cf25b8efc22cf583126f4f878a",
+      "bytes": 175781
+    },
+    {
+      "year": 2006,
+      "id": "53c2f93a-9600-56d0-9921-d8c9d47327b7",
+      "sha256": "sha256:d3748b457449fd87fddde3bce82548cd31b89fdad3e5730b783dc54037196acc",
+      "bytes": 175533
+    },
+    {
+      "year": 2007,
+      "id": "1619f6ca-9db1-575e-bb38-318ae4cc8f1a",
+      "sha256": "sha256:0a175bc74ce45de8fb87c83816b15c6cbfd78ac7a763ff333449d97006b83e0a",
+      "bytes": 175823
+    },
+    {
+      "year": 2008,
+      "id": "b7bc5c75-5917-5efd-b53f-cab8816c8490",
+      "sha256": "sha256:7d2dbc80c300d72365e216d7646525b608b87b7f0e4ba2c5a54d9d9a01e6f7f8",
+      "bytes": 175519
+    },
+    {
+      "year": 2009,
+      "id": "440949de-e3d8-5026-a4fc-ea8678d44f14",
+      "sha256": "sha256:9eb81ec687cd1d36f522522c803d76527ad75292e506217940f3fda58b3ddbc4",
+      "bytes": 176974
+    },
+    {
+      "year": 2010,
+      "id": "a9b1d57d-9c17-55ea-9e1e-1d9671b66e17",
+      "sha256": "sha256:1bfb987edb944ed06274a58112e6cbe790adc9ebc1484e0c4f42d120928c9de0",
+      "bytes": 175619
+    },
+    {
+      "year": 2011,
+      "id": "7ce35940-f6cc-5831-a4a3-a2f0e1e3806c",
+      "sha256": "sha256:1e5875498c944c12c583f1369b4cc309c86cc3d0087aeda0e6880c707494c00b",
+      "bytes": 175544
+    },
+    {
+      "year": 2012,
+      "id": "8f0aa7d5-a091-5500-bc35-cb99e438d0ae",
+      "sha256": "sha256:2e95d5a04dcbe65bcdbad02744411eaac61612ed0660aea384802279f91d5754",
+      "bytes": 175488
+    },
+    {
+      "year": 2013,
+      "id": "fc2fb2a3-b4de-5ae8-a1f2-3997058eba41",
+      "sha256": "sha256:86321d67ed3edacfec165f8b6293777b0df05b4b6d43e3318bd6fb016e861acd",
+      "bytes": 175662
+    },
+    {
+      "year": 2014,
+      "id": "800d9682-8638-5d96-b071-28b5f06a4299",
+      "sha256": "sha256:4680ceecd8bcb6eaea96be5dcbe9b1a3f7666fc56f813422ff238b9c63b7d134",
+      "bytes": 175607
+    },
+    {
+      "year": 2015,
+      "id": "6f4d8d1a-d428-5dfd-ac2b-af6df11ea5eb",
+      "sha256": "sha256:51e63fef8405077c9d6ddac284cbc30278c81487f4fac5c29c3f166b67e548dc",
+      "bytes": 175449
+    },
+    {
+      "year": 2016,
+      "id": "d541b030-e3a6-5284-907a-020269011045",
+      "sha256": "sha256:3b79442e7f8a1383d25c9972557d41256af6de8772dd4b2fef0c8040d5665afe",
+      "bytes": 176050
+    },
+    {
+      "year": 2017,
+      "id": "b73bf37a-5d37-59fd-848c-531201e0a66a",
+      "sha256": "sha256:bceba529fede43b15043061682f373564354a058772bdd07254c355a9541cbbe",
+      "bytes": 175996
+    },
+    {
+      "year": 2018,
+      "id": "25579bbe-4217-5d57-aa6c-cfb2e46feded",
+      "sha256": "sha256:99a79a54d8cc1b1d0dfec2264e88af07aa0c9cb5204ca6eb1d0dde2d28ef85d0",
+      "bytes": 175573
+    },
+    {
+      "year": 2019,
+      "id": "b90824e4-b313-5df2-ba32-75bf6512a678",
+      "sha256": "sha256:aa632f6a5eb271f328ea2c2504a17c048d4416d1497e7125af88fd26c4242e67",
+      "bytes": 175920
+    },
+    {
+      "year": 2020,
+      "id": "75d4bdca-f907-58b1-808e-672f2e04e367",
+      "sha256": "sha256:455c96abfddfe9734a7cbb8ef5ea1a62e9c08d9c39b0f11d0fb107bbfcf6e5c6",
+      "bytes": 175574
+    },
+    {
+      "year": 2021,
+      "id": "6d5a80be-8da0-54d5-920a-73223e5cfc5c",
+      "sha256": "sha256:fd687cafdd342cb60228b7f6f80abab9f243757085650fad88c8a1f02abcaaf7",
+      "bytes": 176071
+    },
+    {
+      "year": 2022,
+      "id": "2b29d21d-7a2d-5081-ab95-8b9000af6974",
+      "sha256": "sha256:56f4c3a8a98ea6ce99b6bc795c3feba11ae7bcd495589ecf19cb8b43634dec88",
+      "bytes": 175696
+    }
+  ],
+  "method_science_validated": false,
+  "gate_G03_pass": false
+}
