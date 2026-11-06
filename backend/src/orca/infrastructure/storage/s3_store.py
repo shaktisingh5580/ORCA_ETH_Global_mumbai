@@ -7,6 +7,8 @@ import re
 from pathlib import PurePath
 from typing import Any, Protocol
 
+from botocore.exceptions import ClientError
+
 from orca.application.ports.object_store import StagedObject, VerifiedObject
 
 
@@ -21,9 +23,10 @@ class S3Client(Protocol):
 
 
 class S3ObjectStore:
-    def __init__(self, client: S3Client, bucket: str) -> None:
+    def __init__(self, client: S3Client, bucket: str, *, native_versioning: bool = False) -> None:
         self.client = client
         self.bucket = bucket
+        self.native_versioning = native_versioning
 
     @staticmethod
     def _segment(value: str) -> str:
@@ -41,9 +44,10 @@ class S3ObjectStore:
         names = {entry["Name"] for entry in self.client.list_buckets().get("Buckets", [])}
         if self.bucket not in names:
             self.client.create_bucket(Bucket=self.bucket)
-        self.client.put_bucket_versioning(
-            Bucket=self.bucket, VersioningConfiguration={"Status": "Enabled"}
-        )
+        if self.native_versioning:
+            self.client.put_bucket_versioning(
+                Bucket=self.bucket, VersioningConfiguration={"Status": "Enabled"}
+            )
 
     def stage(
         self,
@@ -88,7 +92,26 @@ class S3ObjectStore:
     def finalize(self, verified: VerifiedObject) -> VerifiedObject:
         if not verified.object_key.startswith("staging/"):
             raise ValueError("only verified staging objects can be finalized")
-        final_key = "final/" + verified.object_key.removeprefix("staging/")
+        staged_path = verified.object_key.removeprefix("staging/")
+        parent, filename = staged_path.rsplit("/", 1)
+        final_key = f"final/{parent}/{verified.sha256}/{filename}"
+        try:
+            existing = self.client.head_object(Bucket=self.bucket, Key=final_key)
+        except ClientError as error:
+            status = error.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+            code = error.response.get("Error", {}).get("Code")
+            if status != 404 and code not in {"404", "NoSuchKey", "NotFound"}:
+                raise
+        else:
+            metadata = existing.get("Metadata", {})
+            if (
+                int(existing.get("ContentLength", -1)) != verified.size_bytes
+                or metadata.get("sha256") != verified.sha256
+            ):
+                raise ValueError("immutable final object conflicts with verified upload")
+            self.abort(verified.object_key)
+            version = existing.get("VersionId") or f"sha256:{verified.sha256}"
+            return VerifiedObject(final_key, version, verified.size_bytes, verified.sha256)
         response = self.client.copy_object(
             Bucket=self.bucket,
             Key=final_key,
@@ -99,9 +122,8 @@ class S3ObjectStore:
         if verified.version_id:
             delete_args["VersionId"] = verified.version_id
         self.client.delete_object(**delete_args)
-        return VerifiedObject(
-            final_key, response.get("VersionId"), verified.size_bytes, verified.sha256
-        )
+        version = response.get("VersionId") or f"sha256:{verified.sha256}"
+        return VerifiedObject(final_key, version, verified.size_bytes, verified.sha256)
 
     def download_url(self, object_key: str, authorized_tenant: str, expires_in: int = 300) -> str:
         prefix = f"final/{self._segment(authorized_tenant)}/"

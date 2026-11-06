@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import pytest
 
+from orca.application.ports.object_store import VerifiedObject
 from orca.infrastructure.storage.s3_store import S3Client, S3ObjectStore
 
 
@@ -19,6 +20,17 @@ class FakeS3:
         }
         self.calls: list[tuple[str, dict[str, Any]]] = []
 
+    def list_buckets(self) -> dict[str, Any]:
+        return {"Buckets": [{"Name": "orca-research"}]}
+
+    def create_bucket(self, **kwargs: Any) -> dict[str, Any]:
+        self.calls.append(("create_bucket", kwargs))
+        return {}
+
+    def put_bucket_versioning(self, **kwargs: Any) -> dict[str, Any]:
+        self.calls.append(("put_bucket_versioning", kwargs))
+        return {}
+
     def generate_presigned_url(self, operation: str, **kwargs: Any) -> str:
         self.calls.append((operation, kwargs))
         return "http://127.0.0.1/signed"
@@ -28,6 +40,10 @@ class FakeS3:
 
     def delete_object(self, **kwargs: Any) -> dict[str, Any]:
         self.calls.append(("delete_object", kwargs))
+        return {}
+
+    def copy_object(self, **kwargs: Any) -> dict[str, Any]:
+        self.calls.append(("copy_object", kwargs))
         return {}
 
 
@@ -85,3 +101,26 @@ def test_unauthorized_download_unit_concealed(store):
     # The HTTP layer maps this concealed authorization failure to 404.
     with pytest.raises(PermissionError):
         adapter.download_url("final/other-tenant/private", "tenant")
+
+
+def test_supabase_compatible_bucket_skips_native_versioning(store):
+    adapter, fake = store
+    adapter.ensure_bucket()
+    assert not any(name == "put_bucket_versioning" for name, _ in fake.calls)
+
+
+def test_minio_can_enable_native_versioning():
+    fake = FakeS3()
+    adapter = S3ObjectStore(cast(S3Client, fake), "orca-research", native_versioning=True)
+    adapter.ensure_bucket()
+    assert any(name == "put_bucket_versioning" for name, _ in fake.calls)
+
+
+def test_existing_digest_object_finalizes_idempotently(store):
+    adapter, fake = store
+    verified = VerifiedObject("staging/tenant/project/upload/data.nc", "v0", 4, "a" * 64)
+    final = adapter.finalize(verified)
+    assert final.object_key == f"final/tenant/project/upload/{'a' * 64}/data.nc"
+    assert final.version_id == "v1"
+    assert not any(name == "copy_object" for name, _ in fake.calls)
+    assert any(name == "delete_object" for name, _ in fake.calls)
