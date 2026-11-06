@@ -15,6 +15,7 @@ from fastapi.security import HTTPBearer
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
+from orca.api.dashboard import install_dashboard
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
@@ -118,6 +119,7 @@ def create_app(settings: Settings) -> FastAPI:
         app.include_router(prototype_router)
         app.include_router(normalization_router)
         app.include_router(reasoning_router)
+        install_dashboard(app, settings)
     if settings.network_enabled:
         app.include_router(network_router)
 
