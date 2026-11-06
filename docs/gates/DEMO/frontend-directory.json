@@ -1,0 +1,13 @@
+{
+  "status": "DIRECTORY_AND_LOCAL_BROWSER_PREFLIGHT_VERIFIED",
+  "migration": "0009_identity_directory",
+  "migration_approval": "User explicitly approved migration 0009 in chat",
+  "api_base_url": "http://127.0.0.1:8000",
+  "implemented_reads": ["GET /v1/me", "GET /v1/organizations"],
+  "runtime_role_checks": {"configured_user_organization_count": 1, "unknown_subject_organization_count": 0},
+  "manual_browser_preflight": {"origin": "http://localhost:4321", "method": "GET", "headers": ["authorization", "x-request-id", "x-organization-id"], "http_status": 200, "allow_origin": "http://localhost:4321"},
+  "unauthenticated_me_status": 401,
+  "static_checks": {"ruff": "PASS", "format": "PASS", "mypy": "PASS", "browser_client_node_syntax": "PASS"},
+  "automated_regression_execution": "DEFERRED_BY_USER",
+  "remaining": ["Frontend sign-in with actual user password and session access token", "Authenticated browser request acceptance", "Production HTTPS deployment and exact-origin configuration"]
+}
