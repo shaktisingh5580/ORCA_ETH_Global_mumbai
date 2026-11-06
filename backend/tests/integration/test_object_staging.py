@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import boto3
 import pytest
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from orca.infrastructure.storage.s3_store import S3Client, S3ObjectStore
@@ -26,6 +27,7 @@ def live_store() -> tuple[S3ObjectStore, S3Client]:
         aws_access_key_id=access,
         aws_secret_access_key=secret,
         region_name="us-east-1",
+        config=Config(signature_version="s3v4"),
     )
     adapter = S3ObjectStore(client, "orca-research-test")
     adapter.ensure_bucket()
