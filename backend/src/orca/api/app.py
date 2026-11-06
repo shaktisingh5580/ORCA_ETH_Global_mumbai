@@ -41,12 +41,19 @@ def create_app(settings: Settings) -> FastAPI:
         redoc_url=None,
     )
     app.add_exception_handler(RequestValidationError, validation_error)  # type: ignore[arg-type]
-    if settings.cors_origins or settings.cors_local_development:
+    if settings.cors_origins or settings.cors_local_development or settings.cors_lan_development:
+        development_hosts = []
+        if settings.cors_local_development:
+            development_hosts.append(r"localhost|127\.0\.0\.1")
+        if settings.cors_lan_development:
+            development_hosts.append(
+                r"10\.(?:[0-9]{1,3}\.){2}[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3}|172\.(?:1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3}"
+            )
         app.add_middleware(
             CORSMiddleware,
             allow_origins=list(settings.cors_origins),
-            allow_origin_regex=r"^http://(?:localhost|127\.0\.0\.1)(?::[0-9]{1,5})?$"
-            if settings.cors_local_development
+            allow_origin_regex=r"^http://(?:" + "|".join(development_hosts) + r")(?::[0-9]{1,5})?$"
+            if development_hosts
             else None,
             allow_credentials=False,
             allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
