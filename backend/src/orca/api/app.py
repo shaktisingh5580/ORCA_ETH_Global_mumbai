@@ -15,7 +15,9 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
 from orca.api.errors import Problem, problem_response, validation_error
+from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.projects import router as projects_router
+from orca.api.routers.snapshots import router as snapshots_router
 from orca.config import Settings
 from orca.contracts.common import APIMetadata, Liveness, ReadinessReport
 from orca.infrastructure.auth.oidc import OIDCVerifier
@@ -38,6 +40,8 @@ def create_app(settings: Settings) -> FastAPI:
             settings.oidc_issuer, settings.oidc_audience, settings.oidc_jwks_url
         )
     app.include_router(projects_router)
+    app.include_router(catalog_router)
+    app.include_router(snapshots_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:

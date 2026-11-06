@@ -1,0 +1,9 @@
+{
+  "phase": "P03.5",
+  "status": "PARTIAL_IMPLEMENTATION",
+  "operations": ["GET /v1/catalog/snapshots", "GET /v1/catalog/snapshots/{snapshot_id}", "GET /v1/catalog/snapshots/{snapshot_id}/manifest"],
+  "authorization": "Require organization_id resolved through active membership and dataset:read scope; database RLS remains authoritative. Inaccessible records return 404.",
+  "filters": "List supports product_id, SHA-256 digest, UUID cursor and limit 1-100. project_id is explicitly rejected until project-bound snapshot grants are implemented.",
+  "disclosure": "List/detail return metadata summaries; manifest returns source provenance. These routes do not authorize or serve raw bytes.",
+  "readiness": "Scientific status remains not_validated. G03 and production readiness are not asserted."
+}

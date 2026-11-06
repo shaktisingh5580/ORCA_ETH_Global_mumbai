@@ -1,0 +1,13 @@
+{
+  "phase": "P03.5",
+  "status": "PARTIAL_IMPLEMENTATION",
+  "provider_list": "GET /v1/catalog/providers derives distinct provider IDs only from tenant-visible catalog products. q is case-insensitive literal substring search; cursor uses C-collation provider-ID ordering. Live verification remains unknown without probe evidence. source_class is not yet modeled and is explicitly rejected.",
+  "operations": ["GET /v1/catalog/providers", "GET /v1/catalog/products", "GET /v1/catalog/products/{product_id}", "GET /v1/catalog/products/{product_id}/versions", "GET /v1/catalog/products/{product_id}/coverage", "GET /v1/catalog/products/{product_id}/licenses", "GET /v1/catalog/products/{product_id}/variables"],
+  "variable_mapping": "One stored SST variable mapping per immutable version, paginated by version UUID. Includes metadata digest, exact native units, dimensions and physical definition. Unknown depth remains null and unknown dimensions remain empty. No normalization or scientific compatibility is asserted; kind filtering is not yet implemented and is rejected explicitly.",
+  "version_evidence": "Coverage and license reads accept version as the stored UUID. Multiple versions require explicit selection (409); unknown/inaccessible explicit versions return 404. No stored versions produces unknown coverage and deny-by-default license permissions. Coverage geometry/time evaluation parameters are not yet implemented and return 422.",
+  "context": "Required organization_id query selects context; active server-side membership resolves the tenant. Token and server researcher/reviewer roles must both permit dataset:read.",
+  "pagination": "UUID keyset cursor, limit 1-100, lookahead determines next_cursor. This is stable ordering, not a frozen multi-request snapshot.",
+  "filter_policy": "Product lists support organization_id, limit, cursor, exact provider_id, product kind, canonical variable standard_name, bbox and start/end. All version filters must match the same stored version. bbox is west,south,east,north in EPSG:4326, with positive-area overlap and no antimeridian crossing. Temporal overlap uses half-open UTC intervals; missing coverage does not match. Bounding coverage is not proof of valid ocean observations or scientific fitness. Version lists accept only organization_id, limit and cursor.",
+  "visibility": "Tenant-private catalog reads only; public metadata publication does not bypass tenant RLS or authorize source downloads.",
+  "readiness": "Routes are implemented incrementally; G03 and production deployment readiness are not asserted."
+}
