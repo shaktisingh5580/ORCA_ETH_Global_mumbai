@@ -16,9 +16,11 @@ from orca.application.catalog import CatalogService
 from orca.application.projects import IdempotencyConflict
 from orca.application.snapshot_requests import SnapshotRequests
 from orca.application.snapshots import SnapshotRepository
+from orca.application.source_probes import SourceProbes
 from orca.contracts.catalog import ProductVersion, ScientificProduct
 from orca.contracts.snapshot_requests import SnapshotRequest, request_digest
 from orca.contracts.snapshots import DatasetSnapshotManifest
+from orca.contracts.source_probes import ProbeRequest, SourceProbeEvidence
 
 
 @pytest.mark.live
@@ -101,6 +103,47 @@ def test_snapshot_persistence_isolation_and_immutability():
                         variables=["sst"],
                     )
                     requests = SnapshotRequests(session, tenant)
+                    probes = SourceProbes(session, tenant)
+                    probe_body = ProbeRequest(
+                        organization_id=body.organization_id,
+                        provider_id="test",
+                        distribution_id=version.id,
+                        region=body.geo_scope,
+                        time_window=body.time_window,
+                    )
+                    probe = probes.create(probe_body, "probe-key")
+                    assert probes.create(probe_body, "probe-key").operation.id == probe.operation.id
+                    with pytest.raises(IdempotencyConflict):
+                        probes.create(
+                            probe_body.model_copy(update={"organization_id": uuid4()}), "probe-key"
+                        )
+                    probe_claim = probes.claim()
+                    assert probe_claim is not None and probes.claim() is None
+                    session.execute(
+                        text(
+                            "UPDATE research.source_probes SET lease_until=clock_timestamp()-interval '1 second' WHERE tenant_id=:tenant"
+                        ),
+                        {"tenant": tenant},
+                    )
+                    recovered_probe = probes.claim()
+                    evidence = SourceProbeEvidence(
+                        response_digest="sha256:" + "a" * 64,
+                        response_bytes=10,
+                        retrieved_at=datetime.now(timezone.utc),
+                        metadata_matches_pinned_version=True,
+                        variable_count=1,
+                    )
+                    assert not probes.finish(
+                        probe.operation.id, probe_claim["lease_token"], evidence
+                    )
+                    assert probes.finish(
+                        probe.operation.id, recovered_probe["lease_token"], evidence
+                    )
+                    assert probes.get(probe.operation.id).evidence == evidence
+                    assert not probes.finish(
+                        probe.operation.id, recovered_probe["lease_token"], None
+                    )
+                    assert SourceProbes(session, other).get(probe.operation.id) is None
                     queued = requests.create(body, "test-key")
                     assert requests.create(body, "test-key").operation.id == queued.operation.id
                     with pytest.raises(IdempotencyConflict):
