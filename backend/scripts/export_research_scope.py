@@ -74,8 +74,10 @@ def scope_documents(root: Path, designed: dict[str, Any]) -> tuple[dict[str, Any
     historical = historical_operations(designed)
     guides = sorted(root.glob("ORCA_3_0_Research_Only_Scope_and_Pruning_Guide*.md"))
     committed = root / "contracts/designed/research-route-dispositions.json"
-    if len(guides) > 1:
-        raise ValueError("multiple research-only scope guides found; retain one authoritative copy")
+    if len(guides) > 1 and len({guide.read_bytes() for guide in guides}) > 1:
+        raise ValueError(
+            "conflicting research-only scope guides found; reconcile authoritative content"
+        )
     if guides:
         operations = parse_directive(guides[0])
     elif committed.exists():
