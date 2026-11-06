@@ -1,0 +1,15 @@
+{
+  "status": "SERVER_SIDE_LAN_ACCESS_VERIFIED_PEER_CHECK_PENDING",
+  "selected_approach": "Same Wi-Fi; frontend runs locally over HTTP on the other laptop",
+  "wifi_address_at_setup": "10.71.71.246",
+  "api_base_url": "http://10.71.71.246:8000",
+  "listener": "0.0.0.0:8000",
+  "manual_checks": {"server_lan_livez": "alive", "private_ipv4_browser_preflight_status": 200, "origin_checked": "http://10.71.71.100:3000", "powershell_server_script_parse_errors": 0, "powershell_firewall_script_parse_errors": 0},
+  "firewall": {"name": "ORCA-Demo-LAN-8000", "direction": "Inbound", "protocol": "TCP", "local_port": 8000, "remote_address": "LocalSubnet", "configured_with_windows_uac": true},
+  "network_profile_changed": false,
+  "router_port_forwarding": false,
+  "public_tunnel_started": false,
+  "frontend_handoff": "Local ignored FRONTEND_DASHBOARD_INTEGRATION_HANDOFF.md",
+  "remaining": ["Frontend developer opens /livez from their laptop; shared Wi-Fi can isolate clients", "Real authenticated browser acceptance from that frontend", "IP address update if Wi-Fi address changes"],
+  "automated_tests": "Deferred by user; static/manual deployment checks only"
+}
