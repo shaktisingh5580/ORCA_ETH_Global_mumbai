@@ -271,6 +271,17 @@ def qualify_seasonal_inputs(
         raise ValueError("all distinct declared baseline years are required")
     if sorted(item.year for item in baseline) != sorted(expected_years):
         raise ValueError("baseline year selection differs from policy")
+    height, width = current.grid.shape()
+    expected = {
+        (day, y, x)
+        for day in range(1, calendar.monthrange(current.year, current.month)[1] + 1)
+        for y in range(height)
+        for x in range(width)
+    }
+    for item in (current, *baseline):
+        keys = [(cell.day, cell.latitude_index, cell.longitude_index) for cell in item.cells]
+        if len(keys) != len(expected) or set(keys) != expected:
+            raise ValueError("complete distinct daily grid support required")
     for item in baseline:
         if (
             item.year >= current.year
@@ -283,7 +294,15 @@ def qualify_seasonal_inputs(
             raise ValueError("baseline calendar support differs; explicit leap-day policy required")
     # The initial input benchmark is intentionally strict. Missing/masked cells
     # block admission rather than becoming an interpolated scientific result.
-    if any(not cell.valid for item in (current, *baseline) for cell in item.cells):
+    if any(
+        not cell.valid
+        or cell.mask != 1
+        or not math.isfinite(cell.sst)
+        or not math.isfinite(cell.analysis_error)
+        or cell.analysis_error < 0
+        for item in (current, *baseline)
+        for cell in item.cells
+    ):
         raise ValueError("native benchmark requires complete valid open-ocean QC support")
     height, width = current.grid.shape()
     return {
