@@ -1,0 +1,20 @@
+# Purpose: keep local runtimes, credentials and build caches out of source control.
+# Refs: main_implementation plan.md P01.1; Phase: P01.
+.cache/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+*.egg-info/
+.env
+.env.*
+!.env.example
+node_modules/
+# Keep design and research Markdown local. Only repository operation instructions ship.
+*.md
+!/AGENTS.md
+!/backend/README.md
+/ORCA_Architecture_Diagram.tex

@@ -1,0 +1,22 @@
+# Purpose: P00 decision evidence; not runtime configuration.
+{
+  "schema_version": "orca.baselines/1",
+  "status": "UNKNOWN",
+  "selected_product_id": null,
+  "baseline_years": null,
+  "source_version": null,
+  "required_compatibility": [
+    "measurement_semantics",
+    "units",
+    "depth",
+    "calendar",
+    "seasonal_alignment",
+    "grid_support",
+    "qc_policy",
+    "availability",
+    "license"
+  ],
+  "approval_gate": "G03",
+  "evaluation": "Compare approved matching seasonal cells with current cells using valid-ocean-area weights; thresholds/tolerances reviewed before G04. Unknown metadata blocks approval.",
+  "allowed_for_execution": false
+}

@@ -1,0 +1,398 @@
+# Purpose: P00 decision evidence; not runtime configuration.
+{
+  "schema_version": "orca.source-register/1",
+  "sources": [
+    {
+      "path": "api design.md",
+      "sha256": "4384d317467d0194db36d95b41c917f2a8f83f57b1ecefa136f681097dc6a178",
+      "captured_date": "2026-11-06",
+      "classification": "api_proposal",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "design.md",
+      "sha256": "37f45ad481f3f2a508c2c8a38b04338335782901a090c5e5f6fb48dcb60674df",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "implementation plan.md",
+      "sha256": "1287316a9ea2c1f8284286e111b9628fdc358c2e10d7cb7a3eaf2478926a7e11",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "main_implementation plan.md",
+      "sha256": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
+      "captured_date": "2026-11-06",
+      "classification": "delivery_authority",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "missing_detaiesl_md.md",
+      "sha256": "ff44cc7ee4c7b4402a88a0fe1f68865f6dd75a8b7d59d1086b6f0a5903c80d91",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA Archetecture Document 6_Memory_and_Context_Architecture_Deep_Research_and_Implementation.md",
+      "sha256": "6e77d2228ad27156eabb35ea1106b5f47837cfec90a06df04f25acc9952e31a6",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA Architecture Document 1 — Complete User Flow Architecture.md",
+      "sha256": "e530c7b69f7ffbc95bd18737265d241cf3c733c434201775996c94f5753226c1",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA Architecture Document 2 — Core Agentic System Architecture.md",
+      "sha256": "7d863560b7dedec2530a67abd39fd30be9ec621c9f52c2fe1c11d1301557b3dd",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA Architecture Document 3 — Data Processing Pipeline & Scientific Intelligence.md",
+      "sha256": "4559a2942263c0c74df20dc615f792b0e38be49fffa7ac22fea495e0647e5d34",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA Architecture Document 4 — Database Design.md",
+      "sha256": "cd836c6a41970dd87c015680dbad7b7b59650924d22f01738283bf24d289c118",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA Architecture Document 5 — Implementation Plan & PS Reminder.md",
+      "sha256": "13320382bf93be83a394e36aa501c374308f3621389a2ef50df9adf8872fd61f",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_3.0_Complete_Design_and_Seven_Docs.md",
+      "sha256": "cbf4004bd95e07dbc369d3dd824c4d90bf3265799741bcec31cedb531cd26367",
+      "captured_date": "2026-11-06",
+      "classification": "consolidated_design_proposal",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Combined_Architecture.md",
+      "sha256": "8e95eafd4504539502f0b5afc2d9def9e0b6ed5f965c3fafa00f163f6eb14c15",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Complete_System_Diagram.md",
+      "sha256": "95f0422d97b8b87d8e22e0bb86b1efb2bd9dc0968e3722d431acb0a5ec0b941e",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Core_Agentic_Layer.md",
+      "sha256": "3199e4f3e017953a263070c0201a92854b0d1d3d2312da86b78b72eb60200550",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Data_Acquisition_Matrix_and_Engineering_Specification.md",
+      "sha256": "c4187fd45a1c97b893469cf303a736422c38685069ec81832da90fc2c52349b4",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_ENSv2_Arkiv_Integration_Blueprint_2026-11-05.md",
+      "sha256": "77e1cff4aecd64e45dbf72fb87a4e850c706f43b334cd61c855db60c3461a1f5",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Event_Change_4D_Decision_UI_Deep_Research_README.md",
+      "sha256": "60f82241607e5d0ee5b336c5ba356248d9eafe4001bbb5367f4ca3312030a4ae",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Extra_Data_Source_Add_On.md",
+      "sha256": "e985728372afb8aedaec8927c934376281f4212542b7e54890a3f98a1914c68a",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Final_Data_Sources_and_Acquisition_Research.md",
+      "sha256": "1a2b299a6fbc4d42ce85d2a76813205854ee4c6b8632f9b2d8e9d79b13459822",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Missing_Intelligence_Deep_Research_README.md",
+      "sha256": "cabdaf04460d0bbc376ff396e9cc46babbf999e483f15314781ebbc18e150db5",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Presentation_Diagram.md",
+      "sha256": "a82fcda00be48fc0b3906df227284d572a99e22c2f9f1e83d67cbd3519fe14c4",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_System_2_Data_Discovery_and_Retrieval_Engineering_Specification (1).md",
+      "sha256": "24153a7bec69b1f66de6a8ab6572bdff347cd6263f358656dd1f8a0491df24be",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_System_2_Data_Discovery_and_Retrieval_Engineering_Specification.md",
+      "sha256": "24153a7bec69b1f66de6a8ab6572bdff347cd6263f358656dd1f8a0491df24be",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_System_2_Data_Discovery_and_Retrieval_Engineering_Specification_v2_Updated.md",
+      "sha256": "4e9314e4b75270343965a9a29ab0ac6611448fcb36fa4976fa07aa108d56d83b",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_System_3_Agentic_and_Orchestration_Engineering_Specification_v2_Security_Evals_Reliability (1).md",
+      "sha256": "9559502d9a681eedf629e367044066ad2b0cdc5802ceb77f030826d280005a1c",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_System_3_Agentic_and_Orchestration_Engineering_Specification_v2_Security_Evals_Reliability.md",
+      "sha256": "9559502d9a681eedf629e367044066ad2b0cdc5802ceb77f030826d280005a1c",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_System_3_Agentic_Orchestration_Redesigned_Production_Architecture.md",
+      "sha256": "36ddc5e2ec542a043074f6fc27bafce78566531ab55c1f5d41e0cc9c835bc3d8",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_System_7_Scientific_and_Marine_Intelligence_System.md",
+      "sha256": "2ad0580c2986eec7ce8c41b270a46930e3ac3281d7fa19d51daaa85d97f46918",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "ORCA_Technical_Approach.md",
+      "sha256": "ff3acf18d0a20d0938f89f4fca09305ef972077bcd4b093c054f19d30936b8d5",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "phases and subphases.md",
+      "sha256": "83c809ce5d1f5456d712d74eb69b8b4dc25073f4c427cd6375ca2b62a7d187c6",
+      "captured_date": "2026-11-06",
+      "classification": "local_gate_plan",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "README.md",
+      "sha256": "7e3b554247f95e54159f495df5d8f70aff2adbfd9aad5f4a7c76da6e20351d78",
+      "captured_date": "2026-11-06",
+      "classification": "historical_design",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/00_SOURCE_AUDIT_AND_MIGRATION.md",
+      "sha256": "84d5a87c9f6225f06f336846afed737cd75512758c32300be325efabdbbedab4",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/01_user_flows.md",
+      "sha256": "0aed2eb4e59ed47bbcb44cf7f9af6efb737f9d14b9925d3bbc51f522b26bcf53",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/02_agentic_architecture.md",
+      "sha256": "809e262591595aca207683bdf29203fcbd4f030042996d244eff6774d1cc8455",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/03_data_processing.md",
+      "sha256": "4c39c9b35adf3919d3ae2b796f31bc5e839540c5729ce16738f54cfb0470c911",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/04_database.md",
+      "sha256": "9cc54d902adb869a2e2ffe419ebabe47c50a981fc1e2e5f9e7543a50127b5403",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/05_implementation.md",
+      "sha256": "54f6b161ac0b9c018d8d91bb28097d9cc0ea88a6e1bda92291329b9cdc33d16b",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/06_memory_context.md",
+      "sha256": "6f49c6f4f26d15d896c45285b1d15c331c74243d51d94a297de92e7a6dfbebaf",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/07_scientific_engine.md",
+      "sha256": "52fa5136142c03fd8f97c581bb65cc0f4632274c6a942b5787681318bd25be49",
+      "captured_date": "2026-11-06",
+      "classification": "corrected_guide",
+      "origin": "workspace_user_supplied",
+      "verification": "local_bytes_only"
+    },
+    {
+      "path": "docs/sources/marine_data_sources_user_2026-11-06.md",
+      "sha256": "3758bc4e6e9528d4f7b73658b1c5af6c82c39d8ecbd6b078016c1570b7d0f550",
+      "captured_date": "2026-11-06",
+      "classification": "user_supplied_source_research",
+      "origin": "user_attachment",
+      "verification": "local_bytes_only",
+      "origin_sha256": "3758bc4e6e9528d4f7b73658b1c5af6c82c39d8ecbd6b078016c1570b7d0f550"
+    }
+  ],
+  "unresolved_local_links": [
+    {
+      "source": "main_implementation plan.md",
+      "target": "Pasted%20markdown%282%29.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced companion not supplied; historical proposal retained unchanged. Not a required P00 executable dependency.",
+      "resolution_adr": "docs/adr/ADR-000-authority.md",
+      "owner_phase": "P01"
+    },
+    {
+      "source": "main_implementation plan.md",
+      "target": "docs/08_data_acquisition_delta.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced companion not supplied; historical proposal retained unchanged. Not a required P00 executable dependency.",
+      "resolution_adr": "docs/adr/ADR-000-authority.md",
+      "owner_phase": "P01"
+    },
+    {
+      "source": "main_implementation plan.md",
+      "target": "docs/09_agentic_engineering_delta.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced companion not supplied; historical proposal retained unchanged. Not a required P00 executable dependency.",
+      "resolution_adr": "docs/adr/ADR-000-authority.md",
+      "owner_phase": "P01"
+    },
+    {
+      "source": "main_implementation plan.md",
+      "target": "docs/10_fisher_companion_delta.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced companion not supplied; historical proposal retained unchanged. Not a required P00 executable dependency.",
+      "resolution_adr": "docs/adr/ADR-000-authority.md",
+      "owner_phase": "P01"
+    },
+    {
+      "source": "main_implementation plan.md",
+      "target": "docs/13_legacy_integration_playbook.md",
+      "status": "UNRESOLVED",
+      "reason": "Referenced companion not supplied; historical proposal retained unchanged. Not a required P00 executable dependency.",
+      "resolution_adr": "docs/adr/ADR-000-authority.md",
+      "owner_phase": "P01"
+    },
+    {
+      "source": "ORCA_3.0_Complete_Design_and_Seven_Docs.md",
+      "target": "../db/001_orca_v3_extensions.sql",
+      "status": "UNRESOLVED",
+      "reason": "Referenced companion not supplied; historical proposal retained unchanged. Not a required P00 executable dependency.",
+      "resolution_adr": "docs/adr/ADR-000-authority.md",
+      "owner_phase": "P01"
+    }
+  ],
+  "external_links_status": "UNVERIFIED unless separately evidenced; provider URLs were not probed in P00",
+  "embedded_design_markers": [
+    "design.md",
+    "docs/00_SOURCE_AUDIT_AND_MIGRATION.md",
+    "docs/01_user_flows.md",
+    "docs/02_agentic_architecture.md",
+    "docs/03_data_processing.md",
+    "docs/04_database.md",
+    "docs/05_implementation.md",
+    "docs/06_memory_context.md",
+    "docs/07_scientific_engine.md"
+  ],
+  "authority_adr": "docs/adr/ADR-000-authority.md"
+}

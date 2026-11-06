@@ -1,0 +1,3 @@
+# Preserve exact registered source and gate-input bytes across Windows/Linux checkouts.
+# Normalizing existing newlines would invalidate the recorded source checksums.
+* -text

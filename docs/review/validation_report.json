@@ -1,0 +1,18 @@
+{
+  "scope": "Static documentation checks only; not runtime or SQL validation.",
+  "source_files": 26,
+  "source_bytes": 1335124,
+  "exact_duplicate_groups": [
+    [
+      "ORCA_System_2_Data_Discovery_and_Retrieval_Engineering_Specification (1).md",
+      "ORCA_System_2_Data_Discovery_and_Retrieval_Engineering_Specification.md"
+    ],
+    [
+      "ORCA_System_3_Agentic_and_Orchestration_Engineering_Specification_v2_Security_Evals_Reliability (1).md",
+      "ORCA_System_3_Agentic_and_Orchestration_Engineering_Specification_v2_Security_Evals_Reliability.md"
+    ]
+  ],
+  "local_links_checked": 34,
+  "canonical_json_examples_checked": 1,
+  "errors": []
+}

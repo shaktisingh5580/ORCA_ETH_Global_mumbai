@@ -1,0 +1,97 @@
+# Purpose: P00 decision evidence; not runtime configuration.
+{
+  "schema_version": "orca.rights/1",
+  "default": "DENY_UNTIL_VERIFIED",
+  "entries": [
+    {
+      "candidate_key": "sst-incois",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "G03"
+    },
+    {
+      "candidate_key": "sst-noaa",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "G03"
+    },
+    {
+      "candidate_key": "physics-copernicus",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    },
+    {
+      "candidate_key": "argo-context",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    },
+    {
+      "candidate_key": "imd-warnings",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    },
+    {
+      "candidate_key": "pfz",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    },
+    {
+      "candidate_key": "satellite-mosdac",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    },
+    {
+      "candidate_key": "chlorophyll-nasa",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    },
+    {
+      "candidate_key": "reference-gebco",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    },
+    {
+      "candidate_key": "reference-osm",
+      "status": "UNKNOWN",
+      "ingest_allowed": false,
+      "preserve_allowed": false,
+      "export_allowed": false,
+      "evidence": null,
+      "owner_gate": "affected_live_gate"
+    }
+  ]
+}

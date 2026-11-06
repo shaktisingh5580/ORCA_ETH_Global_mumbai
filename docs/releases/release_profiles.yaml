@@ -1,0 +1,80 @@
+# Purpose: P00 decision evidence; not runtime configuration.
+{
+  "schema_version": "orca.releases/1",
+  "selected_target": "core-C",
+  "scope": {
+    "bbox": [
+      68,
+      20,
+      69,
+      21
+    ],
+    "crs": "EPSG:4326",
+    "start": "2025-01-01T00:00:00Z",
+    "end": "2025-02-01T00:00:00Z",
+    "coverage_status": "UNVERIFIED",
+    "backend_owner": "backend",
+    "frontend_owner": "user",
+    "all_legacy_demos_complete": false
+  },
+  "profiles": [
+    {
+      "name": "core-A",
+      "gates": [
+        "G00",
+        "G01",
+        "G02"
+      ],
+      "status": "NOT_RELEASED",
+      "acceptance_id": "OUT-01"
+    },
+    {
+      "name": "core-B",
+      "gates": [
+        "G00",
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05"
+      ],
+      "status": "NOT_RELEASED",
+      "acceptance_id": "OUT-02"
+    },
+    {
+      "name": "core-C",
+      "gates": [
+        "G00",
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08"
+      ],
+      "status": "NOT_RELEASED",
+      "acceptance_id": "OUT-03"
+    },
+    {
+      "name": "federation",
+      "gates": [
+        "G00",
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11"
+      ],
+      "status": "NOT_RELEASED",
+      "acceptance_id": "OUT-04"
+    }
+  ]
+}
