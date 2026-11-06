@@ -1,0 +1,43 @@
+# Purpose: define the installable P01 runtime and isolated verification tools.
+# Behavior: hatch builds only src/orca; uv.lock pins resolved dependencies.
+# Refs: main_implementation plan.md P01; Phase: P01.
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "orca-backend"
+version = "0.1.0"
+description = "ORCA P01 contracts and truthful runtime metadata"
+requires-python = ">=3.12,<3.13"
+dependencies = ["fastapi>=0.115,<1", "pydantic>=2.10,<3", "pydantic-settings>=2.7,<3", "shapely>=2,<3", "uvicorn>=0.34,<1"]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.9,<1", "mypy>=1.14,<2", "jsonschema>=4.23,<5", "openapi-spec-validator>=0.7,<1", "pytest-socket>=0.7,<1", "types-jsonschema"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/orca"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/orca", "pyproject.toml", "README.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --disable-socket --allow-unix-socket"
+markers = ["live: explicitly enabled external integration tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "scripts"]
+
+[[tool.mypy.overrides]]
+module = ["shapely", "shapely.*"]
+ignore_missing_imports = true
