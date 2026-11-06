@@ -8,6 +8,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from sqlalchemy import Engine, select, text
+from sqlalchemy.orm import Session
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.application.projects import (
@@ -71,10 +72,26 @@ def resolve_project(db: Engine, principal: Principal, project_id: UUID) -> tuple
     return tenant, roles
 
 
-def project_json(project: Project) -> dict[str, object]:
+def organization_for_tenant(session: Session, tenant: UUID) -> UUID:
+    return cast(
+        UUID,
+        session.execute(
+            text("SELECT id FROM iam.organizations WHERE tenant_id=:tenant"), {"tenant": tenant}
+        ).scalar_one(),
+    )
+
+
+def require_scope(principal: Principal, scope: str, roles: set[str]) -> None:
+    try:
+        principal.require(scope, roles)
+    except PermissionError as exc:
+        raise HTTPException(403, "Project scope required") from exc
+
+
+def project_json(project: Project, organization_id: UUID) -> dict[str, object]:
     return {
         "id": str(project.id),
-        "organization_id": str(project.tenant_id),
+        "organization_id": str(organization_id),
         "name": project.name,
         "description": project.description,
         "access_class": project.access_class,
@@ -95,11 +112,11 @@ def list_projects(
 ) -> dict[str, object]:
     db = engine(request)
     tenant, roles = resolve_tenant(db, principal, organization_id)
-    principal.require("project:read", roles)
+    require_scope(principal, "project:read", roles)
     with TenantUnitOfWork(db, tenant) as session:
         page = ProjectService().list(session, tenant, limit, cursor)
         return {
-            "items": [project_json(item) for item in page.items],
+            "items": [project_json(item, organization_id) for item in page.items],
             "next_cursor": page.next_cursor,
             "page_size": limit,
         }
@@ -115,7 +132,7 @@ def create_project(
 ) -> dict[str, object]:
     db = engine(request)
     tenant, roles = resolve_tenant(db, principal, body.organization_id)
-    principal.require("project:write", roles)
+    require_scope(principal, "project:write", roles)
     payload: dict[str, object] = {
         "slug": body.slug,
         "name": body.name,
@@ -125,7 +142,7 @@ def create_project(
     try:
         with TenantUnitOfWork(db, tenant) as session:
             project = ProjectService().create(session, tenant, payload, idempotency_key)
-            result = project_json(project)
+            result = project_json(project, body.organization_id)
     except IdempotencyConflict as exc:
         raise HTTPException(409, "Idempotency key was used with another request") from exc
     response.headers["Location"] = f"/v1/research/projects/{result['id']}"
@@ -139,12 +156,12 @@ def get_project(
 ) -> dict[str, object]:
     db = engine(request)
     tenant, roles = resolve_project(db, principal, project_id)
-    principal.require("project:read", roles)
+    require_scope(principal, "project:read", roles)
     with TenantUnitOfWork(db, tenant) as session:
         project = session.get(Project, project_id)
         if project is None:
             raise HTTPException(404, "Project not found")
-        result = project_json(project)
+        result = project_json(project, organization_for_tenant(session, tenant))
     response.headers["ETag"] = str(result["etag"])
     return result
 
@@ -160,7 +177,7 @@ def patch_project(
 ) -> dict[str, object]:
     db = engine(request)
     tenant, roles = resolve_project(db, principal, project_id)
-    principal.require("project:write", roles)
+    require_scope(principal, "project:write", roles)
     changes = body.model_dump(exclude_none=True)
     if "visibility" in changes:
         changes["access_class"] = changes.pop("visibility")
@@ -169,7 +186,10 @@ def patch_project(
             project = session.get(Project, project_id)
             if project is None:
                 raise HTTPException(404, "Project not found")
-            result = project_json(ProjectService().update(session, project, changes, if_match))
+            result = project_json(
+                ProjectService().update(session, project, changes, if_match),
+                organization_for_tenant(session, tenant),
+            )
     except PreconditionRequired as exc:
         raise HTTPException(428, "If-Match is required") from exc
     except StaleVersion as exc:
@@ -188,14 +208,15 @@ def archive_project(
 ) -> dict[str, object]:
     db = engine(request)
     tenant, roles = resolve_project(db, principal, project_id)
-    principal.require("project:write", roles)
+    require_scope(principal, "project:write", roles)
     try:
         with TenantUnitOfWork(db, tenant) as session:
             project = session.get(Project, project_id)
             if project is None:
                 raise HTTPException(404, "Project not found")
             result = project_json(
-                ProjectService().update(session, project, {"state": "archived"}, if_match)
+                ProjectService().update(session, project, {"state": "archived"}, if_match),
+                organization_for_tenant(session, tenant),
             )
     except PreconditionRequired as exc:
         raise HTTPException(428, "If-Match is required") from exc

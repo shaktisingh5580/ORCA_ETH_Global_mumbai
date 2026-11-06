@@ -9,13 +9,38 @@ from typing import Final
 ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
     "source_operator": frozenset({"org:read", "source:manage"}),
     "org_owner": frozenset(
-        {"org:read", "org:write", "org:members", "project:read", "project:write", "project:share"}
+        {
+            "org:read",
+            "org:write",
+            "org:members",
+            "project:read",
+            "project:write",
+            "project:share",
+            "dataset:read",
+            "research:plan",
+        }
     ),
     "org_admin": frozenset(
-        {"org:read", "org:write", "org:members", "project:read", "project:write", "project:share"}
+        {
+            "org:read",
+            "org:write",
+            "org:members",
+            "project:read",
+            "project:write",
+            "project:share",
+            "dataset:read",
+            "research:plan",
+        }
     ),
     "principal_investigator": frozenset(
-        {"org:read", "project:read", "project:write", "project:share"}
+        {
+            "org:read",
+            "project:read",
+            "project:write",
+            "project:share",
+            "dataset:read",
+            "research:plan",
+        }
     ),
     "researcher": frozenset(
         {"org:read", "project:read", "project:write", "dataset:read", "research:plan"}
