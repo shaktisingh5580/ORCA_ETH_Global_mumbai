@@ -1,0 +1,48 @@
+{
+  "phase": "H03",
+  "scope": "backend-and-documentation-handoff",
+  "status": "BACKEND_HANDOFF_PASS_FRONTEND_ACCEPTANCE_PENDING",
+  "functional_tests": {
+    "prototype_workflow_and_numerical_inputs": {"passed": 14, "failed": 0, "skipped": 0},
+    "project_identity_and_oidc_regressions": {"passed": 14, "failed": 0, "skipped": 0},
+    "database": "Explicit disposable local orca_test database only; cloud was not reset",
+    "coverage": [
+      "Investigation detail retrieval matches creation response",
+      "Wrong-project and missing-investigation detail denied",
+      "Investigation-filtered run list returns only matching runs",
+      "Missing authentication denied on detail endpoint",
+      "Plan approval, run idempotency, immutable completed result and private report regressions",
+      "Seasonal arithmetic and strict input qualification",
+      "Project CRUD, workspace identity and OIDC verification regressions"
+    ]
+  },
+  "static_checks": {
+    "ruff_check": "PASS",
+    "ruff_format": "PASS",
+    "mypy": "PASS: 90 source files using backend/pyproject.toml",
+    "file_headers": "PASS",
+    "import_boundaries": "PASS"
+  },
+  "live_smoke": {
+    "server_restarted_with_tested_endpoints": true,
+    "public_config_http": 200,
+    "cors_origin_tested": "http://localhost:3000",
+    "cors_allow_origin_matches": true,
+    "private_investigation_detail_without_token_http": 401,
+    "private_filtered_runs_without_token_http": 401,
+    "new_cloud_migrations": false,
+    "browser_walkthrough_claimed": false
+  },
+  "contract": {
+    "file": "contracts/openapi/orca-prototype.json",
+    "generator": "backend/scripts/export_prototype_contract.py",
+    "private_environment_loaded": false
+  },
+  "handoff": "FRONTEND_BACKEND_HANDOFF.md (local root Markdown excluded from Git by user policy)",
+  "remaining": [
+    "Frontend developer applies integration and completes browser acceptance",
+    "H04 native-seasonal result publication/read-back integration",
+    "User adds optional Gemini API key before live provider use"
+  ],
+  "complete_platform_claimed": false
+}

@@ -20,14 +20,16 @@
     "no fake on-chain or independent-review claims"
   ],
   "current_phase": "H03",
-  "status": "IMPLEMENTATION_IN_PROGRESS",
+  "status": "BACKEND_HANDOFF_READY_FRONTEND_ACCEPTANCE_PENDING",
   "completed_phases": [
     "H01",
     "H02"
   ],
   "phase_evidence": {
     "H01": "docs/gates/HACKATHON/H01.json",
-    "H02": "docs/gates/HACKATHON/H02.json"
+    "H02": "docs/gates/HACKATHON/H02.json",
+    "H03_backend_handoff": "docs/gates/HACKATHON/H03-backend-handoff.json"
   },
-  "frontend_scope": "Integrate the existing supplied dashboard; do not build a replacement or second dashboard"
+  "frontend_scope": "Latest direction: backend and detailed integration documentation only; the frontend developer integrates the existing dashboard",
+  "handoff": "docs/decisions/frontend-backend-handoff.json"
 }
