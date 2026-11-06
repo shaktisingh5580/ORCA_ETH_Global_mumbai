@@ -59,7 +59,7 @@ class Model:
 
 @pytest.mark.live
 @pytest.mark.enable_socket
-def test_durable_reasoning_approval_and_immutable_retry():
+def test_durable_reasoning_approval_and_immutable_retry(tmp_path, monkeypatch):
     admin, runtime, tenant, other, project, foreign = prepare_database()
     subject = str(uuid4())
     with psycopg.connect(admin) as c:
@@ -135,5 +135,40 @@ def test_durable_reasoning_approval_and_immutable_retry():
             app = EvidenceReview(s, tenant, project, principal)
             assert app.review_row(corrected["id"])["decision"]["reviewer"]["verdict"] == "agrees"
             assert app.review_row(review["id"])["candidate"]["means_celsius"][a["dataset_id"]] == 28
+        from network_setup import configuration
+
+        from orca.anchor_worker import execute as publish_anchor
+        from orca.application.anchors import ResearchAnchors
+        from orca.infrastructure.federation.runtime import ArkivGateway
+        from orca.infrastructure.federation.signing import verify
+
+        network, _, _ = configuration(tmp_path)
+        published = []
+
+        def fake_publish(self, envelope, binding):
+            verify(envelope, binding.public_key, binding.key_id, "public")
+            assert envelope.payload["kind"] == "evidence"
+            assert envelope.payload["source_mode"] == "synthetic_demo"
+            published.append(envelope)
+            return {"entity_key": "0x" + "a" * 64, "tx_hash": "0x" + "b" * 64}
+
+        monkeypatch.setattr(ArkivGateway, "publish", fake_publish)
+        with TenantUnitOfWork(db, tenant) as s:
+            app = ResearchAnchors(s, tenant, project, principal)
+            anchor = app.publish(run["id"])
+            assert app.publish(run["id"])["id"] == anchor["id"]
+            assert len(anchor["manifest"]["reviews"]) == 2
+        assert publish_anchor(db, network, tenant, anchor["id"])
+        assert not publish_anchor(db, network, tenant, anchor["id"])
+        assert len(published) == 1
+        with TenantUnitOfWork(db, tenant) as s:
+            assert (
+                ResearchAnchors(s, tenant, project, principal).anchors(run["id"])[0]["state"]
+                == "indexed"
+            )
+        with TenantUnitOfWork(db, other) as s:
+            assert (
+                s.execute(text("SELECT count(*) FROM research.evidence_anchors")).scalar_one() == 0
+            )
     finally:
         db.dispose()
