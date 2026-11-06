@@ -43,7 +43,7 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
     tenant_a, tenant_b, project_a, project_b = uuid4(), uuid4(), uuid4(), uuid4()
     with psycopg.connect(admin) as connection:
         connection.execute(
-            "TRUNCATE research.prototype_publications,research.prototype_runs,research.prototype_investigations"
+            "TRUNCATE federation.operations,federation.events,federation.artifacts,federation.assignments,federation.claims,federation.tasks,federation.agents,research.prototype_publications,research.prototype_runs,research.prototype_investigations"
         )
         # The test administrator can truncate the disposable audit table; runtime
         # UPDATE/DELETE remains denied and the immutable-row trigger stays installed.

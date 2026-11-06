@@ -34,6 +34,7 @@ def database_url() -> str:
 def rebuild(target: str = "head") -> str:
     url = database_url()
     with psycopg.connect(url, autocommit=True) as connection:
+        connection.execute("DROP SCHEMA IF EXISTS federation CASCADE")
         connection.execute("DROP SCHEMA IF EXISTS research CASCADE")
         connection.execute("DROP SCHEMA IF EXISTS iam CASCADE")
         connection.execute("DROP TABLE IF EXISTS public.alembic_version")
@@ -64,7 +65,7 @@ def test_empty_db_upgrade_head():
     with psycopg.connect(url) as connection:
         assert (
             connection.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-            == "0013_prototype_workflow"
+            == "0014_agent_coordination"
         )
 
 
