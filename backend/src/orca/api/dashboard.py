@@ -36,8 +36,10 @@ def install_dashboard(app: FastAPI, settings: Settings) -> None:
             "anon_key": settings.supabase_anon_key.get_secret_value()
             if settings.auth_mode == "supabase" and settings.supabase_anon_key
             else None,
-            "reasoning_configured": bool(settings.gemini_api_key),
+            "reasoning_configured": bool((settings.gemini_api_keys or settings.gemini_api_key)),
             "arkiv_configured": settings.network_enabled,
-            "model": settings.gemini_model if settings.gemini_api_key else None,
+            "model": settings.gemini_model
+            if (settings.gemini_api_keys or settings.gemini_api_key)
+            else None,
             "profile": "bounded research prototype",
         }

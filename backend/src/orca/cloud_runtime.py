@@ -172,7 +172,7 @@ def materialize(
             ("research-worker", "orca.prototype_worker"),
         )
     )
-    if settings.prototype_enabled and settings.gemini_api_key:
+    if settings.prototype_enabled and (settings.gemini_api_keys or settings.gemini_api_key):
         commands.extend(
             (name, [sys.executable, "-m", module, "--env-file", str(api_env)])
             for name, module in (
