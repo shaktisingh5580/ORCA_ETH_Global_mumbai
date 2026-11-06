@@ -18,6 +18,6 @@
     {"id": "F", "scope": "P11 shared Arkiv coordination and revised P12/P13/P14 qualification", "acceptance": "Task/claim/assignment/result/review journey and independently inspectable permitted public evidence"}
   ],
   "validation": "Retain prior evidence as historical. Current full phase completion needs relevant tests and live scientific/protocol evidence. Do not substitute the demo test deferral, hashes, self-recalculation or route counts for acceptance.",
-  "missing_external_inputs": ["Frontend repository/handoff", "AI provider and private key configuration for model planning/explanations", "Accepted scientific baseline/source policy", "Actual independent provider/reviewer and ENS deployment choices"],
+  "missing_external_inputs": ["Gemini private API key and supported model configuration", "Accepted scientific baseline/source policy", "Actual independent provider/reviewer and ENS deployment choices"],
   "source_policy": "Original registered design/reference documents remain unchanged; use reconciliation decisions and this audit for execution."
 }

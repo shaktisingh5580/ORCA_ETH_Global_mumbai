@@ -9,7 +9,8 @@
     "skipped": 0
   },
   "services": "Isolated local PostgreSQL and S3; no Supabase production reset",
-  "cloud_migration_0010_applied": false,
+  "cloud_migration_0010_applied": true,
+  "cloud_checks": {"explicit_user_approval": true, "runtime_organization_rows_without_tenant": 0, "existing_user_directory_organizations": 1, "authorized_organization_detail": "PASS", "self_service_creation_enabled": false},
   "selected_route_coverage": {
     "P02_registered": 13,
     "P02_selected": 31,

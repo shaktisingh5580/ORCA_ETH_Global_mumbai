@@ -1,6 +1,6 @@
 {
   "phase": "P02 completion repair",
-  "status": "IMPLEMENTED_LOCAL_REGRESSIONS_PASSED_CLOUD_DEPLOYMENT_PENDING",
+  "status": "COMPONENT_REGRESSIONS_PASSED_ADDITIVE_CLOUD_MIGRATION_APPLIED",
   "validation": "117 tests passed with no failures or skips in the complete isolated local regression run; see docs/gates/P02-repair/manifest.json. This is component acceptance, not full P02/G02 selected-scope completion.",
   "authority": "User requested the full research/federation prototype instead of the limited demo",
   "references": ["main_implementation plan.md P02", "api design.md 3.2/3.3", "docs/decisions/platform-completion-recovery.json"],
@@ -11,6 +11,6 @@
   "identity_fix": "Project responses now return the public organization UUID rather than internal tenant UUID. Project permission failures become 403. Single-role owners/admins/principal investigators inherit dataset:read and research:plan, still constrained by token scopes; source:manage remains separate.",
   "contract_reconciliation": "Organization PATCH display_name maps to stored name. Settings are a bounded description/timezone schema; security or verification fields are rejected. Member subject is an OIDC subject, not an assumed email/profile. DELETE preserves revoked membership and audit history.",
   "source_preservation": "Duplicate research directives are byte-identical. Exporter accepts identical copies and rejects conflicting copies; neither registered source file is modified.",
-  "deployment": "Migration 0010 prepared and exercised on isolated local services. No cloud 0010 migration or self-service enablement is asserted.",
+  "deployment": "User explicitly approved migration 0010; applied to Supabase after 117 local regressions passed. Non-owner runtime checks verified zero organization rows without tenant context, one directory organization for the existing user, and successful authorized organization detail. API restarted. Self-service creation remains disabled. Authenticated browser acceptance remains pending.",
   "not_complete": "P02 still lacks 18 selected operations, including invitations, policies/access grants, project members and the upload/file HTTP lifecycle. P03 scientific gates and P04-P14 scope remain incomplete."
 }
