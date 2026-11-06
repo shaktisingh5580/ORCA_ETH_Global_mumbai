@@ -199,6 +199,7 @@ def start_provider(folder, configfile, binding, private, source):
             + "="
             + json.dumps(value.get_secret_value() if hasattr(value, "get_secret_value") else value)
             for key, value in settings.model_dump().items()
+            if value is not None
         ),
         encoding="utf-8",
     )

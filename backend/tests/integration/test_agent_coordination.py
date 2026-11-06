@@ -151,6 +151,50 @@ def begin_claimed(client, tenant, project, run):
 
 @pytest.mark.live
 @pytest.mark.enable_socket
+def test_demo_http_is_project_scoped_and_correction_requires_a_challenge(network_http, tmp_path):
+    from disagreement_demo import router
+
+    client, tenant, project, foreign, run, _ = network_http
+    client.app.include_router(router)
+    client.app.state.disagreement_state = str(tmp_path / "isolated-demo")
+    body = {"project_id": str(project)}
+    key = str(uuid4())
+    created = post(client, "/v1/demo/disagreements", body, key=key)
+    assert created.status_code == 202, created.text
+    assert post(client, "/v1/demo/disagreements", body, key=key).json() == created.json()
+    identifier = created.json()["id"]
+    assert created.json()["source_mode"] == "synthetic_demo"
+    assert created.json()["stages"] == []
+    assert (
+        client.get(
+            f"/v1/demo/disagreements/{identifier}", params={"project_id": str(foreign)}
+        ).status_code
+        == 404
+    )
+    assert (
+        post(
+            client,
+            f"/v1/demo/disagreements/{identifier}/correct",
+            {"expected_version": 1},
+            project,
+        ).status_code
+        == 409
+    )
+    task, _ = begin_claimed(client, tenant, project, run)
+    denied = post(
+        client,
+        "/v1/network/tasks",
+        {
+            "project_id": str(project),
+            "source_run_id": str(run),
+            "correction_of": task,
+        },
+    )
+    assert denied.status_code == 409
+
+
+@pytest.mark.live
+@pytest.mark.enable_socket
 def test_real_a2a_reproduction_then_separately_keyed_review_with_durable_artifacts(network_http):
     client, tenant, project, foreign, run, _ = network_http
     task, claim = begin_claimed(client, tenant, project, run)
