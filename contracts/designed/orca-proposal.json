@@ -1,0 +1,5283 @@
+{
+  "info": {
+    "description": "Not a running API. Later-phase DTO details remain to be implemented.",
+    "title": "ORCA design-only inventory",
+    "version": "3.1.0-proposal"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/livez": {
+      "get": {
+        "description": "Process-only; does not assert DB, source, science or chain is available.",
+        "operationId": "get_livez",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 {status:\"alive\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "public",
+        "x-orca-phase": "P01",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "{status:\"alive\"}"
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "description": "Only generated operations marked implemented/exposed; design-only OpenAPI separate offline artifact.",
+        "operationId": "get_openapi_json",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 OpenAPI31Document"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "docs-policy",
+        "x-orca-phase": "P01",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "OpenAPI31Document"
+      }
+    },
+    "/readyz": {
+      "get": {
+        "description": "200 only when release-specific required components pass; otherwise 503; no credentials.",
+        "operationId": "get_readyz",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ReadinessReport{components,release_profile,blocked_gates}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "ops/readiness",
+        "x-orca-phase": "P01",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "ReadinessReport{components,release_profile,blocked_gates}"
+      }
+    },
+    "/v1/admin/data-rights": {
+      "get": {
+        "description": "Source licensing and distribution/export limits.",
+        "operationId": "get_v1_admin_data_rights",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<DataRightsRecord>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "source:manage",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "cursor?,product_id?",
+        "x-orca-response-design": "Page<DataRightsRecord>"
+      }
+    },
+    "/v1/admin/job-health": {
+      "get": {
+        "description": "Backlog, retries, lease recovery, fencing failures.",
+        "operationId": "get_v1_admin_job_health",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 JobHealthSummary"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "ops:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "queue?,since?",
+        "x-orca-response-design": "JobHealthSummary"
+      }
+    },
+    "/v1/admin/retention": {
+      "get": {
+        "description": "No raw private content in returns.",
+        "operationId": "get_v1_admin_retention",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 RetentionPolicyView"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "ops:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "org_id?",
+        "x-orca-response-design": "RetentionPolicyView"
+      }
+    },
+    "/v1/admin/retention/preview": {
+      "post": {
+        "description": "Preview before irreversible deletion; legal holds respected.",
+        "operationId": "post_v1_admin_retention_preview",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 RetentionImpact"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "ops:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "RetentionPreviewRequest{scope,as_of}",
+        "x-orca-response-design": "RetentionImpact"
+      }
+    },
+    "/v1/admin/source-health": {
+      "get": {
+        "description": "Operator-only redacted status; access probe success is not scientific accuracy.",
+        "operationId": "get_v1_admin_source_health",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<SourceHealth>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "source:manage",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "provider_id?",
+        "x-orca-response-design": "Page<SourceHealth>"
+      }
+    },
+    "/v1/alerts/notifications": {
+      "get": {
+        "description": "Clear issued-vs-generated distinction.",
+        "operationId": "get_v1_alerts_notifications",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AlertNotification>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "alerts:subscribe",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "cursor?,unread?",
+        "x-orca-response-design": "Page<AlertNotification>"
+      }
+    },
+    "/v1/alerts/notifications/{notification_id}/ack": {
+      "post": {
+        "description": "Acknowledgment does not erase or supersede official alert.",
+        "operationId": "post_v1_alerts_notifications_notification_id_ack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AlertNotification"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "alerts:subscribe",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "AckNotification{ack_at}",
+        "x-orca-response-design": "AlertNotification"
+      }
+    },
+    "/v1/alerts/subscriptions": {
+      "get": {
+        "description": "Only caller notifications; official warnings separate from AI alert predictions.",
+        "operationId": "get_v1_alerts_subscriptions",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AlertSubscription>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "alerts:subscribe",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<AlertSubscription>"
+      },
+      "post": {
+        "description": "Opt-in; restricted geo retention, rate limiting, no publishing to Arkiv.",
+        "operationId": "post_v1_alerts_subscriptions",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 AlertSubscription"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "alerts:subscribe",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "CreateAlertSubscription{region,types,channel,quiet_hours?}",
+        "x-orca-response-design": "AlertSubscription"
+      }
+    },
+    "/v1/alerts/subscriptions/{subscription_id}": {
+      "delete": {
+        "description": "Stop future sends; retain minimal audit.",
+        "operationId": "delete_v1_alerts_subscriptions_subscription_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 204 —"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "alerts:subscribe",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "If-Match",
+        "x-orca-response-design": "—"
+      },
+      "patch": {
+        "description": "Scope and confirmed contact channel.",
+        "operationId": "patch_v1_alerts_subscriptions_subscription_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AlertSubscription"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "alerts:subscribe",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "If-Match; PatchAlertSubscription",
+        "x-orca-response-design": "AlertSubscription"
+      }
+    },
+    "/v1/catalog/compatibility-checks": {
+      "post": {
+        "description": "Fail closed for uncertain product kind, calendar/QC/depth mismatch.",
+        "operationId": "post_v1_catalog_compatibility_checks",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 CompatibilityReport"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "DataCompatibilityRequest{products,method_id,baseline_ref,geo_scope,time_window}",
+        "x-orca-response-design": "CompatibilityReport"
+      }
+    },
+    "/v1/catalog/products": {
+      "get": {
+        "description": "Filter safe typed metadata; coverage is not license entitlement.",
+        "operationId": "get_v1_catalog_products",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ScientificProduct>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "provider_id?,variable?,kind?,bbox?,start?,end?,cursor?",
+        "x-orca-response-design": "Page<ScientificProduct>"
+      }
+    },
+    "/v1/catalog/products/{product_id}": {
+      "get": {
+        "description": "Classification observational/forecast/reanalysis/static; source ID exact once verified.",
+        "operationId": "get_v1_catalog_products_product_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ScientificProduct"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path product_id",
+        "x-orca-response-design": "ScientificProduct"
+      }
+    },
+    "/v1/catalog/products/{product_id}/coverage": {
+      "get": {
+        "description": "Bounding box not proof of full valid ocean pixel coverage.",
+        "operationId": "get_v1_catalog_products_product_id_coverage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ProductCoverage"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "query version?,geometry_ref?,period?",
+        "x-orca-response-design": "ProductCoverage"
+      }
+    },
+    "/v1/catalog/products/{product_id}/distributions": {
+      "get": {
+        "description": "URLs may be sensitive; do not echo credentialed URLs.",
+        "operationId": "get_v1_catalog_products_product_id_distributions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<Distribution>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<Distribution>"
+      }
+    },
+    "/v1/catalog/products/{product_id}/fitness-checks": {
+      "post": {
+        "description": "May return incompatible/unknown; never silently substitute product.",
+        "operationId": "post_v1_catalog_products_product_id_fitness_checks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 FitnessReport"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "FitnessRequest{method_id,version_ref,geo_scope,time_window,depth?,as_of?}",
+        "x-orca-response-design": "FitnessReport"
+      }
+    },
+    "/v1/catalog/products/{product_id}/licenses": {
+      "get": {
+        "description": "Metadata visibility vs download/republication/derived output rights.",
+        "operationId": "get_v1_catalog_products_product_id_licenses",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 LicenseProfile"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path product_id",
+        "x-orca-response-design": "LicenseProfile"
+      }
+    },
+    "/v1/catalog/products/{product_id}/variables": {
+      "get": {
+        "description": "Preserve CF standard name, native units, dimensions and depth semantics.",
+        "operationId": "get_v1_catalog_products_product_id_variables",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<CanonicalVariableMapping>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "cursor?,kind?",
+        "x-orca-response-design": "Page<CanonicalVariableMapping>"
+      }
+    },
+    "/v1/catalog/products/{product_id}/versions": {
+      "get": {
+        "description": "Version and archive availability distinct from product name.",
+        "operationId": "get_v1_catalog_products_product_id_versions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ProductVersion>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "cursor?,limit?",
+        "x-orca-response-design": "Page<ProductVersion>"
+      }
+    },
+    "/v1/catalog/products/{product_id}/versions/{version_id}": {
+      "get": {
+        "description": "Source-issued and availability clocks; method compatibility.",
+        "operationId": "get_v1_catalog_products_product_id_versions_version_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ProductVersion"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path IDs",
+        "x-orca-response-design": "ProductVersion"
+      }
+    },
+    "/v1/catalog/providers": {
+      "get": {
+        "description": "Provider visibility depends on license; public metadata only.",
+        "operationId": "get_v1_catalog_providers",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<SourceProvider>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "cursor?,q?,source_class?",
+        "x-orca-response-design": "Page<SourceProvider>"
+      }
+    },
+    "/v1/catalog/providers/{provider_id}": {
+      "get": {
+        "description": "Provider status includes available/unknown/restricted, no imagined working status.",
+        "operationId": "get_v1_catalog_providers_provider_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 SourceProvider"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path provider_id",
+        "x-orca-response-design": "SourceProvider"
+      }
+    },
+    "/v1/catalog/snapshot-requests": {
+      "post": {
+        "description": "Bounded size/cost; source retrieval may fail; no fixture substitution in runtime.",
+        "operationId": "post_v1_catalog_snapshot_requests",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"snapshot\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "SnapshotRequest{product_version_id,geo_scope,time_window,variables,depth?,as_of?}",
+        "x-orca-response-design": "Operation{kind:\"snapshot\"}"
+      }
+    },
+    "/v1/catalog/snapshot-requests/{request_id}": {
+      "get": {
+        "description": "Operation links and checked source status.",
+        "operationId": "get_v1_catalog_snapshot_requests_request_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 SnapshotRequestStatus"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path request_id",
+        "x-orca-response-design": "SnapshotRequestStatus"
+      }
+    },
+    "/v1/catalog/snapshots": {
+      "get": {
+        "description": "Authorized snapshots only, exact digest and clock distinctions.",
+        "operationId": "get_v1_catalog_snapshots",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<DatasetSnapshot>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "project_id?,product_id?,digest?,cursor?",
+        "x-orca-response-design": "Page<DatasetSnapshot>"
+      }
+    },
+    "/v1/catalog/snapshots/{snapshot_id}": {
+      "get": {
+        "description": "Frozen inputs immutable; if source rights prohibit storage mark unavailable.",
+        "operationId": "get_v1_catalog_snapshots_snapshot_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 DatasetSnapshot"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path snapshot_id",
+        "x-orca-response-design": "DatasetSnapshot"
+      }
+    },
+    "/v1/catalog/snapshots/{snapshot_id}/manifest": {
+      "get": {
+        "description": "Contains QC, location, version, source URL sanitized, rights, digests.",
+        "operationId": "get_v1_catalog_snapshots_snapshot_id_manifest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 DatasetSnapshotManifest"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path snapshot_id",
+        "x-orca-response-design": "DatasetSnapshotManifest"
+      }
+    },
+    "/v1/catalog/source-probes": {
+      "post": {
+        "description": "Operator-only live bounded probe; SSRF, redirect, byte/time, API quota enforced.",
+        "operationId": "post_v1_catalog_source_probes",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"source_probe\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "source:manage",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "ProbeRequest{provider_id,distribution_id,region,time_window,limits}",
+        "x-orca-response-design": "Operation{kind:\"source_probe\"}"
+      }
+    },
+    "/v1/catalog/source-probes/{probe_id}": {
+      "get": {
+        "description": "Never treat integration mock as live evidence; includes provider response digest.",
+        "operationId": "get_v1_catalog_source_probes_probe_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "probe_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 SourceProbeEvidence"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "source:manage",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "path probe_id",
+        "x-orca-response-design": "SourceProbeEvidence"
+      }
+    },
+    "/v1/catalog/variable-definitions": {
+      "get": {
+        "description": "Canonical units, semantics, coordinate/depth definitions.",
+        "operationId": "get_v1_catalog_variable_definitions",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<VariableDefinition>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P03",
+        "x-orca-request-design": "q?,standard_name?,cursor?",
+        "x-orca-response-design": "Page<VariableDefinition>"
+      }
+    },
+    "/v1/conversations": {
+      "get": {
+        "description": "Tenant/user scoped and consent-aware.",
+        "operationId": "get_v1_conversations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<Conversation>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "cursor?,kind?",
+        "x-orca-response-design": "Page<Conversation>"
+      },
+      "post": {
+        "description": "Project context authorized; no forced chain write.",
+        "operationId": "post_v1_conversations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 Conversation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "CreateConversation{project_id?,mode,locale,retention_policy}",
+        "x-orca-response-design": "Conversation"
+      }
+    },
+    "/v1/conversations/{conversation_id}": {
+      "get": {
+        "description": "Memory plane exposure controlled; no hidden internal traces.",
+        "operationId": "get_v1_conversations_conversation_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Conversation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "Conversation"
+      },
+      "patch": {
+        "description": "No silent project/sensitivity reassignment.",
+        "operationId": "patch_v1_conversations_conversation_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Conversation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "If-Match; PatchConversation{title?,archive?,locale?}",
+        "x-orca-response-design": "Conversation"
+      }
+    },
+    "/v1/conversations/{conversation_id}/events/stream": {
+      "get": {
+        "description": "Stream completed *steps*, not hidden chain-of-thought; reauth and redact.",
+        "operationId": "get_v1_conversations_conversation_id_events_stream",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 SSE<ConversationEvent>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "SSE cursor/Last-Event-ID",
+        "x-orca-response-design": "SSE<ConversationEvent>"
+      }
+    },
+    "/v1/conversations/{conversation_id}/feedback": {
+      "post": {
+        "description": "Not fed into model training without review/consent.",
+        "operationId": "post_v1_conversations_conversation_id_feedback",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 FeedbackReceipt"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "ConversationFeedback{message_id,rating,category,comment?}",
+        "x-orca-response-design": "FeedbackReceipt"
+      }
+    },
+    "/v1/conversations/{conversation_id}/messages": {
+      "get": {
+        "description": "Signed/cited evidence cards separate from free text.",
+        "operationId": "get_v1_conversations_conversation_id_messages",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ConversationMessage>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<ConversationMessage>"
+      },
+      "post": {
+        "description": "Evidence-gated answer, tool budget, locale; no unsupported marine forecasts.",
+        "operationId": "post_v1_conversations_conversation_id_messages",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"conversation_turn\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "UserMessage{content,attachments?,geo_scope?,time_context?}",
+        "x-orca-response-design": "Operation{kind:\"conversation_turn\"}"
+      }
+    },
+    "/v1/identity/agent-bindings": {
+      "get": {
+        "description": "Only authorized org/agent operators; redact signed credential contents.",
+        "operationId": "get_v1_identity_agent_bindings",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AgentBinding>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "agent_id?,wallet?,cursor?",
+        "x-orca-response-design": "Page<AgentBinding>"
+      },
+      "post": {
+        "description": "Verify ENS controller, ENS chain, Arkiv chain, expected wallet, service key, scope, nonce, expiry, institutional credential.",
+        "operationId": "post_v1_identity_agent_bindings",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 AgentBinding"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "SubmitBinding{challenge_id,typed_manifest,controller_signature,service_signature?,credential_ref?}",
+        "x-orca-response-design": "AgentBinding"
+      }
+    },
+    "/v1/identity/agent-bindings/challenges": {
+      "post": {
+        "description": "Nonce one-time, scoped, server-generated; never accept unbounded arbitrary identity claim.",
+        "operationId": "post_v1_identity_agent_bindings_challenges",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 BindingChallenge{nonce,domain,audience,expires_at}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "BindingChallengeRequest{agent_id,ens_name,arkiv_wallet,a2a_key_id,scopes}",
+        "x-orca-response-design": "BindingChallenge{nonce,domain,audience,expires_at}"
+      }
+    },
+    "/v1/identity/agent-bindings/{binding_id}": {
+      "get": {
+        "description": "Current verified/revoked/expired status; latest chain resolution snapshot.",
+        "operationId": "get_v1_identity_agent_bindings_binding_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentBinding"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "AgentBinding"
+      }
+    },
+    "/v1/identity/agent-bindings/{binding_id}/revoke": {
+      "post": {
+        "description": "Immediate local authorization deny, audit, invalidate cache and pending grants; no retroactive erase.",
+        "operationId": "post_v1_identity_agent_bindings_binding_id_revoke",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentBinding"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "RevokeBinding{reason,revocation_epoch}",
+        "x-orca-response-design": "AgentBinding"
+      }
+    },
+    "/v1/identity/agent-bindings/{binding_id}/verify": {
+      "post": {
+        "description": "Read current ENS state and service key; cached identity alone insufficient for privileged operation.",
+        "operationId": "post_v1_identity_agent_bindings_binding_id_verify",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 BindingVerification"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "{force_chain_read?:boolean}",
+        "x-orca-response-design": "BindingVerification"
+      }
+    },
+    "/v1/identity/ens/names/{encoded_name}": {
+      "get": {
+        "description": "Name encoded safely; ownership and record state distinct from credentials.",
+        "operationId": "get_v1_identity_ens_names_encoded_name",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encoded_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ENSNameRecord"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "query chain_id",
+        "x-orca-response-design": "ENSNameRecord"
+      }
+    },
+    "/v1/identity/ens/permission-grants": {
+      "post": {
+        "description": "Verify resolver/registry actual boundary; simulate unauthorized sibling mutation negative test.",
+        "operationId": "post_v1_identity_ens_permission_grants",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"ens_grant\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "ENSGrantIntent{name,role,delegate,scope,expires_at?}",
+        "x-orca-response-design": "Operation{kind:\"ens_grant\"}"
+      }
+    },
+    "/v1/identity/ens/permission-revocations": {
+      "post": {
+        "description": "Re-check chain state; invalidate cache immediately; cannot promise third-party network revocation beyond block finality.",
+        "operationId": "post_v1_identity_ens_permission_revocations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"ens_revoke\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "ENSRevokeIntent{name,role,delegate}",
+        "x-orca-response-design": "Operation{kind:\"ens_revoke\"}"
+      }
+    },
+    "/v1/identity/ens/record-updates": {
+      "post": {
+        "description": "Resolver permission checks; EAC cannot implicitly isolate sibling names; restrict supported keys.",
+        "operationId": "post_v1_identity_ens_record_updates",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"ens_record_update\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "ENSRecordIntent{name,key,value,controller_ref}",
+        "x-orca-response-design": "Operation{kind:\"ens_record_update\"}"
+      }
+    },
+    "/v1/identity/ens/registrations": {
+      "post": {
+        "description": "Only if ORCA controls authorized signer; default institution signs on own wallet; transaction simulation/review first.",
+        "operationId": "post_v1_identity_ens_registrations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"ens_registration\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "ENSRegistrationIntent{name,parent_name,registry_mode,expected_controller}",
+        "x-orca-response-design": "Operation{kind:\"ens_registration\"}"
+      }
+    },
+    "/v1/identity/ens/resolutions": {
+      "post": {
+        "description": "Resolve via verified RPC/contract; latest block, resolver address, TTL; no client-provided RPC URL.",
+        "operationId": "post_v1_identity_ens_resolutions",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ENSResolutionSnapshot"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "ResolveENSRequest{name,ens_chain_id,record_keys,force_refresh?}",
+        "x-orca-response-design": "ENSResolutionSnapshot"
+      }
+    },
+    "/v1/identity/ens/transactions/{transaction_id}": {
+      "get": {
+        "description": "Transaction submitted vs confirmed vs indexed distinct.",
+        "operationId": "get_v1_identity_ens_transactions_transaction_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transaction_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ChainTransactionStatus"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "ChainTransactionStatus"
+      }
+    },
+    "/v1/identity/institution-credentials": {
+      "get": {
+        "description": "Credential proofs stored encrypted and access restricted; no self-attested automatic government verification.",
+        "operationId": "get_v1_identity_institution_credentials",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<CredentialMetadata>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "org_id?,cursor?",
+        "x-orca-response-design": "Page<CredentialMetadata>"
+      },
+      "post": {
+        "description": "Reviewed issuer trust policy; confidential artifact not on-chain.",
+        "operationId": "post_v1_identity_institution_credentials",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 CredentialReview"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "identity:manage",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "CredentialSubmission{org_id,issuer,credential_type,digest,encrypted_artifact_ref}",
+        "x-orca-response-design": "CredentialReview"
+      }
+    },
+    "/v1/identity/institution-credentials/{credential_id}/decisions": {
+      "post": {
+        "description": "Separation of duties; cannot approve self; audit all decisions.",
+        "operationId": "post_v1_identity_institution_credentials_credential_id_decisions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "credential_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 CredentialReview"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "platform_operator",
+        "x-orca-phase": "P10",
+        "x-orca-request-design": "CredentialDecision{accepted,reason_code,evidence_refs}",
+        "x-orca-response-design": "CredentialReview"
+      }
+    },
+    "/v1/invitations/{token}/accept": {
+      "post": {
+        "description": "Single use invitation; bind to authenticated principal; avoid token replay.",
+        "operationId": "post_v1_invitations_token_accept",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Membership"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "authenticated",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "path token; body {accept:true}",
+        "x-orca-response-design": "Membership"
+      }
+    },
+    "/v1/localization/languages": {
+      "get": {
+        "description": "Distinguish tested vs planned support; avoid fabricated >10-language readiness.",
+        "operationId": "get_v1_localization_languages",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<LanguageCapability>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "public",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "Page<LanguageCapability>"
+      }
+    },
+    "/v1/marine/conditions": {
+      "get": {
+        "description": "Authoritative source, issue/valid timestamps, coverage; no fabricated data.",
+        "operationId": "get_v1_marine_conditions",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 MarineConditions"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "marine:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "lat,lon,valid_at?,source_policy?",
+        "x-orca-response-design": "MarineConditions"
+      }
+    },
+    "/v1/marine/geofences": {
+      "get": {
+        "description": "Authoritative boundary source and valid version.",
+        "operationId": "get_v1_marine_geofences",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<MarineGeofence>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "marine:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "bbox?,kind?,valid_at?",
+        "x-orca-response-design": "Page<MarineGeofence>"
+      }
+    },
+    "/v1/marine/pfz": {
+      "get": {
+        "description": "Official available product only; never auto generate fishing zone on missing source.",
+        "operationId": "get_v1_marine_pfz",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 PFZInformation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "marine:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "region,bounds?,date?",
+        "x-orca-response-design": "PFZInformation"
+      }
+    },
+    "/v1/marine/route-exposures": {
+      "post": {
+        "description": "Decision support; not certified navigational routing or safety guarantee.",
+        "operationId": "post_v1_marine_route_exposures",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"route_exposure\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "marine:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "RouteExposureRequest{waypoints,vessel_context,valid_window}",
+        "x-orca-response-design": "Operation{kind:\"route_exposure\"}"
+      }
+    },
+    "/v1/marine/warnings": {
+      "get": {
+        "description": "Official issuer verification, publication and expiry; safety critical.",
+        "operationId": "get_v1_marine_warnings",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<OfficialWarning>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "marine:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "region?,kind?,valid_at?",
+        "x-orca-response-design": "Page<OfficialWarning>"
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "description": "No cross-org leaked claims; user ID derived from verified token.",
+        "operationId": "get_v1_me",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 CurrentPrincipal{user_id,orgs,roles,capabilities}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "authenticated",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "CurrentPrincipal{user_id,orgs,roles,capabilities}"
+      }
+    },
+    "/v1/me/memory": {
+      "get": {
+        "description": "Only explicit user-visible memory planes; scientific source not replaced by memory.",
+        "operationId": "get_v1_me_memory",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<VisibleMemory>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "cursor?,type?",
+        "x-orca-response-design": "Page<VisibleMemory>"
+      }
+    },
+    "/v1/me/memory/{memory_id}": {
+      "delete": {
+        "description": "Subject to retention/legal obligations with truthful status; do not claim immutable logs erased.",
+        "operationId": "delete_v1_me_memory_memory_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 204 —"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "If-Match",
+        "x-orca-response-design": "—"
+      }
+    },
+    "/v1/me/preferences": {
+      "get": {
+        "description": "Location/privacy/locale, safe non-sensitive output.",
+        "operationId": "get_v1_me_preferences",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 UserPreferences"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "UserPreferences"
+      },
+      "patch": {
+        "description": "Consent and privacy, region detection opt-in.",
+        "operationId": "patch_v1_me_preferences",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 UserPreferences"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "If-Match; PatchPreferences",
+        "x-orca-response-design": "UserPreferences"
+      }
+    },
+    "/v1/meta": {
+      "get": {
+        "description": "All capabilities include implemented:boolean, live_verified:boolean; default false; do not disclose internal hosts.",
+        "operationId": "get_v1_meta",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 APIMetadata{revision,release_profile,enabled_capabilities}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "public",
+        "x-orca-phase": "P01",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "APIMetadata{revision,release_profile,enabled_capabilities}"
+      }
+    },
+    "/v1/network/agents": {
+      "get": {
+        "description": "Unknown self-claims may be shown as unverified but never eligible without trust checks.",
+        "operationId": "get_v1_network_agents",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AgentSummary>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "capability?,region?,method_id?,provider_mode?,verified_only?,cursor?",
+        "x-orca-response-design": "Page<AgentSummary>"
+      },
+      "post": {
+        "description": "No auto accreditation/verification; confirm org policy.",
+        "operationId": "post_v1_network_agents",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 Agent"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:register",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "RegisterAgent{organization_id,name,provider_mode,declared_capabilities,endpoint_ref}",
+        "x-orca-response-design": "Agent"
+      }
+    },
+    "/v1/network/agents/{agent_id}": {
+      "get": {
+        "description": "Split claims, verification and actual operating status.",
+        "operationId": "get_v1_network_agents_agent_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentDetail"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "path agent_id",
+        "x-orca-response-design": "AgentDetail"
+      },
+      "patch": {
+        "description": "No unchecked self-upgrade to institution-verified.",
+        "operationId": "patch_v1_network_agents_agent_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentDetail"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "If-Match; PatchAgent{display_name,status?,metadata?}",
+        "x-orca-response-design": "AgentDetail"
+      }
+    },
+    "/v1/network/agents/{agent_id}/capabilities": {
+      "get": {
+        "description": "Methods, data rights, geo/time, input/output contracts.",
+        "operationId": "get_v1_network_agents_agent_id_capabilities",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AgentCapability>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<AgentCapability>"
+      },
+      "post": {
+        "description": "Self-declared vs independently reviewed distinguished.",
+        "operationId": "post_v1_network_agents_agent_id_capabilities",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 AgentCapability"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "DeclareCapability{capability_id,method_versions,regions,input_schema_ref,output_schema_ref}",
+        "x-orca-response-design": "AgentCapability"
+      }
+    },
+    "/v1/network/agents/{agent_id}/capabilities/{capability_id}": {
+      "patch": {
+        "description": "Changing supported science contract invalidates cached eligibility.",
+        "operationId": "patch_v1_network_agents_agent_id_capabilities_capability_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "capability_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentCapability"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "If-Match; PatchCapability",
+        "x-orca-response-design": "AgentCapability"
+      }
+    },
+    "/v1/network/agents/{agent_id}/endpoint-checks": {
+      "post": {
+        "description": "Allowlisted egress; actual A2A Card compatibility test; rate bounded.",
+        "operationId": "post_v1_network_agents_agent_id_endpoint_checks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"endpoint_check\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "EndpointCheckRequest{endpoint_id}",
+        "x-orca-response-design": "Operation{kind:\"endpoint_check\"}"
+      }
+    },
+    "/v1/network/agents/{agent_id}/endpoints": {
+      "get": {
+        "description": "Sensitive endpoints may be restricted to authorized peers.",
+        "operationId": "get_v1_network_agents_agent_id_endpoints",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AgentEndpoint>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<AgentEndpoint>"
+      },
+      "post": {
+        "description": "SSRF/host validation; no arbitrary URL fetch from registration.",
+        "operationId": "post_v1_network_agents_agent_id_endpoints",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 AgentEndpoint"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "EndpointRegistration{transport,uri,auth_scheme,card_url}",
+        "x-orca-response-design": "AgentEndpoint"
+      }
+    },
+    "/v1/network/agents/{agent_id}/health": {
+      "get": {
+        "description": "Operational health not proof of scientific reliability.",
+        "operationId": "get_v1_network_agents_agent_id_health",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentHealth{observed_at,availability}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "AgentHealth{observed_at,availability}"
+      }
+    },
+    "/v1/network/agents/{agent_id}/suspend": {
+      "post": {
+        "description": "Immediately disallow new tasks; scheduled token revoke.",
+        "operationId": "post_v1_network_agents_agent_id_suspend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentDetail"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:write",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "If-Match; {reason}",
+        "x-orca-response-design": "AgentDetail"
+      }
+    },
+    "/v1/network/arkiv/entities/{entity_key}": {
+      "get": {
+        "description": "observed_at`, expiry, owner, last chain block; after expiry 410 or expired state.",
+        "operationId": "get_v1_network_arkiv_entities_entity_key",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ArkivEntityProjection"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "path key; query chain_id",
+        "x-orca-response-design": "ArkivEntityProjection"
+      }
+    },
+    "/v1/network/arkiv/indexer-status": {
+      "get": {
+        "description": "Indexer projection is not chain authority; staleness visible.",
+        "operationId": "get_v1_network_arkiv_indexer_status",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 IndexerStatus{block,height,lag,last_error}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "ops:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "IndexerStatus{block,height,lag,last_error}"
+      }
+    },
+    "/v1/network/arkiv/queries": {
+      "post": {
+        "description": "Allowlisted schemas and indexed attributes only; max row/page; owner verification, bounds, quota.",
+        "operationId": "post_v1_network_arkiv_queries",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ArkivQueryPage"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:publish",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "ArkivSafeQuery{schema_id,filters:{capability?,region?,status?,owner?},cursor?}",
+        "x-orca-response-design": "ArkivQueryPage"
+      }
+    },
+    "/v1/network/arkiv/reconciliation-requests": {
+      "post": {
+        "description": "Operator-only; never blind-resubmit after ambiguous timeout.",
+        "operationId": "post_v1_network_arkiv_reconciliation_requests",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"arkiv_reconcile\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "ops:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "ReconcileRequest{entity_key?,tx_hash?}",
+        "x-orca-response-design": "Operation{kind:\"arkiv_reconcile\"}"
+      }
+    },
+    "/v1/network/arkiv/transactions/{transaction_id}": {
+      "get": {
+        "description": "Submitted/confirmed/indexed/unknown; reconciliation after timeout.",
+        "operationId": "get_v1_network_arkiv_transactions_transaction_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transaction_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ChainTransactionStatus"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "path tx ID",
+        "x-orca-response-design": "ChainTransactionStatus"
+      }
+    },
+    "/v1/network/discovery": {
+      "post": {
+        "description": "Hard filters for authorization/source license, soft rank for latency/reliability; explain exclusions safely.",
+        "operationId": "post_v1_network_discovery",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 AgentDiscoveryResult"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "AgentDiscoveryRequest{capability,geo_scope,time_window,method_ref,trust_policy}",
+        "x-orca-response-design": "AgentDiscoveryResult"
+      }
+    },
+    "/v1/network/investigations/{public_task_id}/timeline": {
+      "get": {
+        "description": "User-facing task→claim→result→review chain from real entities, no hardcoded demo rows.",
+        "operationId": "get_v1_network_investigations_public_task_id_timeline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<NetworkTimelineEvent>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<NetworkTimelineEvent>"
+      }
+    },
+    "/v1/network/provider-onboarding/{agent_id}/checklist": {
+      "get": {
+        "description": "Distinguish self-declaration/verified identity/service auth/science method checks.",
+        "operationId": "get_v1_network_provider_onboarding_agent_id_checklist",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 OnboardingChecklist"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "agent:operate",
+        "x-orca-phase": "P09",
+        "x-orca-request-design": "path agent_id",
+        "x-orca-response-design": "OnboardingChecklist"
+      }
+    },
+    "/v1/network/results": {
+      "get": {
+        "description": "Live chain projection vs expired reflected; not raw research files.",
+        "operationId": "get_v1_network_results",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<NetworkResultRef>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "task_id?,agent_id?,cursor?",
+        "x-orca-response-design": "Page<NetworkResultRef>"
+      },
+      "post": {
+        "description": "Artifact scientific gate independently checked; public reference rights verified; wallet owner matches signed agent.",
+        "operationId": "post_v1_network_results",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"arkiv_result\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:publish",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "PublishNetworkResult{external_task_id,agent_id,artifact_id,binding_id,public_digest}",
+        "x-orca-response-design": "Operation{kind:\"arkiv_result\"}"
+      }
+    },
+    "/v1/network/results/{result_ref_id}": {
+      "get": {
+        "description": "Digest and scientific provenance URI allowed only if public/authorized.",
+        "operationId": "get_v1_network_results_result_ref_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "result_ref_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 NetworkResultRef"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "NetworkResultRef"
+      }
+    },
+    "/v1/network/reviews": {
+      "get": {
+        "description": "Cannot collapse disagreement into vote based on number of reviews.",
+        "operationId": "get_v1_network_reviews",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<NetworkReviewRef>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "result_ref_id?,verdict?,cursor?",
+        "x-orca-response-design": "Page<NetworkReviewRef>"
+      },
+      "post": {
+        "description": "Independent reviewer wallet; signed review and off-chain artifact validated separately.",
+        "operationId": "post_v1_network_reviews",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"arkiv_review\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:review",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "PublishNetworkReview{result_ref_id,review_id,binding_id,visibility}",
+        "x-orca-response-design": "Operation{kind:\"arkiv_review\"}"
+      }
+    },
+    "/v1/network/tasks": {
+      "get": {
+        "description": "Public task subset only; verify Arkiv owner/expiry; stale projection labeled.",
+        "operationId": "get_v1_network_tasks",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ExternalTask>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "capability?,region?,state?,network?,cursor?",
+        "x-orca-response-design": "Page<ExternalTask>"
+      },
+      "post": {
+        "description": "Private research details remain off-chain; durable outbox; avoid double creation on unknown tx.",
+        "operationId": "post_v1_network_tasks",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 ExternalTask{arkiv_state}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:publish",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "PublishNetworkTask{investigation_id,public_summary,required_capability,deadline,visibility}",
+        "x-orca-response-design": "ExternalTask{arkiv_state}"
+      }
+    },
+    "/v1/network/tasks/{external_task_id}": {
+      "get": {
+        "description": "Separate internal status, chain state, as_of, expiry; public task may expire.",
+        "operationId": "get_v1_network_tasks_external_task_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ExternalTask"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "ExternalTask"
+      }
+    },
+    "/v1/network/tasks/{external_task_id}/a2a-sessions": {
+      "get": {
+        "description": "Correlate remote task ID, transport, auth, status; no raw A2A secret.",
+        "operationId": "get_v1_network_tasks_external_task_id_a2a_sessions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<A2ASession>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<A2ASession>"
+      }
+    },
+    "/v1/network/tasks/{external_task_id}/assignments": {
+      "get": {
+        "description": "Signed assignment required by external executor, not just Arkiv claim.",
+        "operationId": "get_v1_network_tasks_external_task_id_assignments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<TaskAssignment>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<TaskAssignment>"
+      },
+      "post": {
+        "description": "ONE authoritative single-award assignment unless explicit multi-award policy; DB constraint and ETag.",
+        "operationId": "post_v1_network_tasks_external_task_id_assignments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 TaskAssignment"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:assign",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "AssignProvider{accepted_claim_id,policy_digest,scope,budget}",
+        "x-orca-response-design": "TaskAssignment"
+      }
+    },
+    "/v1/network/tasks/{external_task_id}/claims": {
+      "get": {
+        "description": "Untrusted claims flagged; cannot reveal private bids outside policy.",
+        "operationId": "get_v1_network_tasks_external_task_id_claims",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<TaskClaim>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:read",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<TaskClaim>"
+      },
+      "post": {
+        "description": "Claim from claimant wallet; task owner does not sign for another org; duplicates/non-exclusivity explicit.",
+        "operationId": "post_v1_network_tasks_external_task_id_claims",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 TaskClaim{arkiv_state}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:claim",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "SubmitTaskClaim{agent_id,binding_id,availability,budget_offer?}",
+        "x-orca-response-design": "TaskClaim{arkiv_state}"
+      }
+    },
+    "/v1/network/tasks/{external_task_id}/dispatch": {
+      "post": {
+        "description": "A2A SDK transport, authenticated task scope; do not call arbitrary unverified endpoint.",
+        "operationId": "post_v1_network_tasks_external_task_id_dispatch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"a2a_dispatch\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:assign",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "DispatchTask{assignment_id,a2a_message_digest,deadline}",
+        "x-orca-response-design": "Operation{kind:\"a2a_dispatch\"}"
+      }
+    },
+    "/v1/network/verifications": {
+      "post": {
+        "description": "Verify chain owner/digest and independent science separately; no fake assurance.",
+        "operationId": "post_v1_network_verifications",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"network_verify\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:review",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "VerifyNetworkEvidence{task_id,result_ref_id,expected_digest,policy_version}",
+        "x-orca-response-design": "Operation{kind:\"network_verify\"}"
+      }
+    },
+    "/v1/network/verifications/{verification_id}": {
+      "get": {
+        "description": "Labels truthfully distinct; run verifier separately with ORCA API offline.",
+        "operationId": "get_v1_network_verifications_verification_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "verification_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 NetworkVerification{chain_status,cryptographic_status,science_status}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "network:review",
+        "x-orca-phase": "P11",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "NetworkVerification{chain_status,cryptographic_status,science_status}"
+      }
+    },
+    "/v1/operations": {
+      "get": {
+        "description": "Tenant scoped; output sanitized.",
+        "operationId": "get_v1_operations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<Operation>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "ops:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "query state?,kind?,cursor?,limit?",
+        "x-orca-response-design": "Page<Operation>"
+      }
+    },
+    "/v1/operations/{operation_id}": {
+      "get": {
+        "description": "Must check ownership and include retryable error/links; opaque operations not enumerated globally.",
+        "operationId": "get_v1_operations_operation_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "operation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Operation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "operation:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "path operation_id",
+        "x-orca-response-design": "Operation"
+      }
+    },
+    "/v1/organizations": {
+      "get": {
+        "description": "Only orgs caller is member of or public verified directory visibility.",
+        "operationId": "get_v1_organizations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<OrganizationSummary>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "query cursor?,limit?",
+        "x-orca-response-design": "Page<OrganizationSummary>"
+      },
+      "post": {
+        "description": "Idempotency; legal verification NOT auto granted; org owner created atomically.",
+        "operationId": "post_v1_organizations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 Organization"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "platform/invite-policy",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "body CreateOrganization{name,slug,visibility}",
+        "x-orca-response-design": "Organization"
+      }
+    },
+    "/v1/organizations/{org_id}": {
+      "get": {
+        "description": "Privacy-aware 404.",
+        "operationId": "get_v1_organizations_org_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Organization"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "path org_id",
+        "x-orca-response-design": "Organization"
+      },
+      "patch": {
+        "description": "Cannot self-mark institution verified.",
+        "operationId": "patch_v1_organizations_org_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Organization"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match; PatchOrganization{display_name?,settings?}",
+        "x-orca-response-design": "Organization"
+      }
+    },
+    "/v1/organizations/{org_id}/access-grants": {
+      "get": {
+        "description": "Shows limited grants; no indirect cross-tenant membership leakage.",
+        "operationId": "get_v1_organizations_org_id_access_grants",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AccessGrant>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:members",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "query resource?,principal?,cursor?",
+        "x-orca-response-design": "Page<AccessGrant>"
+      },
+      "post": {
+        "description": "Deny blanket cross-tenant grant; explicit license checks.",
+        "operationId": "post_v1_organizations_org_id_access_grants",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 AccessGrant"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:members",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "GrantAccess{resource_ref,principal_ref,scopes,expires_at}",
+        "x-orca-response-design": "AccessGrant"
+      }
+    },
+    "/v1/organizations/{org_id}/access-grants/{grant_id}": {
+      "delete": {
+        "description": "Revocation immediate for new requests; cache invalidation/audit.",
+        "operationId": "delete_v1_organizations_org_id_access_grants_grant_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 204 —"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:members",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match",
+        "x-orca-response-design": "—"
+      }
+    },
+    "/v1/organizations/{org_id}/audit-events": {
+      "get": {
+        "description": "Append-only semantics, redaction; never expose credentials or unapproved private narratives.",
+        "operationId": "get_v1_organizations_org_id_audit_events",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AuditEvent>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "audit:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "start?,end?,actor?,event_type?,cursor?",
+        "x-orca-response-design": "Page<AuditEvent>"
+      }
+    },
+    "/v1/organizations/{org_id}/invitations": {
+      "post": {
+        "description": "Invite token only in out-of-band channel; secure TTL, role policy, idempotency.",
+        "operationId": "post_v1_organizations_org_id_invitations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 Invitation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:members",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "CreateInvitation{email,role,expires_at}",
+        "x-orca-response-design": "Invitation"
+      }
+    },
+    "/v1/organizations/{org_id}/members": {
+      "get": {
+        "description": "Membership privacy; no PII to unauthorized users.",
+        "operationId": "get_v1_organizations_org_id_members",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<Member>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:members",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "cursor?,limit?,role?",
+        "x-orca-response-design": "Page<Member>"
+      }
+    },
+    "/v1/organizations/{org_id}/members/{member_id}": {
+      "delete": {
+        "description": "Hard no last-owner removal; audit event preserved.",
+        "operationId": "delete_v1_organizations_org_id_members_member_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 204 —"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:members",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match",
+        "x-orca-response-design": "—"
+      },
+      "patch": {
+        "description": "Enforce no removing last active owner/admin; prevent privilege escalation.",
+        "operationId": "patch_v1_organizations_org_id_members_member_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Member"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:members",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match; PatchMember{role,status}",
+        "x-orca-response-design": "Member"
+      }
+    },
+    "/v1/organizations/{org_id}/policies": {
+      "get": {
+        "description": "Sanitize security internals.",
+        "operationId": "get_v1_organizations_org_id_policies",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 OrgPolicy{version,retention,quotas}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "OrgPolicy{version,retention,quotas}"
+      },
+      "patch": {
+        "description": "Cannot weaken platform enforced source license/safety policies.",
+        "operationId": "patch_v1_organizations_org_id_policies",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 OrgPolicy"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match; PatchOrgPolicy",
+        "x-orca-response-design": "OrgPolicy"
+      }
+    },
+    "/v1/organizations/{org_id}/quotas": {
+      "get": {
+        "description": "Include hard/soft limits by source, model, task class.",
+        "operationId": "get_v1_organizations_org_id_quotas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 QuotaSet"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "—",
+        "x-orca-response-design": "QuotaSet"
+      },
+      "patch": {
+        "description": "Cannot exceed platform bounds; audit and protect concurrency.",
+        "operationId": "patch_v1_organizations_org_id_quotas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 QuotaSet"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:write",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "If-Match; PatchQuotaSet",
+        "x-orca-response-design": "QuotaSet"
+      }
+    },
+    "/v1/organizations/{org_id}/usage": {
+      "get": {
+        "description": "Billing/compute/LLM/source; never use hallucinated usage.",
+        "operationId": "get_v1_organizations_org_id_usage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 UsageSummary"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "org:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "window,group_by?",
+        "x-orca-response-design": "UsageSummary"
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}": {
+      "get": {
+        "description": "Digest, classification, source/method lineage, scientific review status.",
+        "operationId": "get_v1_research_artifacts_artifact_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ScientificArtifact"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path artifact_id",
+        "x-orca-response-design": "ScientificArtifact"
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/challenges": {
+      "get": {
+        "description": "Status OPEN/RESPONDED/RESOLVED/INCONCLUSIVE.",
+        "operationId": "get_v1_research_artifacts_artifact_id_challenges",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ScientificChallenge>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "cursor?,status?",
+        "x-orca-response-design": "Page<ScientificChallenge>"
+      },
+      "post": {
+        "description": "Requires supported discrepancy; not automatically proof original wrong.",
+        "operationId": "post_v1_research_artifacts_artifact_id_challenges",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 ScientificChallenge"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "review:write",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "ChallengeRequest{discrepancy_type,claim_ids,source_refs,explanation}",
+        "x-orca-response-design": "ScientificChallenge"
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/claims": {
+      "get": {
+        "description": "Legacy scientific claims, NOT task bids.",
+        "operationId": "get_v1_research_artifacts_artifact_id_claims",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ScientificClaim>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path artifact_id; cursor?",
+        "x-orca-response-design": "Page<ScientificClaim>"
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/lineage": {
+      "get": {
+        "description": "Every supporting factual claim resolves to source/method or explicit gap.",
+        "operationId": "get_v1_research_artifacts_artifact_id_lineage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 LineageGraph{nodes,edges}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path artifact_id",
+        "x-orca-response-design": "LineageGraph{nodes,edges}"
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/manifest": {
+      "get": {
+        "description": "No restricted raw source URLs; supports signed canonical manifest.",
+        "operationId": "get_v1_research_artifacts_artifact_id_manifest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 EvidenceManifest"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path artifact_id",
+        "x-orca-response-design": "EvidenceManifest"
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/reproductions": {
+      "get": {
+        "description": "Includes reviewer identity, method and input digests.",
+        "operationId": "get_v1_research_artifacts_artifact_id_reproductions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ReproductionRun>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "cursor?,status?",
+        "x-orca-response-design": "Page<ReproductionRun>"
+      },
+      "post": {
+        "description": "Independent implementation/worker, no copy-pasted origin output, rights gate.",
+        "operationId": "post_v1_research_artifacts_artifact_id_reproductions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"reproduce\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "review:write",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "ReproduceRequest{method_ref,input_snapshot_refs,execution_budget,independent_worker?}",
+        "x-orca-response-design": "Operation{kind:\"reproduce\"}"
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/reviews": {
+      "get": {
+        "description": "Separate original/correction; expose qualified evidence and signatures.",
+        "operationId": "get_v1_research_artifacts_artifact_id_reviews",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<IndependentReview>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "cursor?,verdict?",
+        "x-orca-response-design": "Page<IndependentReview>"
+      },
+      "post": {
+        "description": "Reviewed identity + access; cannot approve own disallowed independent review.",
+        "operationId": "post_v1_research_artifacts_artifact_id_reviews",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 IndependentReview"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "review:write",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "CreateReview{reviewer_id,scope,criterion,statement,evidence_refs}",
+        "x-orca-response-design": "IndependentReview"
+      }
+    },
+    "/v1/research/benchmarks": {
+      "get": {
+        "description": "Frozen test set and independent reference policy visible.",
+        "operationId": "get_v1_research_benchmarks",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<BenchmarkDefinition>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "domain?,method?,cursor?",
+        "x-orca-response-design": "Page<BenchmarkDefinition>"
+      }
+    },
+    "/v1/research/benchmarks/{benchmark_id}": {
+      "get": {
+        "description": "No secret benchmark answer leakage in public endpoints.",
+        "operationId": "get_v1_research_benchmarks_benchmark_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "benchmark_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 BenchmarkDefinition"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "BenchmarkDefinition"
+      }
+    },
+    "/v1/research/challenges/{challenge_id}/resolve": {
+      "post": {
+        "description": "Independent resolver and governance; unresolved permitted.",
+        "operationId": "post_v1_research_challenges_challenge_id_resolve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "challenge_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ScientificChallenge"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "review:write",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "If-Match; ResolveChallenge{verdict,arbitration_refs,limitations}",
+        "x-orca-response-design": "ScientificChallenge"
+      }
+    },
+    "/v1/research/challenges/{challenge_id}/responses": {
+      "post": {
+        "description": "Respond with new signed version, not edit original.",
+        "operationId": "post_v1_research_challenges_challenge_id_responses",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "challenge_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 ChallengeResponseRecord"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:write",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "ChallengeResponse{response_artifact_id,method_ref,comment}",
+        "x-orca-response-design": "ChallengeResponseRecord"
+      }
+    },
+    "/v1/research/claims/{claim_id}": {
+      "get": {
+        "description": "Claim must not be detached from source lineage.",
+        "operationId": "get_v1_research_claims_claim_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "claim_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ScientificClaim{evidence_refs,status,uncertainty}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path claim_id",
+        "x-orca-response-design": "ScientificClaim{evidence_refs,status,uncertainty}"
+      }
+    },
+    "/v1/research/exports/{export_id}": {
+      "get": {
+        "description": "Pending/succeeded/failed with manifest digest.",
+        "operationId": "get_v1_research_exports_export_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ExportRecord"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path export_id",
+        "x-orca-response-design": "ExportRecord"
+      }
+    },
+    "/v1/research/exports/{export_id}/download-intents": {
+      "post": {
+        "description": "Protect export bytes, link short-lived and audit.",
+        "operationId": "post_v1_research_exports_export_id_download_intents",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 EphemeralDownload"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "DownloadIntent{purpose}",
+        "x-orca-response-design": "EphemeralDownload"
+      }
+    },
+    "/v1/research/files/{file_id}": {
+      "get": {
+        "description": "Metadata only; signed download separate.",
+        "operationId": "get_v1_research_files_file_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "file_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ProjectFile"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "path file_id",
+        "x-orca-response-design": "ProjectFile"
+      }
+    },
+    "/v1/research/files/{file_id}/download-intents": {
+      "post": {
+        "description": "Short-lived URL, identity/license check, controlled download logging.",
+        "operationId": "post_v1_research_files_file_id_download_intents",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "file_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 EphemeralDownload{url,expires_at,sha256}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "DownloadIntent{purpose}",
+        "x-orca-response-design": "EphemeralDownload{url,expires_at,sha256}"
+      }
+    },
+    "/v1/research/historical-evaluations/{evaluation_id}": {
+      "get": {
+        "description": "Ground truth source and evaluation code version.",
+        "operationId": "get_v1_research_historical_evaluations_evaluation_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "evaluation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 HistoricalEvaluation{metrics,limitations}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "path evaluation_id",
+        "x-orca-response-design": "HistoricalEvaluation{metrics,limitations}"
+      }
+    },
+    "/v1/research/investigations": {
+      "get": {
+        "description": "Query limited to project authorized membership.",
+        "operationId": "get_v1_research_investigations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<InvestigationSummary>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "project_id, state?,cursor?,limit?",
+        "x-orca-response-design": "Page<InvestigationSummary>"
+      },
+      "post": {
+        "description": "Initial DRAFT; raw question private; no side effect on source or chain.",
+        "operationId": "post_v1_research_investigations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 Investigation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "CreateInvestigation{project_id,question,geo_scope,time_window,as_of?,risk_tier}",
+        "x-orca-response-design": "Investigation"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}": {
+      "get": {
+        "description": "ETag, scientific_status and source readiness explicit.",
+        "operationId": "get_v1_research_investigations_investigation_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Investigation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "path investigation_id",
+        "x-orca-response-design": "Investigation"
+      },
+      "patch": {
+        "description": "Cannot silently change an approved/running recipe; create a new revision.",
+        "operationId": "patch_v1_research_investigations_investigation_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Investigation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "If-Match; PatchInvestigation{question?,scope?,description?}",
+        "x-orca-response-design": "Investigation"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/activity": {
+      "get": {
+        "description": "UI “what ran” not hidden LLM reasoning; actual tools/provenance only.",
+        "operationId": "get_v1_research_investigations_investigation_id_activity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ActivityItem>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<ActivityItem>"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/artifacts": {
+      "get": {
+        "description": "Only published/finalized artifacts; preserve superseded versions.",
+        "operationId": "get_v1_research_investigations_investigation_id_artifacts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ScientificArtifact>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "type?,version?,cursor?",
+        "x-orca-response-design": "Page<ScientificArtifact>"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/costs": {
+      "get": {
+        "description": "Measured compute/source cost; no impossible totals.",
+        "operationId": "get_v1_research_investigations_investigation_id_costs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 CostSummary{reserved,actual,breakdown}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "CostSummary{reserved,actual,breakdown}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/events": {
+      "get": {
+        "description": "Persisted event log, no private model chain-of-thought.",
+        "operationId": "get_v1_research_investigations_investigation_id_events",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<InvestigationEvent>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "cursor?,limit?,event_type?",
+        "x-orca-response-design": "Page<InvestigationEvent>"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/events/stream": {
+      "get": {
+        "description": "Replay from committed log, reauth and access recheck, heartbeat only, bounded backlog.",
+        "operationId": "get_v1_research_investigations_investigation_id_events_stream",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 SSE<InvestigationEvent>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "Accept:text/event-stream; Last-Event-ID?",
+        "x-orca-response-design": "SSE<InvestigationEvent>"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/evidence-summary": {
+      "get": {
+        "description": "Clear status UI; absence is not zero.",
+        "operationId": "get_v1_research_investigations_investigation_id_evidence_summary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 EvidenceSummary{supported,uncertain,missing}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "EvidenceSummary{supported,uncertain,missing}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/exports": {
+      "post": {
+        "description": "json\\",
+        "operationId": "post_v1_research_investigations_investigation_id_exports",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: zip\\ notebook\\"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "ExportRequest{format:ro_crate\\",
+        "x-orca-response-design": "notebook\\"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/historical-evaluations": {
+      "get": {
+        "description": "Metrics by issue/valid/observation time, no conflation.",
+        "operationId": "get_v1_research_investigations_investigation_id_historical_evaluations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<HistoricalEvaluation>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<HistoricalEvaluation>"
+      },
+      "post": {
+        "description": "As-of must be reconstructible; future-data leakage forbidden; label impossible replay.",
+        "operationId": "post_v1_research_investigations_investigation_id_historical_evaluations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"historical_eval\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "HistoricalEvalRequest{decision_as_of,observation_window,benchmark_id,selection_policy}",
+        "x-orca-response-design": "Operation{kind:\"historical_eval\"}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/map-layers": {
+      "get": {
+        "description": "Descriptors: tiles, GeoJSON, raster, times, license, quality, min/max; no silent map extrapolation.",
+        "operationId": "get_v1_research_investigations_investigation_id_map_layers",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<MapLayerDescriptor>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "cursor?,kind?",
+        "x-orca-response-design": "Page<MapLayerDescriptor>"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/outcome": {
+      "get": {
+        "description": "Supported/insufficient/invalid/inconclusive; no invented result on failure.",
+        "operationId": "get_v1_research_investigations_investigation_id_outcome",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ScientificOutcome"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "path investigation_id",
+        "x-orca-response-design": "ScientificOutcome"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/plans": {
+      "get": {
+        "description": "All versions auditable, no hidden replacing earlier plans.",
+        "operationId": "get_v1_research_investigations_investigation_id_plans",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<InvestigationPlan>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<InvestigationPlan>"
+      },
+      "post": {
+        "description": "Plan compiler typed DAG, no free-form execution, bound tools/time/cost.",
+        "operationId": "post_v1_research_investigations_investigation_id_plans",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"plan\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "PlanRequest{strategy:\"typed\",method_hint?,data_constraints,budget}",
+        "x-orca-response-design": "Operation{kind:\"plan\"}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/plans/{plan_id}": {
+      "get": {
+        "description": "DAG, assumptions, source IDs, baseline and plan digest.",
+        "operationId": "get_v1_research_investigations_investigation_id_plans_plan_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 InvestigationPlan"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "path IDs",
+        "x-orca-response-design": "InvestigationPlan"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/plans/{plan_id}/approve": {
+      "post": {
+        "description": "Exact approved digest; reject modification/stale authorization.",
+        "operationId": "post_v1_research_investigations_investigation_id_plans_plan_id_approve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ApprovedPlan"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "If-Match; ApprovePlan{digest,accepted_assumptions,approver_comment?}",
+        "x-orca-response-design": "ApprovedPlan"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/reports": {
+      "get": {
+        "description": "Reports revisioned, no in-place mutation of accepted research.",
+        "operationId": "get_v1_research_investigations_investigation_id_reports",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ResearchReport>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "cursor?,status?",
+        "x-orca-response-design": "Page<ResearchReport>"
+      },
+      "post": {
+        "description": "Evidence gate completed, outcomes/limitations included; not auto official advisory.",
+        "operationId": "post_v1_research_investigations_investigation_id_reports",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"report\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "report:publish",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "BuildReport{run_id,template,locale,review_policy}",
+        "x-orca-response-design": "Operation{kind:\"report\"}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs": {
+      "get": {
+        "description": "State distinct from scientific verdict.",
+        "operationId": "get_v1_research_investigations_investigation_id_runs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ComputeRun>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "cursor?,status?",
+        "x-orca-response-design": "Page<ComputeRun>"
+      },
+      "post": {
+        "description": "Atomic enqueue and reservation; idempotent; cannot run mock product in live release.",
+        "operationId": "post_v1_research_investigations_investigation_id_runs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"investigation_run\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "StartRun{approved_plan_id,approved_digest,execution_budget}",
+        "x-orca-response-design": "Operation{kind:\"investigation_run\"}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}": {
+      "get": {
+        "description": "Uncertainty and missing evidence explicit.",
+        "operationId": "get_v1_research_investigations_investigation_id_runs_run_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ComputeRun{stage,lease_status,scientific_outcome?}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "path IDs",
+        "x-orca-response-design": "ComputeRun{stage,lease_status,scientific_outcome?}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/cancel": {
+      "post": {
+        "description": "Race-safe cancellation; late worker cannot publish after fence invalidation.",
+        "operationId": "post_v1_research_investigations_investigation_id_runs_run_id_cancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"cancel\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "CancelRun{reason}",
+        "x-orca-response-design": "Operation{kind:\"cancel\"}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/retry": {
+      "post": {
+        "description": "Only eligible safe retries; non-idempotent stages reconciled first.",
+        "operationId": "post_v1_research_investigations_investigation_id_runs_run_id_retry",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"retry\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "RetryRun{failed_stage?,reason}",
+        "x-orca-response-design": "Operation{kind:\"retry\"}"
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/task-graph": {
+      "get": {
+        "description": "Cycles prohibited; P09 external task refs optional.",
+        "operationId": "get_v1_research_investigations_investigation_id_task_graph",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 TaskGraph{nodes,edges,statuses}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P05",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "TaskGraph{nodes,edges,statuses}"
+      }
+    },
+    "/v1/research/map-layers/{layer_id}": {
+      "get": {
+        "description": "ETag + bounds/attribution/valid_time.",
+        "operationId": "get_v1_research_map_layers_layer_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "layer_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 MapLayerDescriptor"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path layer_id",
+        "x-orca-response-design": "MapLayerDescriptor"
+      }
+    },
+    "/v1/research/map-layers/{layer_id}/access": {
+      "post": {
+        "description": "Signed/short-lived map access; tile auth; no unrestricted third-party proxy.",
+        "operationId": "post_v1_research_map_layers_layer_id_access",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "layer_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 MapAccessDescriptor"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "MapAccessIntent{render_type,viewport?,zoom?}",
+        "x-orca-response-design": "MapAccessDescriptor"
+      }
+    },
+    "/v1/research/model-evaluations": {
+      "post": {
+        "description": "Frozen independent test data, source leakage checks.",
+        "operationId": "post_v1_research_model_evaluations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"model_evaluate\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "ModelEvalRequest{model_version_id,benchmark_id,budget,as_of_policy}",
+        "x-orca-response-design": "Operation{kind:\"model_evaluate\"}"
+      }
+    },
+    "/v1/research/model-evaluations/{evaluation_id}": {
+      "get": {
+        "description": "Measured accuracy, latency, cost, unsupported claim rate.",
+        "operationId": "get_v1_research_model_evaluations_evaluation_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "evaluation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ModelEvaluation"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "ModelEvaluation"
+      }
+    },
+    "/v1/research/model-registry": {
+      "get": {
+        "description": "Model version, provider, data rights, tested capabilities only.",
+        "operationId": "get_v1_research_model_registry",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ModelRecord>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "domain?,kind?,cursor?",
+        "x-orca-response-design": "Page<ModelRecord>"
+      },
+      "post": {
+        "description": "Never treat source-model assertion as scientific certification.",
+        "operationId": "post_v1_research_model_registry",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 ModelRecord"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "RegisterModel{provider,version,digest,approved_scopes}",
+        "x-orca-response-design": "ModelRecord"
+      }
+    },
+    "/v1/research/model-registry/{model_id}": {
+      "get": {
+        "description": "Training provenance, evaluation, owner and current state.",
+        "operationId": "get_v1_research_model_registry_model_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ModelRecord"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "ModelRecord"
+      }
+    },
+    "/v1/research/monitoring-jobs": {
+      "get": {
+        "description": "No assumption data live.",
+        "operationId": "get_v1_research_monitoring_jobs",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<MonitoringJob>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "project_id?,cursor?",
+        "x-orca-response-design": "Page<MonitoringJob>"
+      },
+      "post": {
+        "description": "Only authorized monitoring; delayed source data, false alarms, quotas.",
+        "operationId": "post_v1_research_monitoring_jobs",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 MonitoringJob"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "CreateMonitoringJob{project_id,metric,source_policy,schedule,alert_policy}",
+        "x-orca-response-design": "MonitoringJob"
+      }
+    },
+    "/v1/research/monitoring-jobs/{job_id}": {
+      "patch": {
+        "description": "Limits and alert policies audited.",
+        "operationId": "patch_v1_research_monitoring_jobs_job_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 MonitoringJob"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "If-Match; PatchMonitoringJob",
+        "x-orca-response-design": "MonitoringJob"
+      }
+    },
+    "/v1/research/monitoring-jobs/{job_id}/evaluations": {
+      "get": {
+        "description": "Time/source provenance and missed-window labels.",
+        "operationId": "get_v1_research_monitoring_jobs_job_id_evaluations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<MonitoringEvaluation>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "cursor?",
+        "x-orca-response-design": "Page<MonitoringEvaluation>"
+      }
+    },
+    "/v1/research/monitoring-jobs/{job_id}/pause": {
+      "post": {
+        "description": "Stop future scheduling safely.",
+        "operationId": "post_v1_research_monitoring_jobs_job_id_pause",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 MonitoringJob"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "If-Match; {reason}",
+        "x-orca-response-design": "MonitoringJob"
+      }
+    },
+    "/v1/research/projects": {
+      "get": {
+        "description": "Only membership-permitted projects.",
+        "operationId": "get_v1_research_projects",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ResearchProject>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "org_id; cursor?,limit?,state?",
+        "x-orca-response-design": "Page<ResearchProject>"
+      },
+      "post": {
+        "description": "Idempotent; organization server-authorized; no implicit public access.",
+        "operationId": "post_v1_research_projects",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 ResearchProject"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "CreateProject{organization_id,name,description?,visibility,default_data_policy}",
+        "x-orca-response-design": "ResearchProject"
+      }
+    },
+    "/v1/research/projects/{project_id}": {
+      "get": {
+        "description": "ETag; project scope enforced with RLS.",
+        "operationId": "get_v1_research_projects_project_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ResearchProject"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "path project_id",
+        "x-orca-response-design": "ResearchProject"
+      },
+      "patch": {
+        "description": "Stale 412; preserve prior policy changes.",
+        "operationId": "patch_v1_research_projects_project_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ResearchProject"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match; PatchProject",
+        "x-orca-response-design": "ResearchProject"
+      }
+    },
+    "/v1/research/projects/{project_id}/access-decisions": {
+      "get": {
+        "description": "Reason codes only as permitted; preserve denial audit.",
+        "operationId": "get_v1_research_projects_project_id_access_decisions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<AccessDecisionRecord>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "audit:read",
+        "x-orca-phase": "P08",
+        "x-orca-request-design": "cursor?,since?",
+        "x-orca-response-design": "Page<AccessDecisionRecord>"
+      }
+    },
+    "/v1/research/projects/{project_id}/archive": {
+      "post": {
+        "description": "Archive reversible only via explicit policy; no deletion of evidence chains.",
+        "operationId": "post_v1_research_projects_project_id_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ResearchProject"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match; {reason}",
+        "x-orca-response-design": "ResearchProject"
+      }
+    },
+    "/v1/research/projects/{project_id}/files": {
+      "get": {
+        "description": "Only finalized files; size/license restrictions.",
+        "operationId": "get_v1_research_projects_project_id_files",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ProjectFile>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "query cursor?,classification?,media_type?",
+        "x-orca-response-design": "Page<ProjectFile>"
+      }
+    },
+    "/v1/research/projects/{project_id}/members": {
+      "get": {
+        "description": "Project member grants separate from org membership.",
+        "operationId": "get_v1_research_projects_project_id_members",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ProjectMember>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "cursor?,limit?",
+        "x-orca-response-design": "Page<ProjectMember>"
+      },
+      "post": {
+        "description": "Cross-organization requires explicit data/license agreement.",
+        "operationId": "post_v1_research_projects_project_id_members",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 ProjectMember"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:share",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "AddProjectMember{principal_id,role}",
+        "x-orca-response-design": "ProjectMember"
+      }
+    },
+    "/v1/research/projects/{project_id}/members/{member_id}": {
+      "delete": {
+        "description": "No access after revoke; in-flight scoped downloads bounded by TTL.",
+        "operationId": "delete_v1_research_projects_project_id_members_member_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 204 —"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:share",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match",
+        "x-orca-response-design": "—"
+      },
+      "patch": {
+        "description": "Cannot elevate beyond issuer rights.",
+        "operationId": "patch_v1_research_projects_project_id_members_member_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ProjectMember"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:share",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "If-Match; {role,status}",
+        "x-orca-response-design": "ProjectMember"
+      }
+    },
+    "/v1/research/projects/{project_id}/uploads": {
+      "post": {
+        "description": "Staged and quarantined; size limits, extension/type sniffing, encryption, digest.",
+        "operationId": "post_v1_research_projects_project_id_uploads",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 201 UploadSession{upload_id,parts,expires_at}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "UploadIntent{filename,media_type,size_bytes,sha256,classification}",
+        "x-orca-response-design": "UploadSession{upload_id,parts,expires_at}"
+      }
+    },
+    "/v1/research/reports/{report_id}": {
+      "get": {
+        "description": "Every numeric claim bound to artifact; visible study assumptions.",
+        "operationId": "get_v1_research_reports_report_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ResearchReport{sections,citations,limitations}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "path report_id",
+        "x-orca-response-design": "ResearchReport{sections,citations,limitations}"
+      }
+    },
+    "/v1/research/reports/{report_id}/publish": {
+      "post": {
+        "description": "Cannot publish embargoed/restricted source artifacts; role/license check.",
+        "operationId": "post_v1_research_reports_report_id_publish",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ResearchReport"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "report:publish",
+        "x-orca-phase": "P06",
+        "x-orca-request-design": "If-Match; PublishReport{access_level,signoff_refs}",
+        "x-orca-response-design": "ResearchReport"
+      }
+    },
+    "/v1/research/reproductions/{reproduction_id}": {
+      "get": {
+        "description": "Reproduced arithmetic ≠ established causal truth.",
+        "operationId": "get_v1_research_reproductions_reproduction_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reproduction_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ReproductionResult{verdict,delta,tolerance}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "ReproductionResult{verdict,delta,tolerance}"
+      }
+    },
+    "/v1/research/reviews/{review_id}": {
+      "get": {
+        "description": "Preserve immutable reviewer attribution.",
+        "operationId": "get_v1_research_reviews_review_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 IndependentReview"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "evidence:read",
+        "x-orca-phase": "P07",
+        "x-orca-request-design": "path review_id",
+        "x-orca-response-design": "IndependentReview"
+      }
+    },
+    "/v1/research/training-jobs": {
+      "post": {
+        "description": "Licensing/consent checked; separate training compute; optional 0G is provider not mandatory.",
+        "operationId": "post_v1_research_training_jobs",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"training\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "TrainingJobRequest{dataset_ref,model_version,method,safety_policy,budget}",
+        "x-orca-response-design": "Operation{kind:\"training\"}"
+      }
+    },
+    "/v1/research/training-jobs/{training_job_id}": {
+      "get": {
+        "description": "Jobs may fail due provider; do not claim trained when queued.",
+        "operationId": "get_v1_research_training_jobs_training_job_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "training_job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 TrainingJob"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "TrainingJob"
+      }
+    },
+    "/v1/research/training-jobs/{training_job_id}/cancel": {
+      "post": {
+        "description": "Provider-specific cancellation and reconciliation.",
+        "operationId": "post_v1_research_training_jobs_training_job_id_cancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "training_job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"training_cancel\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "model:operate",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "{reason}",
+        "x-orca-response-design": "Operation{kind:\"training_cancel\"}"
+      }
+    },
+    "/v1/research/uploads/{upload_id}": {
+      "delete": {
+        "description": "Abort multipart/staged upload; audit.",
+        "operationId": "delete_v1_research_uploads_upload_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 204 —"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "path upload_id",
+        "x-orca-response-design": "—"
+      },
+      "get": {
+        "description": "Only owner; never expose raw storage credentials.",
+        "operationId": "get_v1_research_uploads_upload_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 UploadSessionStatus"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:read",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "path upload_id",
+        "x-orca-response-design": "UploadSessionStatus"
+      }
+    },
+    "/v1/research/uploads/{upload_id}/complete": {
+      "post": {
+        "description": "Verify bytes and malware/file format before publication; partial upload never visible.",
+        "operationId": "post_v1_research_uploads_upload_id_complete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 ArtifactUpload{status:\"pending_validation\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "project:write",
+        "x-orca-phase": "P02",
+        "x-orca-request-design": "CompleteUpload{part_etags,sha256}",
+        "x-orca-response-design": "ArtifactUpload{status:\"pending_validation\"}"
+      }
+    },
+    "/v1/science/diagnostics": {
+      "post": {
+        "description": "Method registry governs deterministic execution; no generic arbitrary Python.",
+        "operationId": "post_v1_science_diagnostics",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"diagnostic\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "DiagnosticRequest{method_id,inputs,scope,time_window}",
+        "x-orca-response-design": "Operation{kind:\"diagnostic\"}"
+      }
+    },
+    "/v1/science/diagnostics/{diagnostic_id}": {
+      "get": {
+        "description": "Source/method/limits explicit; supported vs inconclusive.",
+        "operationId": "get_v1_science_diagnostics_diagnostic_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "diagnostic_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 DiagnosticResult"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:run",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "path ID",
+        "x-orca-response-design": "DiagnosticResult"
+      }
+    },
+    "/v1/science/methods": {
+      "get": {
+        "description": "Only approved methods available to the planner.",
+        "operationId": "get_v1_science_methods",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<ScientificMethod>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "kind?,status?,cursor?",
+        "x-orca-response-design": "Page<ScientificMethod>"
+      }
+    },
+    "/v1/science/methods/{method_id}": {
+      "get": {
+        "description": "Defined inputs/outputs, code digest, method authority and limitations.",
+        "operationId": "get_v1_science_methods_method_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "method_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ScientificMethod"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "path method_id",
+        "x-orca-response-design": "ScientificMethod"
+      }
+    },
+    "/v1/science/methods/{method_id}/versions/{version}": {
+      "get": {
+        "description": "Immutable and reproducibility-capable; version not floating latest.",
+        "operationId": "get_v1_science_methods_method_id_versions_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "method_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 MethodVersion"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "path ID,version",
+        "x-orca-response-design": "MethodVersion"
+      }
+    },
+    "/v1/science/policies": {
+      "get": {
+        "description": "Thresholds and rationale from pre-registered method; no arbitrary model confidence.",
+        "operationId": "get_v1_science_policies",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 ScientificPolicySummary"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "method_id?,version?",
+        "x-orca-response-design": "ScientificPolicySummary"
+      }
+    },
+    "/v1/science/quality-codebook": {
+      "get": {
+        "description": "Flags are product-specific with documented mapping.",
+        "operationId": "get_v1_science_quality_codebook",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 QualityCodebook"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "source_id?,variable?",
+        "x-orca-response-design": "QualityCodebook"
+      }
+    },
+    "/v1/science/recipe-templates": {
+      "get": {
+        "description": "Templates are not evidence of data compatibility.",
+        "operationId": "get_v1_science_recipe_templates",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<RecipeTemplate>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "variable?,method_id?,cursor?",
+        "x-orca-response-design": "Page<RecipeTemplate>"
+      }
+    },
+    "/v1/science/recipe-templates/{template_id}": {
+      "get": {
+        "description": "Shows required baseline/QC/resampling policies.",
+        "operationId": "get_v1_science_recipe_templates_template_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 RecipeTemplate"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "path template_id",
+        "x-orca-response-design": "RecipeTemplate"
+      }
+    },
+    "/v1/science/recipe-validations": {
+      "post": {
+        "description": "Only static/metadata validation; cannot stand in for real analysis gate.",
+        "operationId": "post_v1_science_recipe_validations",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 RecipeValidationReport"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "research:plan",
+        "x-orca-phase": "P04",
+        "x-orca-request-design": "RecipeValidationRequest{recipe,selected_sources}",
+        "x-orca-response-design": "RecipeValidationReport"
+      }
+    },
+    "/v1/science/variables": {
+      "get": {
+        "description": "Ocean/wind/waves/biogeochemistry mappings.",
+        "operationId": "get_v1_science_variables",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 200 Page<MarineVariable>"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "dataset:read",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "family?,cursor?",
+        "x-orca-response-design": "Page<MarineVariable>"
+      }
+    },
+    "/v1/voice/synthesis": {
+      "post": {
+        "description": "Only approved text; no unsupported claim introduced in translation.",
+        "operationId": "post_v1_voice_synthesis",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"text_to_speech\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "TTSRequest{text,locale,voice_profile}",
+        "x-orca-response-design": "Operation{kind:\"text_to_speech\"}"
+      }
+    },
+    "/v1/voice/transcriptions": {
+      "post": {
+        "description": "Allowed locale, audio retention and size; transcriptions are untrusted user input.",
+        "operationId": "post_v1_voice_transcriptions",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Design only: 202 Operation{kind:\"speech_to_text\"}"
+          }
+        },
+        "x-orca-contract-completeness": "inventory-only",
+        "x-orca-implementation-status": "DESIGNED",
+        "x-orca-permission": "user:write",
+        "x-orca-phase": "P12",
+        "x-orca-request-design": "AudioUploadRef{file_id,locale_hint,consent}",
+        "x-orca-response-design": "Operation{kind:\"speech_to_text\"}"
+      }
+    }
+  }
+}
