@@ -1,0 +1,16 @@
+{
+  "phase": "A01",
+  "status": "A01_PASS_A02_PENDING",
+  "scope": "CSV/JSON evidence normalization followed by gated Gemini reasoning, review, Arkiv lineage and a monochrome dashboard",
+  "deployment_policy": "Preserve working Oracle runtime and existing research/network APIs; deploy additive verified changes with rollback",
+  "source_documents_preserved": true,
+  "prior_browser_gate": "H05 authenticated frontend acceptance remains pending",
+  "credential_policy": "Ignored environment and cloud secret bundle only",
+  "phases": [
+    "A01 normalization",
+    "A02 reasoning",
+    "A03 review",
+    "A04 Arkiv lineage",
+    "A05 dashboard acceptance"
+  ]
+}

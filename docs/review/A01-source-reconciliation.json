@@ -1,0 +1,12 @@
+{
+  "decision": "A01-ai-prototype",
+  "reason": "The previously user-requested hackathon preamble changed the active plan after ADR-R01. Preserve both historical snapshot and current source bytes; acknowledge this revision explicitly.",
+  "files": [
+    {
+      "path": "main_implementation plan.md",
+      "previous_sha256": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
+      "sha256": "d5d86340e9e590622cfe64156f0e945855f5f2882732b95ed3726971e6e09567",
+      "bytes": 257704
+    }
+  ]
+}

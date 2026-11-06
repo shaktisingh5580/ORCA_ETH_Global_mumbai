@@ -88,13 +88,19 @@ def test_scope_05_federation_not_exposed_before_live_gates():
 
 def test_scope_09_local_sources_match_immutable_snapshot():
     snapshot = load("docs/review/research-only-source-snapshot.json")
+    revisions = load("docs/review/A01-source-reconciliation.json")
+    assert revisions["decision"] == "A01-ai-prototype"
+    revised = {item["path"]: item for item in revisions["files"]}
     assert snapshot["decision"] == "ADR-R01"
     assert any("Research_Only_Scope" in item["path"] for item in snapshot["files"])
     for item in snapshot["files"]:
         path = ROOT / item["path"]
         if path.exists():
-            assert len(path.read_bytes()) == item["bytes"]
-            assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
+            expected = revised.get(item["path"], item)
+            if expected is not item:
+                assert expected["previous_sha256"] == item["sha256"]
+            assert len(path.read_bytes()) == expected["bytes"]
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == expected["sha256"]
 
 
 def test_research_release_profiles_replace_expanded_product_names():
