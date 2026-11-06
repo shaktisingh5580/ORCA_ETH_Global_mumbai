@@ -1,6 +1,6 @@
 """Purpose: define the deliberately bounded hackathon question-to-report API.
 Behavior: expose guided plans, real execution state and honest prototype result labels.
-Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02-H04; Phase: H02.
+Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02-H04; FRONTEND_BACKEND_HANDOFF.md; Phase: H02/H03.
 """
 
 from typing import Any, Literal
@@ -9,6 +9,17 @@ from uuid import UUID
 from pydantic import Field
 
 from orca.contracts.common import Contract, Digest, UTCDateTime
+
+
+class PrototypeConfig(Contract):
+    profile: Literal["hackathon-prototype"] = "hackathon-prototype"
+    source_mode: Literal["real"] = "real"
+    supabase_url: str | None
+    supabase_anon_key: str | None
+    gemini_configured: bool
+    study: str
+    baseline: str
+    showcase_available: bool
 
 
 class CreateInvestigation(Contract):

@@ -1,6 +1,6 @@
 """Purpose: implement the bounded hackathon investigation, approval and durable-run lifecycle.
 Behavior: require current project authority, pin source bundles and preserve completed result integrity.
-Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02; prototype API contracts; Phase: H02.
+Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02/H03; prototype API contracts; Phase: H02/H03.
 """
 
 import hashlib
@@ -100,6 +100,22 @@ class Prototype:
             {"t": self.tenant, "p": self.project},
         ).mappings()
         return [self.investigation(row) for row in rows]
+
+    def read_investigation(self, identifier: UUID) -> Investigation:
+        self.authorize()
+        row = (
+            self.session.execute(
+                text(
+                    "SELECT * FROM research.prototype_investigations WHERE tenant_id=:t AND project_id=:p AND id=:id"
+                ),
+                {"t": self.tenant, "p": self.project, "id": identifier},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            raise LookupError("investigation not found")
+        return self.investigation(row)
 
     def approve(self, identifier: UUID) -> Investigation:
         self.authorize("project:write")

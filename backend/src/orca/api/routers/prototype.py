@@ -1,6 +1,6 @@
 """Purpose: expose the hackathon's real question, plan, approval, run and report flow.
 Behavior: retain verified project authority and serve only configured, clearly bounded capabilities.
-Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02/H03; Phase: H02.
+Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02/H03; FRONTEND_BACKEND_HANDOFF.md; Phase: H02/H03.
 """
 
 from collections.abc import Iterator
@@ -24,6 +24,7 @@ from orca.contracts.prototype import (
     CreateInvestigation,
     CreateRun,
     Investigation,
+    PrototypeConfig,
     PrototypeRun,
 )
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
@@ -48,7 +49,7 @@ def workflow_errors() -> Iterator[None]:
             raise HTTPException(409, str(error)) from error
 
 
-@router.get("/config")
+@router.get("/config", response_model=PrototypeConfig)
 def public_config(request: Request) -> dict[str, Any]:
     configured = settings(request)
     anon = None
@@ -121,6 +122,19 @@ def approve(
         return Prototype(session, tenant, project_id, principal).approve(investigation_id)
 
 
+@router.get("/investigations/{investigation_id}", response_model=Investigation)
+def read_investigation(
+    investigation_id: UUID, project_id: UUID, request: Request, principal: CurrentPrincipal
+) -> Investigation:
+    settings(request)
+    db = engine(request)
+    tenant, _ = resolve_project(db, principal, project_id)
+    with workflow_errors(), TenantUnitOfWork(db, tenant) as session:
+        return Prototype(session, tenant, project_id, principal).read_investigation(
+            investigation_id
+        )
+
+
 @router.post("/runs", response_model=PrototypeRun, status_code=202)
 def submit_run(
     body: CreateRun,
@@ -150,7 +164,10 @@ def read_run(
 
 @router.get("/runs", response_model=list[PrototypeRun])
 def list_runs(
-    project_id: UUID, request: Request, principal: CurrentPrincipal
+    project_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    investigation_id: UUID | None = None,
 ) -> list[PrototypeRun]:
     settings(request)
     db = engine(request)
@@ -161,9 +178,11 @@ def list_runs(
         identifiers: list[UUID] = list(
             session.execute(
                 text(
-                    "SELECT id FROM research.prototype_runs WHERE tenant_id=:t AND project_id=:p ORDER BY created_at DESC LIMIT 30"
+                    "SELECT id FROM research.prototype_runs WHERE tenant_id=:t AND project_id=:p "
+                    "AND (CAST(:inv AS uuid) IS NULL OR investigation_id=CAST(:inv AS uuid)) "
+                    "ORDER BY created_at DESC LIMIT 30"
                 ),
-                {"t": tenant, "p": project_id},
+                {"t": tenant, "p": project_id, "inv": investigation_id},
             ).scalars()
         )
         return [service.run(identifier) for identifier in identifiers]
