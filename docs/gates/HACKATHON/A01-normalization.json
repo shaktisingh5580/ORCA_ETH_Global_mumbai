@@ -1,0 +1,27 @@
+{
+  "phase": "A01",
+  "status": "PASS",
+  "generated_at": "2026-11-06T22:16:52.914524+00:00",
+  "scope": "Tabular normalization; no live cloud deployment or AI reasoning claimed",
+  "offline_regressions": {
+    "passed": 127,
+    "live_deselected": 5
+  },
+  "existing_research_and_agent_regressions": {
+    "passed": 10
+  },
+  "tabular_persistence_retest": {
+    "passed": 1
+  },
+  "static": [
+    "ruff check",
+    "ruff format",
+    "mypy 113 source files",
+    "file headers",
+    "import boundaries",
+    "generated OpenAPI"
+  ],
+  "database": "isolated local PostgreSQL 17, loopback:55433/orca_a01_test",
+  "source_revision": "docs/review/A01-source-reconciliation.json",
+  "oracle_changed": false
+}

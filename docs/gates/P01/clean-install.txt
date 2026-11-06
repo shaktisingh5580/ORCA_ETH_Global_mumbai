@@ -1,27 +1,40 @@
 Command: uv sync --locked --no-dev --no-install-project --offline
 Using CPython 3.12.12
-Creating virtual environment at: E:\orca-verification-20261106-7c57e826\p02-final\test_clean_install_from_lock0\clean-runtime
-Resolved 69 packages in 6ms
-Installed 36 packages in 4.37s
+Creating virtual environment at: C:\Users\shakt\Downloads\newwork\.cache\a01-offline-temp\test_clean_install_from_lock0\clean-runtime
+Resolved 82 packages in 10ms
+Installed 52 packages in 4.83s
+ + a2a-sdk==0.3.22
  + alembic==1.20.1
  + annotated-doc==0.0.5
  + annotated-types==0.8.0
  + anyio==4.16.0
  + boto3==1.43.125
  + botocore==1.43.125
+ + certifi==2026.10.23
  + cffi==2.1.1
+ + charset-normalizer==3.5.2
  + click==8.5.0
  + cryptography==50.0.2
  + fastapi==0.162.0
+ + google-api-core==2.44.0
+ + google-auth==2.62.1
+ + googleapis-common-protos==1.76.0
  + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + httpx-sse==0.4.3
  + idna==3.20
  + jmespath==1.1.0
  + mako==1.4.3
  + markupsafe==3.0.4
  + numpy==2.5.4
  + opentelemetry-api==1.45.2
+ + proto-plus==1.29.0
+ + protobuf==7.36.2
  + psycopg==3.3.8
  + psycopg-binary==3.3.8
+ + pyasn1==0.6.5
+ + pyasn1-modules==0.4.2
  + pycparser==3.12
  + pydantic==2.14.3
  + pydantic-core==2.50.4
@@ -29,10 +42,13 @@ Installed 36 packages in 4.37s
  + pyjwt==2.15.1
  + python-dateutil==2.9.0.post0
  + python-dotenv==1.2.4
+ + requests==2.34.2
+ + rfc8785==0.1.4
  + s3transfer==0.19.3
  + shapely==2.2.0
  + six==1.17.0
  + sqlalchemy==2.1.8
+ + sse-starlette==3.6.0
  + starlette==1.10.0
  + typing-extensions==4.16.0
  + typing-inspection==0.4.5
@@ -40,11 +56,14 @@ Installed 36 packages in 4.37s
  + urllib3==2.8.0
  + uvicorn==0.54.0
 
-Command: uv pip install --python E:\orca-verification-20261106-7c57e826\p02-final\test_clean_install_from_lock0\clean-runtime\Scripts\python.exe --offline --no-deps C:\Users\shakt\Downloads\newwork\backend\dist\orca_backend-0.1.0-py3-none-any.whl
-Using Python 3.12.12 environment at: E:\orca-verification-20261106-7c57e826\p02-final\test_clean_install_from_lock0\clean-runtime
-Resolved 1 package in 4ms
-Installed 1 package in 136ms
+Command: uv pip install --python C:\Users\shakt\Downloads\newwork\.cache\a01-offline-temp\test_clean_install_from_lock0\clean-runtime\Scripts\python.exe --offline --no-deps C:\Users\shakt\Downloads\newwork\backend\dist\orca_backend-0.1.0-py3-none-any.whl
+Using Python 3.12.12 environment at: C:\Users\shakt\Downloads\newwork\.cache\a01-offline-temp\test_clean_install_from_lock0\clean-runtime
+Resolved 1 package in 22ms
+Prepared 1 package in 116ms
+Installed 1 package in 99ms
  + orca-backend==0.1.0 (from file:///C:/Users/shakt/Downloads/newwork/backend/dist/orca_backend-0.1.0-py3-none-any.whl)
 
 Installed runtime modules import in isolated mode:
-{"alembic": "1.20.1", "annotated-doc": "0.0.5", "annotated-types": "0.8.0", "anyio": "4.16.0", "boto3": "1.43.125", "botocore": "1.43.125", "cffi": "2.1.1", "click": "8.5.0", "cryptography": "50.0.2", "fastapi": "0.162.0", "h11": "0.16.0", "idna": "3.20", "jmespath": "1.1.0", "mako": "1.4.3", "markupsafe": "3.0.4", "numpy": "2.5.4", "opentelemetry-api": "1.45.2", "orca-backend": "0.1.0", "psycopg": "3.3.8", "psycopg-binary": "3.3.8", "pycparser": "3.12", "pydantic": "2.14.3", "pydantic-settings": "2.16.2", "pydantic_core": "2.50.4", "pyjwt": "2.15.1", "python-dateutil": "2.9.0.post0", "python-dotenv": "1.2.4", "s3transfer": "0.19.3", "shapely": "2.2.0", "six": "1.17.0", "sqlalchemy": "2.1.8", "starlette": "1.10.0", "typing-inspection": "0.4.5", "typing_extensions": "4.16.0", "tzdata": "2026.6", "urllib3": "2.8.0", "uvicorn": "0.54.0"}
+{"a2a-sdk": "0.3.22", "alembic": "1.20.1", "annotated-doc": "0.0.5", "annotated-types": "0.8.0", "anyio": "4.16.0", "boto3": "1.43.125", "botocore": "1.43.125", "certifi": "2026.10.23", "cffi": "2.1.1", "charset-normalizer": "3.5.2", "click": "8.5.0", "cryptography": "50.0.2", "fastapi": "0.162.0", "google-api-core": "2.44.0", "google-auth": "2.62.1", "googleapis-common-protos": "1.76.0", "h11": "0.16.0", "httpcore": "1.0.9", "httpx": "0.28.1", "httpx-sse": "0.4.3", "idna": "3.20", "jmespath": "1.1.0", "mako": "1.4.3", "markupsafe": "3.0.4", "numpy": "2.5.4", "opentelemetry-api": "1.45.2", "orca-backend": "0.1.0", "proto-plus": "1.29.0", "protobuf": "7.36.2", "psycopg": "3.3.8", "psycopg-binary": "3.3.8", "pyasn1": "0.6.5", "pyasn1_modules": "0.4.2", "pycparser": "3.12", "pydantic": "2.14.3", "pydantic-settings": "2.16.2", "pydantic_core": "2.50.4", "pyjwt": "2.15.1", "python-dateutil": "2.9.0.post0", "python-dotenv": "1.2.4", "requests": "2.34.2", "rfc8785": "0.1.4", "s3transfer": "0.19.3", "shapely": "2.2.0", "six": "1.17.0", "sqlalchemy": "2.1.8", "sse-starlette": "3.6.0", "starlette": "1.10.0", "typing-inspection": "0.4.5", "typing_extensions": "4.16.0", "tzdata": "2026.6", "urllib3": "2.8.0", "uvicorn": "0.54.0"}
+C:\Users\shakt\Downloads\newwork\.cache\a01-offline-temp\test_clean_install_from_lock0\clean-runtime\Lib\site-packages\a2a\server\apps\jsonrpc\fastapi_app.py:21: StarletteDeprecationWarning: 'HTTP_413_REQUEST_ENTITY_TOO_LARGE' is deprecated. Use 'HTTP_413_CONTENT_TOO_LARGE' instead.
+  from a2a.server.apps.jsonrpc.jsonrpc_app import (
