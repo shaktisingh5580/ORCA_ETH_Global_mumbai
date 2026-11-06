@@ -10,10 +10,21 @@ name = "orca-backend"
 version = "0.1.0"
 description = "ORCA P01 contracts and truthful runtime metadata"
 requires-python = ">=3.12,<3.13"
-dependencies = ["fastapi>=0.115,<1", "pydantic>=2.10,<3", "pydantic-settings>=2.7,<3", "shapely>=2,<3", "uvicorn>=0.34,<1"]
+dependencies = [
+  "alembic>=1.14,<2",
+  "boto3>=1.35,<2",
+  "fastapi>=0.115,<1",
+  "psycopg[binary]>=3.2,<4",
+  "pyjwt[crypto]>=2.10,<3",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.7,<3",
+  "shapely>=2,<3",
+  "sqlalchemy>=2.0,<3",
+  "uvicorn>=0.34,<1",
+]
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.9,<1", "mypy>=1.14,<2", "jsonschema>=4.23,<5", "openapi-spec-validator>=0.7,<1", "pytest-socket>=0.7,<1", "types-jsonschema"]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.9,<1", "mypy>=1.14,<2", "jsonschema>=4.23,<5", "openapi-spec-validator>=0.7,<1", "pytest-socket>=0.7,<1", "types-jsonschema", "types-boto3[s3]"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/orca"]

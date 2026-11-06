@@ -1,6 +1,6 @@
 """Purpose: reject incomplete runtime configuration before the server starts.
-Behavior: validate monitoring credentials and documentation exposure only.
-Refs: API sections 2 and 3.1; Phase: P01. OIDC user auth belongs to P02.
+Behavior: validate monitoring, persistence, object-store and OIDC settings before startup.
+Refs: API sections 2, 3.1-3.3; main plan P02; Phase: P02.
 """
 
 from typing import Literal, Self
@@ -14,6 +14,14 @@ class Settings(BaseSettings):
     environment: Literal["development", "test", "production"] = "development"
     monitoring_token: SecretStr = Field(min_length=32)
     docs_public: bool = False
+    database_url: str | None = None
+    oidc_issuer: str | None = None
+    oidc_audience: str | None = None
+    oidc_jwks_url: str | None = None
+    object_store_endpoint: str | None = None
+    object_store_bucket: str = "orca-research"
+    object_store_access_key: SecretStr | None = None
+    object_store_secret_key: SecretStr | None = None
 
     @model_validator(mode="after")
     def secure_defaults(self) -> Self:
@@ -22,4 +30,16 @@ class Settings(BaseSettings):
             raise ValueError("provide a generated monitoring token")
         if self.environment == "production" and self.docs_public:
             raise ValueError("public schema exposure is disabled in production")
+        configured_oidc = (self.oidc_issuer, self.oidc_audience, self.oidc_jwks_url)
+        if any(configured_oidc) and not all(configured_oidc):
+            raise ValueError("OIDC issuer, audience and JWKS URL must be configured together")
+        configured_store = (
+            self.object_store_endpoint,
+            self.object_store_access_key,
+            self.object_store_secret_key,
+        )
+        if any(configured_store) and not all(configured_store):
+            raise ValueError(
+                "object-store endpoint and both credentials must be configured together"
+            )
         return self
