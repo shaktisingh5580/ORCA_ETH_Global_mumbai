@@ -24,6 +24,7 @@ from orca.api.routers.identity import router as identity_router
 from orca.api.routers.invitations import router as invitations_router
 from orca.api.routers.organizations import router as organizations_router
 from orca.api.routers.projects import router as projects_router
+from orca.api.routers.prototype import router as prototype_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
 from orca.api.routers.source_probes import router as source_probes_router
@@ -80,6 +81,8 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.invitation_signing_key = settings.invitation_signing_key
     if settings.file_uploads_enabled:
         app.state.upload_store = upload_store(settings)
+    if settings.prototype_enabled:
+        app.state.prototype_settings = settings
     if settings.research_demo_enabled:
         app.state.demo_snapshot_store = snapshot_store(settings)
     if settings.database_url:
@@ -105,6 +108,8 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(source_probes_router)
     if settings.research_demo_enabled:
         app.include_router(demo_router)
+    if settings.prototype_enabled:
+        app.include_router(prototype_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:

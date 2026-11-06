@@ -4,6 +4,7 @@ Refs: API sections 2, 3.1-3.3; main plan P02; Phase: P02.
 """
 
 from typing import Literal, Self
+from uuid import UUID
 
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,6 +38,12 @@ class Settings(BaseSettings):
     file_uploads_enabled: bool = False
     invitation_signing_key: SecretStr | None = Field(default=None, min_length=32)
     acquisition_sources: tuple[SourceBinding, ...] = ()
+    prototype_enabled: bool = False
+    prototype_bundle_digest: str | None = Field(default=None, pattern=r"^sha256:[0-9a-f]{64}$")
+    prototype_source_tenant: UUID | None = None
+    prototype_showcase_run: UUID | None = None
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = Field(default="gemini-flash-latest", pattern=r"^[a-z0-9][a-z0-9.-]{0,90}$")
 
     @model_validator(mode="after")
     def secure_defaults(self) -> Self:
@@ -82,6 +89,15 @@ class Settings(BaseSettings):
             raise ValueError("research demo requires runtime database and private storage")
         if self.file_uploads_enabled and (not self.database_url or not all(configured_store)):
             raise ValueError("file uploads require runtime database and private storage")
+        if self.prototype_enabled and (
+            not self.database_url
+            or not all(configured_store)
+            or not self.prototype_bundle_digest
+            or not self.prototype_source_tenant
+        ):
+            raise ValueError(
+                "prototype requires private database/storage and a pinned real input bundle/tenant"
+            )
         if self.acquisition_enabled:
             if not self.database_url or not all(configured_store) or not self.acquisition_sources:
                 raise ValueError(
