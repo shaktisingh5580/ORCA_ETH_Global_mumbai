@@ -1,0 +1,11 @@
+{
+  "phase": "F01.5",
+  "health_status": 200,
+  "research_status": 200,
+  "cors_status": 200,
+  "cors_origin": "https://orca-seven-phi.vercel.app",
+  "frontend_remote_head": "ef747c1b4cd734f376601265817df1d749747612",
+  "frontend_revision_scope": "remote HEAD observed; deployed Vercel revision not asserted",
+  "rollback": "Existing image/config backup pre-ai-20261107 retained; no DB migration in F01",
+  "browser_authenticated_gate": "not claimed by HTTP checks"
+}

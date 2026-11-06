@@ -1,0 +1,42 @@
+{
+  "phase": "F01",
+  "status": "PASS_BASELINE_AND_RECOVERY_PROFILE",
+  "scope": "Audit/protocol selection/contract freeze/scenario baseline plus additive read-only dashboard overview",
+  "subphases": {
+    "F01.1": "PASS: reproducible actual route/migration/package/source inventory",
+    "F01.2": "PASS: explicit recovery scope and nine isolated database invariant regressions",
+    "F01.3": "PASS: preserve pinned A2A/Arkiv dependencies; resolve exact MCP artifact pin; verify Sepolia deployment code; full MCP interoperability and ENS namespace authority deferred to their implementation gates",
+    "F01.4": "PASS: source-reference and schema ownership decision; existing OpenAPI unchanged; dashboard extension uses existing APIs",
+    "F01.5": "PASS: science/control scenarios and Oracle/CORS/rollback baseline"
+  },
+  "tests": {
+    "offline": "138 passed; 5 explicitly live tests deselected",
+    "isolated_database": "9 passed; includes 6 official A2A coordination/recovery and 3 reasoning/prototype tests",
+    "mypy": "129 files passed",
+    "ruff": "passed",
+    "format": "212 files passed",
+    "headers": "passed",
+    "boundaries": "passed",
+    "node_syntax": "passed",
+    "implemented_openapi_drift": "passed"
+  },
+  "browser": {
+    "target": "isolated local preview",
+    "signed_out_overview": "PASS",
+    "console_errors": 0,
+    "authenticated_registered_agent_fetch": "NOT_TESTED_IN_BROWSER; existing API authorization covered in integration tests",
+    "cloud_browser": "pending deployment"
+  },
+  "preserved_sources": "Five critical source hashes unchanged; inventory records actual bytes",
+  "not_claimed": [
+    "Original production G03-G14",
+    "New institutional onboarding",
+    "MCP interoperability",
+    "ENS namespace/controller/delegation",
+    "Independent institutions",
+    "Full CSV/JSON A2A delegation"
+  ],
+  "next_phase": "F02 onboarding; no F02 implementation in this increment",
+  "live_identity_preflight": "ens-preflight.json",
+  "deployed_health_baseline": "cloud-baseline.json"
+}
