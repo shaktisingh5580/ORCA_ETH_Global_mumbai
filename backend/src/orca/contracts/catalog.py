@@ -69,9 +69,9 @@ class ProductVersion(Contract):
     source_version: OpaqueID
     metadata_digest: Digest
     native_variable: OpaqueID
-    standard_name: Literal["sea_surface_temperature"]
+    standard_name: Literal["sea_surface_temperature", "sea_surface_foundation_temperature"]
     physical_definition: str = Field(min_length=1, max_length=2000)
-    native_units: Literal["K", "degree_Celsius", "Degree C"]
+    native_units: Literal["K", "degree_Celsius", "Degree C", "degree_C"]
     dimensions: tuple[OpaqueID, ...] = ()
     depth_m: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     calendar: OpaqueID
@@ -97,7 +97,7 @@ class CanonicalVariableMapping(Contract):
     version_id: UUID
     metadata_digest: Digest
     native_name: OpaqueID
-    standard_name: Literal["sea_surface_temperature"]
+    standard_name: Literal["sea_surface_temperature", "sea_surface_foundation_temperature"]
     native_units: str
     dimensions: tuple[OpaqueID, ...]
     physical_definition: str
