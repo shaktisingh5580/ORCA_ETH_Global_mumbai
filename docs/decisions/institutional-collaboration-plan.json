@@ -1,0 +1,34 @@
+{
+  "status": "PLAN_ONLY_NOT_IMPLEMENTED",
+  "date": "2026-11-07",
+  "profile": "institutional research collaboration prototype",
+  "existing_dashboard": "preserve /research and add institutional/network features",
+  "phase_count": 8,
+  "subphase_count": 40,
+  "source_documents_indexed": 66,
+  "existing_source_hashes_unchanged": true,
+  "plan_files": [
+    {
+      "path": "ORCA_INSTITUTIONAL_COLLABORATION_PLAN.md",
+      "sha256": "36568dca2a6097e099a9169afde3278c87e283bfd7dfaab30d2375098e0ceaf3"
+    },
+    {
+      "path": "ORCA_INSTITUTIONAL_API_AND_DATA_DESIGN.md",
+      "sha256": "869aa3c29b75a99be14eae603fbfa7955581db5caa27f0a3388ea2bf2642436f"
+    },
+    {
+      "path": "ORCA_INSTITUTIONAL_PHASES_AND_ACCEPTANCE.md",
+      "sha256": "e30a37dc578b3f2ae6aac983a7e58cba1a1119e4804cba8b7b34a6f554d4b8e7"
+    }
+  ],
+  "scope_change": "ENS identity, institution-owned onboarding, external A2A, MCP and unified Arkiv lineage are required submission scope; previous hackathon deferrals do not count as delivery",
+  "next_step": "F01 audit/recovery ADR then F02 onboarding",
+  "original_production_gates": "Not asserted passed by this proposal",
+  "external_sources": [
+    "https://docs.ens.domains/learn/deployments/",
+    "https://docs.ens.domains/ensv2/permissioned-resolver/",
+    "https://a2a-protocol.org/v1.0.1/specification/",
+    "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+    "https://docs.arkiv.network/writing/expiration/"
+  ]
+}
