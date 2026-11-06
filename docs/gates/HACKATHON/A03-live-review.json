@@ -1,0 +1,436 @@
+{
+  "status": "PASS",
+  "model": "gemini-2.5-flash",
+  "cases": [
+    {
+      "injected_difference": false,
+      "result": {
+        "reviewer": {
+          "verdict": "agrees",
+          "summary": "The candidate mean_celsius of 27 matches the approved reference mean_celsius of 27. No findings were identified.",
+          "finding_ids": [],
+          "limitations": [
+            "None"
+          ]
+        },
+        "coordinator": {
+          "action": "no_change",
+          "summary": "The candidate mean_celsius of 27 matches the approved reference mean_celsius of 27. No findings were identified, which is consistent with the prior review.",
+          "finding_ids": []
+        }
+      },
+      "events": [
+        {
+          "type": "model_call",
+          "data": {
+            "role": "reviewer",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 270,
+              "candidatesTokenCount": 12,
+              "totalTokenCount": 358,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 270
+                }
+              ],
+              "thoughtsTokenCount": 76,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "reviewer",
+            "tool": "inspect_review_evidence",
+            "arguments": {}
+          }
+        },
+        {
+          "type": "tool_completed",
+          "data": {
+            "role": "reviewer",
+            "tool": "inspect_review_evidence",
+            "result": {
+              "source_mode": "synthetic_demo",
+              "approved_reference": {
+                "mean_celsius": 27.0
+              },
+              "candidate": {
+                "mean_celsius": 27.0
+              },
+              "findings": []
+            }
+          }
+        },
+        {
+          "type": "model_call",
+          "data": {
+            "role": "reviewer",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 335,
+              "candidatesTokenCount": 57,
+              "totalTokenCount": 515,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 335
+                }
+              ],
+              "thoughtsTokenCount": 123,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "reviewer",
+            "tool": "submit_decision",
+            "arguments": {
+              "summary": "The candidate mean_celsius of 27 matches the approved reference mean_celsius of 27. No findings were identified.",
+              "finding_ids": [],
+              "limitations": [
+                "None"
+              ],
+              "verdict": "agrees"
+            }
+          }
+        },
+        {
+          "type": "reviewer_decision",
+          "data": {
+            "verdict": "agrees",
+            "summary": "The candidate mean_celsius of 27 matches the approved reference mean_celsius of 27. No findings were identified.",
+            "finding_ids": [],
+            "limitations": [
+              "None"
+            ]
+          }
+        },
+        {
+          "type": "model_call",
+          "data": {
+            "role": "coordinator",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 319,
+              "candidatesTokenCount": 12,
+              "totalTokenCount": 551,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 319
+                }
+              ],
+              "thoughtsTokenCount": 220,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "coordinator",
+            "tool": "inspect_review_evidence",
+            "arguments": {}
+          }
+        },
+        {
+          "type": "tool_completed",
+          "data": {
+            "role": "coordinator",
+            "tool": "inspect_review_evidence",
+            "result": {
+              "source_mode": "synthetic_demo",
+              "approved_reference": {
+                "mean_celsius": 27.0
+              },
+              "candidate": {
+                "mean_celsius": 27.0
+              },
+              "findings": []
+            }
+          }
+        },
+        {
+          "type": "model_call",
+          "data": {
+            "role": "coordinator",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 384,
+              "candidatesTokenCount": 61,
+              "totalTokenCount": 749,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 384
+                }
+              ],
+              "thoughtsTokenCount": 304,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "coordinator",
+            "tool": "submit_decision",
+            "arguments": {
+              "finding_ids": [],
+              "summary": "The candidate mean_celsius of 27 matches the approved reference mean_celsius of 27. No findings were identified, which is consistent with the prior review.",
+              "action": "no_change"
+            }
+          }
+        },
+        {
+          "type": "coordinator_decision",
+          "data": {
+            "action": "no_change",
+            "summary": "The candidate mean_celsius of 27 matches the approved reference mean_celsius of 27. No findings were identified, which is consistent with the prior review.",
+            "finding_ids": []
+          }
+        }
+      ]
+    },
+    {
+      "injected_difference": true,
+      "result": {
+        "reviewer": {
+          "verdict": "challenged",
+          "summary": "The candidate mean_celsius (28) does not match the approved reference mean_celsius (27). This is identified as a numerical mismatch in finding-1.",
+          "finding_ids": [
+            "finding-1"
+          ],
+          "limitations": [
+            "None"
+          ]
+        },
+        "coordinator": {
+          "action": "recompute_approved_plan",
+          "summary": "The candidate mean_celsius (28) does not match the approved reference mean_celsius (27), as identified in finding-1.",
+          "finding_ids": [
+            "finding-1"
+          ]
+        }
+      },
+      "events": [
+        {
+          "type": "model_call",
+          "data": {
+            "role": "reviewer",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 270,
+              "candidatesTokenCount": 12,
+              "totalTokenCount": 374,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 270
+                }
+              ],
+              "thoughtsTokenCount": 92,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "reviewer",
+            "tool": "inspect_review_evidence",
+            "arguments": {}
+          }
+        },
+        {
+          "type": "tool_completed",
+          "data": {
+            "role": "reviewer",
+            "tool": "inspect_review_evidence",
+            "result": {
+              "source_mode": "synthetic_demo",
+              "approved_reference": {
+                "mean_celsius": 27.0
+              },
+              "candidate": {
+                "mean_celsius": 28.0
+              },
+              "findings": [
+                {
+                  "id": "finding-1",
+                  "kind": "numerical_mismatch",
+                  "dataset_id": "synthetic-control",
+                  "expected": 27.0,
+                  "observed": 28.0,
+                  "evidence_ref": "approved-result:synthetic-control"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "model_call",
+          "data": {
+            "role": "reviewer",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 389,
+              "candidatesTokenCount": 68,
+              "totalTokenCount": 693,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 389
+                }
+              ],
+              "thoughtsTokenCount": 236,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "reviewer",
+            "tool": "submit_decision",
+            "arguments": {
+              "finding_ids": [
+                "finding-1"
+              ],
+              "limitations": [
+                "None"
+              ],
+              "verdict": "challenged",
+              "summary": "The candidate mean_celsius (28) does not match the approved reference mean_celsius (27). This is identified as a numerical mismatch in finding-1."
+            }
+          }
+        },
+        {
+          "type": "reviewer_decision",
+          "data": {
+            "verdict": "challenged",
+            "summary": "The candidate mean_celsius (28) does not match the approved reference mean_celsius (27). This is identified as a numerical mismatch in finding-1.",
+            "finding_ids": [
+              "finding-1"
+            ],
+            "limitations": [
+              "None"
+            ]
+          }
+        },
+        {
+          "type": "model_call",
+          "data": {
+            "role": "coordinator",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 330,
+              "candidatesTokenCount": 12,
+              "totalTokenCount": 464,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 330
+                }
+              ],
+              "thoughtsTokenCount": 122,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "coordinator",
+            "tool": "inspect_review_evidence",
+            "arguments": {}
+          }
+        },
+        {
+          "type": "tool_completed",
+          "data": {
+            "role": "coordinator",
+            "tool": "inspect_review_evidence",
+            "result": {
+              "source_mode": "synthetic_demo",
+              "approved_reference": {
+                "mean_celsius": 27.0
+              },
+              "candidate": {
+                "mean_celsius": 28.0
+              },
+              "findings": [
+                {
+                  "id": "finding-1",
+                  "kind": "numerical_mismatch",
+                  "dataset_id": "synthetic-control",
+                  "expected": 27.0,
+                  "observed": 28.0,
+                  "evidence_ref": "approved-result:synthetic-control"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "model_call",
+          "data": {
+            "role": "coordinator",
+            "model": "gemini-2.5-flash",
+            "usage": {
+              "promptTokenCount": 449,
+              "candidatesTokenCount": 63,
+              "totalTokenCount": 732,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 449
+                }
+              ],
+              "thoughtsTokenCount": 220,
+              "serviceTier": "standard"
+            },
+            "prompt_version": "orca.review/1"
+          }
+        },
+        {
+          "type": "tool_requested",
+          "data": {
+            "role": "coordinator",
+            "tool": "submit_decision",
+            "arguments": {
+              "finding_ids": [
+                "finding-1"
+              ],
+              "summary": "The candidate mean_celsius (28) does not match the approved reference mean_celsius (27), as identified in finding-1.",
+              "action": "recompute_approved_plan"
+            }
+          }
+        },
+        {
+          "type": "coordinator_decision",
+          "data": {
+            "action": "recompute_approved_plan",
+            "summary": "The candidate mean_celsius (28) does not match the approved reference mean_celsius (27), as identified in finding-1.",
+            "finding_ids": [
+              "finding-1"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ Refs: Gemini generateContent API; ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A02; Phase: A0
 """
 
 import re
+import time
 from typing import Any
 
 import httpx
@@ -35,6 +36,14 @@ class GeminiReasoner:
                         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 4096},
                     },
                 )
+                if response.status_code == 429:
+                    # One bounded retry for transient provider throttling, never an unbounded loop.
+                    time.sleep(20)
+                    response = client.post(
+                        f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
+                        headers={"x-goog-api-key": self.key, "Content-Type": "application/json"},
+                        content=response.request.content,
+                    )
                 if response.status_code != 200:
                     raise ModelUnavailable(f"GEMINI_HTTP_{response.status_code}")
                 if len(response.content) > 262144:

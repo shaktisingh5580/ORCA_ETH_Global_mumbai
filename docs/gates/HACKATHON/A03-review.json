@@ -1,0 +1,12 @@
+{
+  "phase": "A03",
+  "status": "PASS",
+  "offline_tests_passed": 134,
+  "database_tests_passed": 4,
+  "database": "isolated local orca_a03_test; no cloud resets",
+  "live_controls": ["A03-live-review.json"],
+  "static": "ruff, mypy, headers and import boundaries passed",
+  "oracle_changed": false,
+  "scope": "Evidence reviewer, coordinator proposal and separately approved immutable correction",
+  "limitations": ["Team-operated roles", "Arkiv connection for these new reasoning runs is A04", "Live model rate limits can fail a run; failures are visible"]
+}
