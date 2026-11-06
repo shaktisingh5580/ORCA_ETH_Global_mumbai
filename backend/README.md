@@ -110,3 +110,40 @@ them into logs. Supabase Storage does not expose native S3 bucket versioning, so
 publishes verified objects to immutable SHA-256-addressed final keys and records the
 digest as the application-level version. Local MinIO may still enable native versions
 by constructing `S3ObjectStore(..., native_versioning=True)`.
+
+## P03 acquisition worker (implemented, deployment acceptance pending)
+
+The API and acquisition worker are separate processes sharing the non-owner database
+URL and private S3 configuration. The worker does not load a local `.env` implicitly;
+inject environment variables through the deployment secret manager or your launcher.
+Do not use the admin migration database URL for either runtime process.
+
+1. Register the real tenant catalog product/version, exact ERDDAP metadata-response
+   SHA-256 and affirmative source-preservation license evidence. This batch does not
+   seed products, approve licenses or invent baseline records.
+2. Provision a private storage bucket and restrict its credentials to the backend.
+3. Set `ORCA_ACQUISITION_SOURCES` to a JSON array of objects with `tenant_id`,
+   `version_id`, `host` and `dataset`. Allowed hosts are `coastwatch.pfeg.noaa.gov`
+   and `erddap.incois.gov.in`; identifiers must match stored tenant versions.
+4. Supply `ORCA_OBJECT_STORE_REGION` (for this project, `ap-south-1`), endpoint,
+   bucket and credentials, plus `ORCA_ACQUISITION_ENABLED=true` in both processes.
+5. Start `python -m orca.worker --tenant <tenant-uuid> --watch`. Omit `--watch` for
+   a single durable request. Start the API with
+   `uvicorn orca.bootstrap:create_application --factory --host 0.0.0.0 --port 8000`.
+
+Enabling acquisition is an operator acknowledgement that the worker is deployed;
+it is not a heartbeat check. Requests for unconfigured versions return 422. Source
+validation failures become sanitized failures; infrastructure interruptions leave
+leases recoverable. Monitor worker exits and restart it through your host supervisor.
+
+The adapter accepts points and rectangular polygons, at most 2 degrees per axis,
+31 days, 100,000 CSV rows and 8 MiB. Large high-resolution requests need smaller
+windows. Out-of-scope nearest-coordinate rounding, changed metadata and ambiguous
+dimensions are rejected. Raw snapshots remain scientifically `not_validated`:
+preserving bytes is not QC, a compatible seasonal baseline or a scientific result.
+
+Fitness and compatibility APIs evaluate stored metadata and report conflicts or
+unknowns. They cannot report overall compatibility until method/QC evidence exists.
+Project-scoped grants, durable source probes and full G03 remain unfinished. See
+`docs/decisions/delivery-progress.json` for phase counts and
+`docs/decisions/P03-cloud-acquisition-and-fitness.json` for exact limitations.

@@ -16,6 +16,7 @@ from starlette.responses import Response
 
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.catalog import router as catalog_router
+from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
@@ -34,6 +35,8 @@ def create_app(settings: Settings) -> FastAPI:
         redoc_url=None,
     )
     app.add_exception_handler(RequestValidationError, validation_error)  # type: ignore[arg-type]
+    app.state.snapshot_worker_enabled = settings.acquisition_enabled
+    app.state.acquisition_sources = settings.acquisition_sources
     if settings.database_url:
         app.state.runtime_engine = create_runtime_engine(settings.database_url)
     if settings.oidc_issuer and settings.oidc_audience and settings.oidc_jwks_url:
@@ -42,6 +45,7 @@ def create_app(settings: Settings) -> FastAPI:
         )
     app.include_router(projects_router)
     app.include_router(catalog_router)
+    app.include_router(fitness_router)
     app.include_router(snapshots_router)
     app.include_router(snapshot_requests_router)
 

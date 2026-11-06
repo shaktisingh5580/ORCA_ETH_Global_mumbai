@@ -35,6 +35,11 @@ def create_request(
         raise HTTPException(403, "Research planning scope required") from exc
     if not getattr(request.app.state, "snapshot_worker_enabled", False):
         raise HTTPException(503, "Snapshot acquisition worker is not configured")
+    if not any(
+        binding.tenant_id == tenant and binding.version_id == body.product_version_id
+        for binding in getattr(request.app.state, "acquisition_sources", ())
+    ):
+        raise HTTPException(422, "No approved acquisition distribution for this version")
     try:
         with TenantUnitOfWork(db, tenant) as session:
             return SnapshotRequests(session, tenant).create(body, idempotency_key).operation

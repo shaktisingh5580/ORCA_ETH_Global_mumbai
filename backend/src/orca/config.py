@@ -8,6 +8,8 @@ from typing import Literal, Self
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from orca.contracts.acquisition import SourceBinding
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="ORCA_", extra="forbid")
@@ -22,6 +24,9 @@ class Settings(BaseSettings):
     object_store_bucket: str = "orca-research"
     object_store_access_key: SecretStr | None = None
     object_store_secret_key: SecretStr | None = None
+    object_store_region: str = "ap-south-1"
+    acquisition_enabled: bool = False
+    acquisition_sources: tuple[SourceBinding, ...] = ()
 
     @model_validator(mode="after")
     def secure_defaults(self) -> Self:
@@ -49,4 +54,12 @@ class Settings(BaseSettings):
                 raise ValueError("production requires OIDC issuer, audience and JWKS URL")
             if not all(configured_store):
                 raise ValueError("production requires object-store endpoint and credentials")
+        if self.acquisition_enabled:
+            if not self.database_url or not all(configured_store) or not self.acquisition_sources:
+                raise ValueError(
+                    "acquisition requires database, cloud storage and approved sources"
+                )
+            identities = {(s.tenant_id, s.version_id) for s in self.acquisition_sources}
+            if len(identities) != len(self.acquisition_sources):
+                raise ValueError("duplicate acquisition source binding")
         return self
