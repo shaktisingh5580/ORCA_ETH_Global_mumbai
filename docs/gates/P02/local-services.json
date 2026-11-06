@@ -1,0 +1,15 @@
+{
+  "purpose": "Isolated live G02 services; not production deployment evidence",
+  "database": {
+    "host": "127.0.0.1",
+    "port": 15432,
+    "database": "orca_test",
+    "image_id": "sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6"
+  },
+  "storage": {
+    "endpoint": "http://127.0.0.1:59000",
+    "image_id": "sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+    "selection": "Cached MinIO image selected by immutable image ID after registry pull failed"
+  },
+  "production_supabase_modified": false
+}
