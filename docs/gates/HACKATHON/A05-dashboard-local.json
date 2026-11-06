@@ -1,0 +1,15 @@
+{
+  "phase": "A05 dashboard increment",
+  "status": "LOCAL_GATE_PASS",
+  "offline_tests_passed": 135,
+  "static": "ruff, mypy 128 modules and JavaScript syntax",
+  "browser": {
+    "origin": "http://127.0.0.1:8099",
+    "authentication_and_models": "Test-only harness; real local database and application APIs",
+    "checks": ["Sign in and authorized workspace selection", "Select dataset and propose plan", "Approve plan and calculate 27 Celsius", "Submit 28 Celsius candidate", "Observe challenged review", "Approve correction and observe new agreeing review", "Original review preserved", "Desktop 1440 and mobile 390 layouts", "No browser console errors"],
+    "mobile_horizontal_overflow": false
+  },
+  "live_model_checks": ["A02-live-planner.json", "A02-live-abstention.json", "A03-live-review.json"],
+  "cloud_acceptance": "Pending additive migration and Oracle rollout",
+  "full_tabular_a2a_unification": "Not implemented; dashboard states this limitation"
+}
