@@ -27,7 +27,6 @@
   ],
   "pending_capabilities": [
     "Existing dashboard implementation and browser acceptance by frontend developer",
-    "New seasonal result Arkiv publication and read-back API integration (H04)",
     "Optional Gemini key and live provider call",
     "Additional analysis recipes, regions and input bundles"
   ],
@@ -36,5 +35,7 @@
     "full_frontend_walkthrough_passed": false,
     "full_platform_complete": false,
     "cloud_schema_changed_by_handoff": false
-  }
+  },
+  "agent_coordination_handoff": "ARKIV_A2A_FRONTEND_HANDOFF.md",
+  "implemented_agent_coordination": "Task/claim/exclusive assignment/authenticated A2A reproduction/review and real multi-wallet Arkiv records"
 }

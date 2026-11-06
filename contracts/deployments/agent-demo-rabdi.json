@@ -1,0 +1,50 @@
+{
+  "profile": "team-controlled-agent-coordination",
+  "phase": "H04",
+  "chain": "Rabdi",
+  "chain_id": 7794095,
+  "arkiv_sdk": "1.0.1",
+  "a2a_specification": "0.3.0",
+  "a2a_sdk": "0.3.22",
+  "authorization_profile": "operator-pinned/hackathon-v1",
+  "ens_verified": false,
+  "institution_verified": false,
+  "bindings": [
+    {
+      "id": "ddba6148-7032-4617-b2c1-ab9883668332",
+      "binding_version": "3225cb71-9703-47c5-af73-1e826be51e22",
+      "name": "ORCA team coordinator agent",
+      "capability": "sst_reproduction",
+      "endpoint": "http://127.0.0.1:8000/a2a",
+      "public_key": "lYzO_C8_NHEwoykCLGh9nSAQU5g1Yl6qZrcHlcY4Sa8",
+      "key_id": "coordinator-service-v1",
+      "wallet": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+      "operator_mode": "team_controlled",
+      "identity_status": "operator_pinned_not_ens_verified"
+    },
+    {
+      "id": "3dd7774e-00de-4659-bb34-5a6f02e78416",
+      "binding_version": "2bd4ba99-7063-485c-a863-0cf149d8f5e7",
+      "name": "ORCA team ocean agent",
+      "capability": "sst_reproduction",
+      "endpoint": "http://127.0.0.1:8101/a2a",
+      "public_key": "v0nqEynvwA6377herUPxuqjdLnt4NnQV2uOati7D3FA",
+      "key_id": "ocean-service-v1",
+      "wallet": "0x16E488B2A757B6dE437c66c33b1C58025F351915",
+      "operator_mode": "team_controlled",
+      "identity_status": "operator_pinned_not_ens_verified"
+    },
+    {
+      "id": "f5a61c1f-1772-434e-8db3-fb554a9f6854",
+      "binding_version": "e76d4b95-0afd-4ece-94ac-4bca67cc8a80",
+      "name": "ORCA team reviewer agent",
+      "capability": "sst_review",
+      "endpoint": "http://127.0.0.1:8102/a2a",
+      "public_key": "d9NruF1zsV8W9MXwn1c8fHvbZGqJWm7RBp-F7pC_eJQ",
+      "key_id": "reviewer-service-v1",
+      "wallet": "0x28B4e240a1DB273eaE78d66DD11013B5ED2279A4",
+      "operator_mode": "team_controlled",
+      "identity_status": "operator_pinned_not_ens_verified"
+    }
+  ]
+}

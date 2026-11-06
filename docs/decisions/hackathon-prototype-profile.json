@@ -19,8 +19,8 @@
     "focused functional and numerical checks",
     "no fake on-chain or independent-review claims"
   ],
-  "current_phase": "H03",
-  "status": "BACKEND_HANDOFF_READY_FRONTEND_ACCEPTANCE_PENDING",
+  "current_phase": "H04",
+  "status": "BACKEND_AGENT_COORDINATION_READY_FRONTEND_ACCEPTANCE_PENDING",
   "completed_phases": [
     "H01",
     "H02"
@@ -28,8 +28,12 @@
   "phase_evidence": {
     "H01": "docs/gates/HACKATHON/H01.json",
     "H02": "docs/gates/HACKATHON/H02.json",
-    "H03_backend_handoff": "docs/gates/HACKATHON/H03-backend-handoff.json"
+    "H03_backend_handoff": "docs/gates/HACKATHON/H03-backend-handoff.json",
+    "H04_backend_coordination": "docs/gates/HACKATHON/H04.json"
   },
   "frontend_scope": "Latest direction: backend and detailed integration documentation only; the frontend developer integrates the existing dashboard",
-  "handoff": "docs/decisions/frontend-backend-handoff.json"
+  "handoff": "docs/decisions/frontend-backend-handoff.json",
+  "backend_protocol_delivery": "Task, signed claim, exclusive assignment, official A2A execution, signed artifact and separate review; real multi-wallet Arkiv publication/read-back",
+  "bring_forward_authority": "User explicitly requested pending Arkiv agent-to-agent work while the teammate owns frontend implementation",
+  "full_frontend_acceptance_pending": true
 }

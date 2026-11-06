@@ -11,6 +11,7 @@ from uuid import UUID
 from pydantic import SecretStr
 
 from orca.api.app import create_app
+from orca.api.routers.network import router as network_router
 from orca.config import Settings
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -33,6 +34,8 @@ def contract() -> str:
             prototype_source_tenant=UUID(int=1),
         )
     )
+    # Export the explicitly enabled handoff profile without loading private runtime identities.
+    app.include_router(network_router)
     try:
         return json.dumps(app.openapi(), indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     finally:

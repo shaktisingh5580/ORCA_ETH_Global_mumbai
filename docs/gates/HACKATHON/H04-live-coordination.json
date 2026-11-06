@@ -1,0 +1,115 @@
+{
+  "profile": "team-controlled-agent-coordination",
+  "entrypoint": "authorized operator application service; browser session acceptance remains separate",
+  "source_run_id": "53d47285-ecd8-4d11-a637-ceedb3b74069",
+  "public_reference_approved": true,
+  "ens_verified": false,
+  "institution_verified": false,
+  "tasks": [
+    {
+      "id": "84410849-a102-4269-b52f-d7d3333ec626",
+      "capability": "sst_reproduction",
+      "state": "completed",
+      "provider_id": "3dd7774e-00de-4659-bb34-5a6f02e78416",
+      "wallet": "0x16E488B2A757B6dE437c66c33b1C58025F351915",
+      "result_digest": "sha256:299dd0249142f76ee280402386db2e8b3a8433bc0f147a8732043796f90fd64e",
+      "verdict": "reproduced",
+      "anomaly": 0.623497279140075,
+      "maximum_absolute_difference": 0.0,
+      "implementation": "shared-native-seasonal-method/reexecution",
+      "a2a_task_id": "027694a0-e245-43ff-851e-12cf8155a50d",
+      "a2a_context_id": "e29f42fa-f493-46f3-944c-c91a145b05d9",
+      "chain_records": [
+        {
+          "kind": "task",
+          "entity_key": "0x6629ad8ec7871db0d3d3f990985491019e29e124c185c7a97a597414ce53bbf0",
+          "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+          "tx_hash": "0x293150330b7bd4a6a66a678cd6e56be83572143ad8ed3f24cbf48f8b6f9b5b25",
+          "content_digest": "sha256:2e3d29c260878d99f31ff16c51da57e69306965d972f92ca755867bd7d60308b",
+          "observed_at": "2026-11-06T18:20:19.879Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        },
+        {
+          "kind": "claim",
+          "entity_key": "0x19b4c6bf241c81698a2a2aed8b3238ddf9e44683b8c2db48a183f3af55d2d0d8",
+          "owner": "0x16E488B2A757B6dE437c66c33b1C58025F351915",
+          "tx_hash": "0x0d4634856b0d3f16b28faf650c20d54c2f66c189b5988e3fd2785e9a81f80975",
+          "content_digest": "sha256:8670ab9d41c86f05ddcbd15623beff17aff05680b5b4576d75b1ca86301ea339",
+          "observed_at": "2026-11-06T18:20:22.346Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        },
+        {
+          "kind": "result",
+          "entity_key": "0x7c32404268f67ba73445358fca7cafa3e77af5e712855bebd2e926ca0cb81105",
+          "owner": "0x16E488B2A757B6dE437c66c33b1C58025F351915",
+          "tx_hash": "0x869dec7e45e226548c2e65b07eb46b255a891302e90fcf50f7f8abaec4128afd",
+          "content_digest": "sha256:754e770a2bcf4886766ebea307f16db7119cbd4bd6c691dce099a98b5dc23bd3",
+          "observed_at": "2026-11-06T18:20:24.871Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        },
+        {
+          "kind": "assignment",
+          "entity_key": "0x6d07d8870a0b0ecc338df070652c47487911e8552c70d4858d5b6a43c0fb08e9",
+          "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+          "tx_hash": "0xfc6db79a4ee4045ffbf05e53744c25b7ad021e15a5bda9bc545bf65f8bdc8cd0",
+          "content_digest": "sha256:bf20bfceea25946d676128e2819ca7777f9f9bc4788752521ca732787c4c4cff",
+          "observed_at": "2026-11-06T18:20:27.372Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        }
+      ]
+    },
+    {
+      "id": "696a2bd5-e311-444a-80ba-2dbd4a909e7c",
+      "capability": "sst_review",
+      "state": "completed",
+      "provider_id": "f5a61c1f-1772-434e-8db3-fb554a9f6854",
+      "wallet": "0x28B4e240a1DB273eaE78d66DD11013B5ED2279A4",
+      "result_digest": "sha256:f817f4001fea78c45974a99fa58e5d80b2543fdab50361dce9dac264e451901d",
+      "verdict": "reproduced",
+      "anomaly": 0.6234972791400786,
+      "maximum_absolute_difference": 7.105427357601002e-15,
+      "implementation": "separate-year-first-regional-reduction/hackathon-v1",
+      "a2a_task_id": "100ec9d1-4292-4735-8bfd-170ad28f0143",
+      "a2a_context_id": "35a7403c-136b-4d18-8ca9-619a6c293e0c",
+      "chain_records": [
+        {
+          "kind": "task",
+          "entity_key": "0x1452bdbef04ddcbfdd1bb46b59cb7d95631d47fb945e0b10e601f52e933087de",
+          "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+          "tx_hash": "0x779f846cd1cfab47d23e6d073bdc707f4c774b7e21452fec1c1f93d25c558a52",
+          "content_digest": "sha256:82339b58be0e37587a220622d65b8f9399b1223e87e367842ade912c0106483c",
+          "observed_at": "2026-11-06T18:21:59.922Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        },
+        {
+          "kind": "claim",
+          "entity_key": "0xd383b23778f531c13026834f22d1fe167b55de9b04ea409374e9c03ccff0f089",
+          "owner": "0x28B4e240a1DB273eaE78d66DD11013B5ED2279A4",
+          "tx_hash": "0x3f54ded0678887d89bc4f511fe06a2b47f30ccb5861a5e8ac7dee0989425fed3",
+          "content_digest": "sha256:d0ca86776935075c8b22ba4d9f339712c00248d57775b55d4942a033ebc9b437",
+          "observed_at": "2026-11-06T18:22:02.629Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        },
+        {
+          "kind": "assignment",
+          "entity_key": "0x802cb112a7e725d19d8adb413a5468fef776c57d0edd652f5164b882b820e95b",
+          "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+          "tx_hash": "0x15b535e5e0f5431b0a5756796ff46b8e3bb8bf9b92a1631a5c307dc12c320b0a",
+          "content_digest": "sha256:5a4dbe7f124ac3104f51231400203a70fed450687b882ade359e42a142d262ee",
+          "observed_at": "2026-11-06T18:22:06.138Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        },
+        {
+          "kind": "review",
+          "entity_key": "0x266cb5284d0bd9e201434936383e713dfce5e8415cee9639acce8da84c42c73e",
+          "owner": "0x28B4e240a1DB273eaE78d66DD11013B5ED2279A4",
+          "tx_hash": "0x1c94d9b7792c957230714ec41c814fd46378d35672b847fdc5a33418147032e6",
+          "content_digest": "sha256:005af866e41aa8d7140a54558d129ae60810659e24b0af10e743b48d00899a39",
+          "observed_at": "2026-11-06T18:22:09.106Z",
+          "verification": "current_chain_owner_and_service_signature_verified"
+        }
+      ]
+    }
+  ],
+  "status": "LIVE_REPRODUCTION_AND_REVIEW_COMPLETE"
+}

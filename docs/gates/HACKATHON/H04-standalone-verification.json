@@ -1,0 +1,68 @@
+{
+  "status": "LIVE_CHAIN_RECORDS_VERIFIED",
+  "records": [
+    {
+      "task_id": "84410849-a102-4269-b52f-d7d3333ec626",
+      "kind": "task",
+      "entity_key": "0x6629ad8ec7871db0d3d3f990985491019e29e124c185c7a97a597414ce53bbf0",
+      "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+      "observed_at": "2026-11-06T18:23:33.137Z"
+    },
+    {
+      "task_id": "84410849-a102-4269-b52f-d7d3333ec626",
+      "kind": "claim",
+      "entity_key": "0x19b4c6bf241c81698a2a2aed8b3238ddf9e44683b8c2db48a183f3af55d2d0d8",
+      "owner": "0x16E488B2A757B6dE437c66c33b1C58025F351915",
+      "observed_at": "2026-11-06T18:23:35.977Z"
+    },
+    {
+      "task_id": "84410849-a102-4269-b52f-d7d3333ec626",
+      "kind": "result",
+      "entity_key": "0x7c32404268f67ba73445358fca7cafa3e77af5e712855bebd2e926ca0cb81105",
+      "owner": "0x16E488B2A757B6dE437c66c33b1C58025F351915",
+      "observed_at": "2026-11-06T18:23:38.790Z"
+    },
+    {
+      "task_id": "84410849-a102-4269-b52f-d7d3333ec626",
+      "kind": "assignment",
+      "entity_key": "0x6d07d8870a0b0ecc338df070652c47487911e8552c70d4858d5b6a43c0fb08e9",
+      "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+      "observed_at": "2026-11-06T18:23:41.511Z"
+    },
+    {
+      "task_id": "696a2bd5-e311-444a-80ba-2dbd4a909e7c",
+      "kind": "task",
+      "entity_key": "0x1452bdbef04ddcbfdd1bb46b59cb7d95631d47fb945e0b10e601f52e933087de",
+      "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+      "observed_at": "2026-11-06T18:23:45.065Z"
+    },
+    {
+      "task_id": "696a2bd5-e311-444a-80ba-2dbd4a909e7c",
+      "kind": "claim",
+      "entity_key": "0xd383b23778f531c13026834f22d1fe167b55de9b04ea409374e9c03ccff0f089",
+      "owner": "0x28B4e240a1DB273eaE78d66DD11013B5ED2279A4",
+      "observed_at": "2026-11-06T18:23:48.000Z"
+    },
+    {
+      "task_id": "696a2bd5-e311-444a-80ba-2dbd4a909e7c",
+      "kind": "assignment",
+      "entity_key": "0x802cb112a7e725d19d8adb413a5468fef776c57d0edd652f5164b882b820e95b",
+      "owner": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+      "observed_at": "2026-11-06T18:23:51.504Z"
+    },
+    {
+      "task_id": "696a2bd5-e311-444a-80ba-2dbd4a909e7c",
+      "kind": "review",
+      "entity_key": "0x266cb5284d0bd9e201434936383e713dfce5e8415cee9639acce8da84c42c73e",
+      "owner": "0x28B4e240a1DB273eaE78d66DD11013B5ED2279A4",
+      "observed_at": "2026-11-06T18:23:54.312Z"
+    }
+  ],
+  "orca_api_used": false,
+  "database_used": false,
+  "wallet_private_key_used": false,
+  "authorization_freshness": "unknown; offline binding snapshot does not establish current revocation status",
+  "ens_verified": false,
+  "institution_verified": false,
+  "scientific_correctness": "not established by chain verification"
+}

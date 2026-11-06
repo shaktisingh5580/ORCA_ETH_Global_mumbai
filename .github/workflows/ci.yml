@@ -1,6 +1,6 @@
 # Purpose: reproduce P00/P01 checks on a clean Linux worker.
-# Behavior: acquire locked dependencies and verify committed code; local source docs stay private.
-# Refs: main_implementation plan.md P01.4; Phase: P01.
+# Behavior: acquire locked Python/Arkiv dependencies and verify committed code; local source docs stay private.
+# Refs: main_implementation plan.md P01.4; H04-agent-coordination.json; Phase: P01/H04.
 name: Backend phase gates
 on: [push, pull_request]
 permissions:
@@ -14,6 +14,13 @@ jobs:
       UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/.cache/python
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: arkiv
+      - run: npm run check
+        working-directory: arkiv
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.9.30'
@@ -22,6 +29,7 @@ jobs:
       - run: uv build --project backend --out-dir backend/dist
       # Full G00/G01 also checks local research references intentionally excluded from Git.
       - run: backend/.venv/bin/python backend/scripts/export_openapi.py --check
+      - run: backend/.venv/bin/python backend/scripts/export_prototype_contract.py --check
       - run: backend/.venv/bin/python backend/scripts/check_file_headers.py
       - run: backend/.venv/bin/python backend/scripts/check_import_boundaries.py
       - run: backend/.venv/bin/python -m ruff check backend

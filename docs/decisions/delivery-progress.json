@@ -54,7 +54,7 @@
     },
     {
       "id": "P09",
-      "status": "NOT_STARTED",
+      "status": "H04_A2A_PROTOTYPE_DELIVERED_FULL_GATE_DEFERRED",
       "scope": "Provider onboarding and A2A federation"
     },
     {
@@ -64,7 +64,7 @@
     },
     {
       "id": "P11",
-      "status": "SELECTED_COORDINATION_NOT_IMPLEMENTED_RESULT_REFERENCE_DEMO_ONLY",
+      "status": "H04_COORDINATION_PROTOTYPE_DELIVERED_FULL_GATE_DEFERRED",
       "scope": "Arkiv task/claim/assignment/review coordination; current CLI publishes and reads only a demo result reference"
     },
     {
@@ -83,5 +83,12 @@
       "scope": "Security, recovery and full release qualification"
     }
   ],
-  "counting": "P03-P14 remain unfinished; route counts do not measure completion percentage. P02 now has current gate and cloud workspace evidence."
+  "counting": "P03-P14 remain unfinished; route counts do not measure completion percentage. P02 now has current gate and cloud workspace evidence.",
+  "prototype_coordination_delivery": {
+    "phase": "H04",
+    "status": "BACKEND_PROTOCOL_PASS",
+    "evidence": "docs/gates/HACKATHON/H04.json",
+    "full_phase_gates_claimed": false,
+    "frontend_acceptance": "pending with teammate"
+  }
 }

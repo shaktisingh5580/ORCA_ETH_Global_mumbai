@@ -123,6 +123,78 @@
         "title": "AddProjectMember",
         "type": "object"
       },
+      "AgentBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "binding_version": {
+            "format": "uuid",
+            "title": "Binding Version",
+            "type": "string"
+          },
+          "capability": {
+            "enum": [
+              "sst_reproduction",
+              "sst_review"
+            ],
+            "title": "Capability",
+            "type": "string"
+          },
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "identity_status": {
+            "const": "operator_pinned_not_ens_verified",
+            "default": "operator_pinned_not_ens_verified",
+            "title": "Identity Status",
+            "type": "string"
+          },
+          "key_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Key Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "operator_mode": {
+            "const": "team_controlled",
+            "default": "team_controlled",
+            "title": "Operator Mode",
+            "type": "string"
+          },
+          "public_key": {
+            "title": "Public Key",
+            "type": "string"
+          },
+          "wallet": {
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Wallet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "binding_version",
+          "name",
+          "capability",
+          "endpoint",
+          "public_key",
+          "key_id",
+          "wallet"
+        ],
+        "title": "AgentBinding",
+        "type": "object"
+      },
       "ApprovePlan": {
         "additionalProperties": false,
         "properties": {
@@ -136,6 +208,42 @@
           "approve"
         ],
         "title": "ApprovePlan",
+        "type": "object"
+      },
+      "AssignClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "format": "uuid",
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "expected_generation": {
+            "minimum": 0.0,
+            "title": "Expected Generation",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "claim_id",
+          "expected_generation"
+        ],
+        "title": "AssignClaim",
+        "type": "object"
+      },
+      "CancelNetworkTask": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_generation": {
+            "minimum": 0.0,
+            "title": "Expected Generation",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_generation"
+        ],
+        "title": "CancelNetworkTask",
         "type": "object"
       },
       "CanonicalVariableMapping": {
@@ -430,6 +538,60 @@
           "expires_at"
         ],
         "title": "CreateInvitation",
+        "type": "object"
+      },
+      "CreateNetworkTask": {
+        "additionalProperties": false,
+        "properties": {
+          "approve_public_reference": {
+            "default": false,
+            "title": "Approve Public Reference",
+            "type": "boolean"
+          },
+          "capability": {
+            "default": "sst_reproduction",
+            "enum": [
+              "sst_reproduction",
+              "sst_review"
+            ],
+            "title": "Capability",
+            "type": "string"
+          },
+          "deadline_seconds": {
+            "default": 3600,
+            "maximum": 86400.0,
+            "minimum": 120.0,
+            "title": "Deadline Seconds",
+            "type": "integer"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "review_of": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Of"
+          },
+          "source_run_id": {
+            "format": "uuid",
+            "title": "Source Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "source_run_id"
+        ],
+        "title": "CreateNetworkTask",
         "type": "object"
       },
       "CreateOrganization": {
@@ -1407,6 +1569,184 @@
           "coordinates"
         ],
         "title": "MultiPolygon",
+        "type": "object"
+      },
+      "NetworkOperation": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "reconciliation_required"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "task_id": {
+            "format": "uuid",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "task_id",
+          "action",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "NetworkOperation",
+        "type": "object"
+      },
+      "NetworkTask": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "assignments": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Assignments",
+            "type": "array"
+          },
+          "capability": {
+            "enum": [
+              "sst_reproduction",
+              "sst_review"
+            ],
+            "title": "Capability",
+            "type": "string"
+          },
+          "claims": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deadline": {
+            "format": "date-time",
+            "title": "Deadline",
+            "type": "string"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/NetworkOperation"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "publication_mode": {
+            "enum": [
+              "private",
+              "public_reference"
+            ],
+            "title": "Publication Mode",
+            "type": "string"
+          },
+          "recipe_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Recipe Digest",
+            "type": "string"
+          },
+          "review_of": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Of"
+          },
+          "source_run_id": {
+            "format": "uuid",
+            "title": "Source Run Id",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "source_run_id",
+          "capability",
+          "review_of",
+          "publication_mode",
+          "state",
+          "generation",
+          "recipe_digest",
+          "deadline",
+          "created_at"
+        ],
+        "title": "NetworkTask",
         "type": "object"
       },
       "Operation": {
@@ -3004,6 +3344,21 @@
           "blocked_gates"
         ],
         "title": "ReadinessReport",
+        "type": "object"
+      },
+      "RequestClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "provider_id": {
+            "format": "uuid",
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id"
+        ],
+        "title": "RequestClaim",
         "type": "object"
       },
       "ResourceRef": {
@@ -5366,6 +5721,613 @@
         "summary": "Meta",
         "x-orca-implementation-status": "IMPLEMENTED",
         "x-orca-phase": "P01"
+      }
+    },
+    "/v1/network/agents": {
+      "get": {
+        "operationId": "agents_v1_network_agents_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgentBinding"
+                  },
+                  "title": "Response Agents V1 Network Agents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Agents",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/config": {
+      "get": {
+        "operationId": "capabilities_v1_network_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Capabilities V1 Network Config Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Capabilities",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/operations/{operation_id}": {
+      "get": {
+        "operationId": "operation_v1_network_operations__operation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "operation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Operation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkOperation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Operation",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks": {
+      "get": {
+        "operationId": "tasks_v1_network_tasks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NetworkTask"
+                  },
+                  "title": "Response Tasks V1 Network Tasks Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Tasks",
+        "tags": [
+          "agent coordination"
+        ]
+      },
+      "post": {
+        "operationId": "create_task_v1_network_tasks_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNetworkTask"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkOperation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Task",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}": {
+      "get": {
+        "operationId": "task_v1_network_tasks__task_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkTask"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Task",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}/assignments": {
+      "post": {
+        "operationId": "assign_v1_network_tasks__task_id__assignments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignClaim"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkOperation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Assign",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}/cancel": {
+      "post": {
+        "operationId": "cancel_v1_network_tasks__task_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelNetworkTask"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkOperation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Cancel",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}/claims": {
+      "post": {
+        "operationId": "claim_v1_network_tasks__task_id__claims_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestClaim"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkOperation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Claim",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}/timeline": {
+      "get": {
+        "operationId": "timeline_v1_network_tasks__task_id__timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "refresh_chain",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Refresh Chain",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Timeline V1 Network Tasks  Task Id  Timeline Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Timeline",
+        "tags": [
+          "agent coordination"
+        ]
       }
     },
     "/v1/organizations": {
