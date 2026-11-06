@@ -1,0 +1,18 @@
+{
+  "status": "LIVE_TERMINAL_DEMO_COMPLETED",
+  "command": "backend/.venv/Scripts/python backend/scripts/demo_terminal.py",
+  "cloud_source_bytes": 169426,
+  "finite_observations": 3751,
+  "daily_values": 31,
+  "sample_mean_celsius_display": 26.2693,
+  "source_digest_verified": true,
+  "recomputed_result_matches_cloud_and_publication_receipt": true,
+  "separate_arkiv_read_matches_expected_export": true,
+  "arkiv_read_subprocess_receives_wallet_key": false,
+  "arkiv_read_subprocess_receives_supabase_credentials": false,
+  "new_chain_transactions": 0,
+  "interface": "Operator terminal using private runtime configuration; browser/API login is a separate flow",
+  "scientific_validation": "not_validated",
+  "automated_regression_execution": "DEFERRED_BY_USER",
+  "validation": "Manual live cloud/RPC execution plus lint, format and mypy checks; no full phase completion claim"
+}

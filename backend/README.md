@@ -322,3 +322,27 @@ send that file directly to the frontend developer/AI assistant. It covers actual
 routes, dashboard changes, session headers, charts, unsupported features, LAN
 diagnostics and an optional later Vercel/HTTPS tunnel approach. The prepared tunnel
 helper has not been executed and no public tunnel is active.
+
+## Terminal-only research and Arkiv demonstration
+
+From the repository root:
+
+```powershell
+backend/.venv/Scripts/python backend/scripts/demo_terminal.py
+```
+
+For a presentation that waits between stages and prints the daily table:
+
+```powershell
+backend/.venv/Scripts/python backend/scripts/demo_terminal.py --pause --show-daily
+```
+
+It reads real snapshot/result records using the tenant-scoped cloud runtime role,
+reads and hashes the private source bytes, recomputes the descriptive result, compares
+the result digest, and reads the existing Arkiv entity through a separate SDK process.
+That subprocess receives only the RPC access key, not wallet or Supabase credentials.
+The command does not require the frontend or FastAPI process, and creates no new
+chain transactions. It is an operator demo using private runtime configuration;
+it does not replace the authenticated browser/API acceptance flow or full scientific
+validation. Private `.env.demo`, `.env.arkiv` and prepared local resource IDs are
+required. On RPC failure or entity expiry it stops without claiming Arkiv success.
