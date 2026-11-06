@@ -67,8 +67,8 @@
     "backend/tests/contracts/test_gate_and_openapi.py": "80ebfd447c532da564085a4ab0ec1ecc14910d044421497122e3c3b01a253f4c",
     "backend/tests/contracts/test_mock_scenarios.py": "6633d7f8e0f608c7c7d3ea6b1b94150d2508bc38dbbdde39fdade821a5c63875",
     "backend/tests/contracts/test_research_scope.py": "a05879eddd2041fe3d06ca4ef77ef96764831ef1e4fb5db527866f6b809cbf60",
-    "backend/tests/integration/test_object_staging.py": "6ecdcba15040c0d61899c09cc8f6b4001d19e9678adeb0223b6fe498a572a066",
-    "backend/tests/integration/test_p02_migrations.py": "3844c06451f6b33b9de10e62dba01ab8e5cb0398850f06cae479a7aeaf8213eb",
+    "backend/tests/integration/test_object_staging.py": "74d1eab663f0d9a9cb396c320f6320e76e657d5e0059f03c1b1b463ae493c680",
+    "backend/tests/integration/test_p02_migrations.py": "9f225d0074d8ffad142baecc9fd6e1a4a2270334a565da6e2d9050728385a35f",
     "backend/tests/integration/test_project_crud.py": "819847221aca8ba2dd92d4f825fe0a3438a8a3405f548b899b0e9708471df6c9",
     "backend/tests/security/test_object_staging_unit.py": "a6d8519e0f56c2e78a6d8c8f05a98dc8037959b7fbdcd1cd4ab83de2a0a51fc2",
     "backend/tests/security/test_oidc_auth.py": "55d17f2c989fa379557ce20fb22e769460a8bb833735eee8ad78f92662ddfc8d",
@@ -88,7 +88,7 @@
     "docs/gates/P01/requirements.json": "d2fc89de41ff3d024c0cfde46177d8eddf57d5d6a753a7e3885eae5eb642f644",
     "main_implementation plan.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad"
   },
-  "source_tree_sha256": "f2b5bda5e97de61f8927017f8ce4a1ba75168fb0e046808ac669b0ab122dcefb",
+  "source_tree_sha256": "2773c4db89116abd97aa20b2906a3774a89f9ac3acd3020948cca9967ba0e43f",
   "counts": {
     "required": 25,
     "collected": 29,
@@ -132,11 +132,11 @@
   },
   "evidence_hashes": {
     "build.txt": "b9fc3ac193ea90c9091bfe0ee1ca6ee1302b53cb66ba00636a552c7238f4d7e4",
-    "clean-install.txt": "514d6e923c88e097836113400302952ebfddd8b209f0e087819480035b8bcb87",
+    "clean-install.txt": "ba1de44682c9ceb4970cd47afc253496767888c03256962ea00d447b8b5f3d09",
     "static-checks.txt": "b75a62de2473cc19a40f5ef55eccb3fe2527a6550fc2a82b587381e34667bd46",
-    "test-results.txt": "588a31c81707a3b8586766d20e62356f2e8ab3b56f3000aad8135971f0ce3b25",
-    "test-results.xml": "174baf618301bec052d9433bb8284b680e67ea3aeedea361161a8c151dbaf3fe"
+    "test-results.txt": "e6c5aa9d785e5ace51292d0369dd2b25ed2bdff5ba5199987c247794485d8f58",
+    "test-results.xml": "ea2fc7ff0706588b41bdeb1feb5df05dba1badbca5c09f6fa8306577bf7b81b9"
   },
   "next_phase": "P02",
-  "generated_at": "2026-11-06T08:26:56.594597+00:00"
+  "generated_at": "2026-11-06T09:54:09.064196+00:00"
 }
