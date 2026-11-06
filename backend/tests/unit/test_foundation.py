@@ -33,7 +33,14 @@ def test_clean_install_from_lock(tmp_path):
         UV_CACHE_DIR=str(ROOT / ".cache/uv"),
         UV_PYTHON_INSTALL_DIR=str(ROOT / ".cache/python"),
     )
-    command = ["uv", "sync", "--locked", "--offline", "--no-dev", "--no-editable"]
+    command = [
+        "uv",
+        "sync",
+        "--locked",
+        "--offline",
+        "--no-dev",
+        "--no-install-project",
+    ]
     result = subprocess.run(
         command, cwd=BACKEND, env=env, capture_output=True, text=True, timeout=180
     )
@@ -42,6 +49,28 @@ def test_clean_install_from_lock(tmp_path):
     evidence.write_text(log, encoding="utf-8")
     assert result.returncode == 0, log
     executable = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    wheel = next((BACKEND / "dist").glob("orca_backend-*.whl"))
+    install_command = [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        str(executable),
+        "--offline",
+        "--no-deps",
+        str(wheel),
+    ]
+    installed_project = subprocess.run(
+        install_command, cwd=BACKEND, env=env, capture_output=True, text=True, timeout=60
+    )
+    log += (
+        "\nCommand: "
+        + " ".join(install_command)
+        + "\n"
+        + installed_project.stdout
+        + installed_project.stderr
+    )
+    assert installed_project.returncode == 0, log
     modules = [
         ".".join(p.relative_to(BACKEND / "src").with_suffix("").parts).removesuffix(".__init__")
         for p in sorted((BACKEND / "src").rglob("*.py"))

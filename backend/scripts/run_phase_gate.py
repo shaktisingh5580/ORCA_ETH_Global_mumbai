@@ -173,7 +173,17 @@ def run() -> int:
         errors.append("Offline release build failed; see build.txt")
     junit = OUT / "test-results.xml"
     junit.unlink(missing_ok=True)
-    command = [sys.executable, "-m", "pytest", "-q", f"--junitxml={junit}"]
+    command = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_foundation.py",
+        "tests/contracts/test_common_schemas.py",
+        "tests/contracts/test_mock_scenarios.py",
+        "tests/contracts/test_gate_and_openapi.py",
+        f"--junitxml={junit}",
+    ]
     tests = subprocess.run(
         command, cwd=BACKEND, env=env, capture_output=True, text=True, timeout=600
     )

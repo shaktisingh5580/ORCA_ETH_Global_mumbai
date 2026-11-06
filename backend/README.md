@@ -58,3 +58,23 @@ docs/gates/P01/            # At repository root: computed test and installation 
 Later phases introduce domain/application/infrastructure modules when implementing their approved use cases. Add a typed contract, application service and route with its own phase tests, then include it in the runtime router and regenerated implemented OpenAPI. Provider I/O belongs in infrastructure adapters; domain/science modules cannot import HTTP or persistence frameworks. Register a capability only after its gate passes, with live verification separately recorded. The design-only inventory is a planning reference, not a route registry that automatically enables handlers.
 
 Reference decisions: [P01 reconciliation](../docs/decisions/P01-contract-reconciliation.md), [main plan](../main_implementation%20plan.md), [API design](../api%20design.md). P02 is authentication, tenant-isolated persistence, projects and uploads. Its database and identity-provider decisions are intentionally deferred to that phase.
+
+## P02 live environment
+
+P02 uses PostgreSQL 17 with PostGIS 3.5 and versioned S3-compatible object storage. The compose file binds both services to loopback and requires generated local credentials:
+
+```powershell
+$env:ORCA_DB_PASSWORD = (uv run python -c "import secrets; print(secrets.token_urlsafe(32))")
+$env:ORCA_RUNTIME_PASSWORD = (uv run python -c "import secrets; print(secrets.token_urlsafe(32))")
+$env:ORCA_S3_ACCESS_KEY = 'orca-local-test'
+$env:ORCA_S3_SECRET_KEY = (uv run python -c "import secrets; print(secrets.token_urlsafe(32))")
+docker compose -f ../infra/compose.yaml up -d --wait
+$env:ORCA_TEST_DATABASE_URL = "postgresql+psycopg://orca_migrator:$($env:ORCA_DB_PASSWORD)@127.0.0.1:55432/orca_test"
+$env:ORCA_TEST_RUNTIME_DATABASE_URL = "postgresql+psycopg://orca_runtime:$($env:ORCA_RUNTIME_PASSWORD)@127.0.0.1:55432/orca_test"
+$env:ORCA_TEST_S3_ENDPOINT = 'http://127.0.0.1:59000'
+$env:ORCA_TEST_S3_ACCESS_KEY = $env:ORCA_S3_ACCESS_KEY
+$env:ORCA_TEST_S3_SECRET_KEY = $env:ORCA_S3_SECRET_KEY
+uv run python scripts/run_p02_gate.py
+```
+
+The migration tests refuse a database whose name does not end in `_test`. G02 reports `BLOCKED` when these services are unavailable and never converts skipped live tests into a pass. The local cryptographic issuer tests prove verifier behavior; deployment still needs a selected issuer, audience and HTTPS JWKS URL.
