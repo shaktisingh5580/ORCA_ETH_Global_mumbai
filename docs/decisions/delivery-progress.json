@@ -1,23 +1,26 @@
 {
   "profile": "research-federated",
   "source": "Research-only scope guide section 8 overrides historical optional federation and old P12",
-  "completed_phases": ["P00", "P01", "P02"],
+  "historically_passed_gate_reports": ["P00", "P01", "P02"],
+  "completed_phases": [],
+  "completion_note": "No current full selected-profile phase completion is asserted by this progress file. Historical foundation gate passes are retained separately. P02 selected route coverage is 7/31, not complete.",
+  "current_audit": "docs/decisions/platform-implementation-audit.json",
   "current_phase": "P03",
-  "unfinished_core_phases": 6,
-  "unfinished_full_product_phases": 12,
+  "unfinished_core_phases": 7,
+  "unfinished_full_product_phases": 13,
   "phases": [
     {"id": "P03", "status": "IN_PROGRESS", "scope": "Catalog/acquisition, probes, grants and live scientific inputs"},
-    {"id": "P04", "status": "NOT_STARTED", "scope": "Pinned scientific methods and deterministic SST evidence"},
+    {"id": "P04", "status": "SELECTED_SCOPE_NOT_IMPLEMENTED_DEMO_COMPONENT_ONLY", "scope": "Pinned scientific methods and deterministic SST evidence; descriptive demo is not the anomaly engine"},
     {"id": "P05", "status": "NOT_STARTED", "scope": "Durable research planning and run orchestration"},
     {"id": "P06", "status": "NOT_STARTED", "scope": "Evidence publication, maps, reports and exports"},
     {"id": "P07", "status": "NOT_STARTED", "scope": "Reproduction, review, challenges and replay"},
     {"id": "P08", "status": "NOT_STARTED", "scope": "Core deployment, observability and integration"},
     {"id": "P09", "status": "NOT_STARTED", "scope": "Provider onboarding and A2A federation"},
     {"id": "P10", "status": "NOT_STARTED", "scope": "ENSv2 identity, delegation and signed binding"},
-    {"id": "P11", "status": "NOT_STARTED", "scope": "Arkiv coordination and public verification"},
+    {"id": "P11", "status": "SELECTED_COORDINATION_NOT_IMPLEMENTED_RESULT_REFERENCE_DEMO_ONLY", "scope": "Arkiv task/claim/assignment/review coordination; current CLI publishes and reads only a demo result reference"},
     {"id": "P12", "status": "NOT_STARTED", "scope": "Research-only cross-feature integration and scope regression; historical Marine scope excluded"},
     {"id": "P13", "status": "NOT_STARTED", "scope": "Research assurance and independent benchmarking"},
     {"id": "P14", "status": "NOT_STARTED", "scope": "Security, recovery and full release qualification"}
   ],
-  "counting": "Counts include current unfinished P03. API contracts and scaffolding do not count as completed phase implementations. Selected product still has 165 designed operations, not 165 working operations."
+  "counting": "P03-P14 remain unfinished, and a P02 completion repair is also required. Earlier counts of six core/twelve full phases omitted P02 scope debt. Exact remaining work is in the current audit; route counts do not measure percentage completion."
 }
