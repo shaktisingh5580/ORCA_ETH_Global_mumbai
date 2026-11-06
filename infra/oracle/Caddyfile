@@ -1,0 +1,6 @@
+# Purpose: provide the Vercel frontend with a public HTTPS backend endpoint.
+# Behavior: obtain and renew TLS for the configured DNS name; proxy only to the internal API.
+# Refs: Caddy automatic HTTPS documentation; ORACLE_FREE_DEPLOYMENT_GUIDE.md; Phase: H05.
+{$ORCA_PUBLIC_HOST} {
+    reverse_proxy backend:10000
+}

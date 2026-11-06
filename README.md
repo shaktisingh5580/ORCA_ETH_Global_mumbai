@@ -15,7 +15,7 @@ The original real-data rehearsal produced about +0.623°C. This is a bounded pro
 
 ## Deployment
 
-The frontend is a separate existing Vercel application. The backend deployment is defined by `render.yaml`. Its cloud container supervises the API, scientific/coordinator/upload workers and loopback A2A providers. Supabase remains the managed data layer. Persistent disk is required for this profile's SQLite/transaction-reservation recovery. Review the Render resource estimate before creating paid resources.
+The frontend is a separate existing Vercel application. The selected backend destination is now Oracle Always Free, configured in `infra/oracle/compose.yaml` with a Caddy HTTPS proxy. Its cloud container supervises the API, scientific/coordinator/upload workers and loopback A2A providers. Supabase remains the managed data layer. Docker volumes on the VM disk preserve SQLite and transaction-reservation recovery. The operator must select resources within the account's Always Free allowance. `render.yaml` remains an alternative paid deployment, not the selected destination.
 
 `infra/Dockerfile.render` excludes demonstration tooling. `infra/Dockerfile.hackathon` deliberately includes separately labelled synthetic demonstration tooling, while the production Python wheel remains fixture-free. Neither image contains credentials or captured research files. Real source bytes are restored from private cloud storage and checked against pinned digests at runtime.
 

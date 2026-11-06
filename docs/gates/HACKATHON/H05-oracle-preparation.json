@@ -1,0 +1,32 @@
+{
+  "phase": "H05",
+  "subphase": "Oracle Always Free host adaptation",
+  "status": "LOCAL_CONFIGURATION_PASS_VM_DEPLOYMENT_PENDING",
+  "phase_complete": false,
+  "deployment_live": false,
+  "selected_host": "Oracle Always Free",
+  "paid_render_creation_authorized": false,
+  "checks": {
+    "compose_config_quiet": "PASS",
+    "cloud_and_actual_A2A_tests": "PASS: 4 tests",
+    "literal_file_secret_loading_and_ambiguous_source_rejection": "PASS",
+    "ruff": "PASS",
+    "ruff_format": "PASS",
+    "mypy": "PASS: 109 source files",
+    "purpose_headers": "PASS",
+    "import_boundaries": "PASS"
+  },
+  "secrets": "Ignored local bundle; mounted as a private runtime file without JSON/shell interpolation; not committed",
+  "persistence": "Agent/demo volumes and Caddy certificate volumes live on the Oracle VM disk",
+  "public_ports": [80, 443],
+  "operator_ssh_port": 22,
+  "not_yet_verified": [
+    "Oracle account eligibility and A1 capacity",
+    "VM creation and SSH connection",
+    "Native ARM Docker build",
+    "Cloud source restoration and actual startup",
+    "HTTPS certificate issuance",
+    "Actual Vercel browser session and restart acceptance"
+  ],
+  "private_operator_guide": "ORACLE_FREE_DEPLOYMENT_GUIDE.md"
+}

@@ -1,0 +1,61 @@
+# Purpose: host the full prototype on one Oracle Always Free ARM VM.
+# Behavior: expose HTTPS only through Caddy; preserve agent state and mount private settings as a file.
+# Refs: ORACLE_FREE_DEPLOYMENT_GUIDE.md; H05 cloud runtime decision; Phase: H05 Oracle adaptation.
+name: orca-oracle
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: infra/Dockerfile.hackathon
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 120s
+    environment:
+      PORT: '10000'
+      ORCA_RUNTIME_BUNDLE_FILE: /run/secrets/orca_runtime_bundle
+      ORCA_PERSISTENT_DIR: /var/data/orca
+      ORCA_FRONTEND_ORIGIN: ${ORCA_FRONTEND_ORIGIN:-}
+    secrets:
+      - orca_runtime_bundle
+    volumes:
+      - agent_state:/var/data/orca
+    expose:
+      - '10000'
+    healthcheck:
+      test: ['CMD', 'backend/.venv/bin/python', '-c', "import urllib.request; urllib.request.urlopen('http://127.0.0.1:10000/livez',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 180s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      ORCA_PUBLIC_HOST: ${ORCA_PUBLIC_HOST:?Set the public DNS hostname in infra/oracle/.env}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - tls_data:/data
+      - tls_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+secrets:
+  orca_runtime_bundle:
+    file: ../../.cache/oracle/runtime-bundle.json
+volumes:
+  agent_state:
+  tls_data:
+  tls_config:
