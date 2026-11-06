@@ -107,11 +107,11 @@
     "backend/tests/security/test_rls_multitenant.py": "20c2b3e12a4dcffa3f4151d35b347ce2986d63f2b9995037ee38d8475d93dc87",
     "backend/tests/support/live_database.py": "70357cc899ce2f71a9238f1ef93d7f63317d8434b3fe90fb9ad276cb599b749d",
     "backend/tests/support/mock_server.py": "f9d2fa25b50d7a4888a157749c805ca3703c6fe34153ec10db6f6d97cfc563a9",
-    "backend/tests/unit/test_foundation.py": "3c261ec2d0452db9caef6024e22bc0f0253f8790da892a348af2eb050e1195de",
+    "backend/tests/unit/test_foundation.py": "ac36b4142f234ab20dbf093325d5b4dab279b1fdb73ace0af3de243b2fcd4bba",
     "infra/compose.yaml": "24cc891a6f686e0af552858ccff74e384f6ff229e7ba7ae352b76d1693ffa7de",
     "infra/postgres/init-runtime.sh": "3a4fbcecf1a7581b55cb6cd04b3acb27cf771bfe6f2b58b4561e8f2659cb9bf9"
   },
-  "source_tree_sha256": "406450fda4723659b9a2815c8555d82b9cffb6c11829740b16680606d5ee1001",
+  "source_tree_sha256": "cdecb3b10ba13f5b34499314a1289607f5569b810dbf820fcaa9cace3c518180",
   "next_phase": null,
-  "generated_at": "2026-11-06T02:05:42.032296+00:00"
+  "generated_at": "2026-11-06T02:13:07.829232+00:00"
 }

@@ -33,7 +33,7 @@ uv run python scripts/export_openapi.py
 uv run python scripts/run_phase_gate.py P01
 ```
 
-Gate outputs are in `../docs/gates/P01/`. Default tests deny network access. Clean lock installs use an isolated environment and offline cached dependencies; an uncached platform must first `uv sync --locked`. CI performs that acquisition before offline checks. Do not mark the gate PASS when a required package, prerequisite, test or output is missing.
+Gate outputs are in `../docs/gates/P01/`. Default Python tests deny network access. Clean lock installs use an isolated environment; local gates use cached dependencies offline, while a fresh CI worker may download only versions fixed by `uv.lock`. Do not mark the gate PASS when a required package, prerequisite, test or output is missing.
 
 HTTP tests allow loopback solely for Windows' asyncio socket pair; requests to the app itself use an in-process ASGI transport. Windows sandbox policies that block even loopback can stall event-loop startup; run the gate in a normal local terminal. No external API credentials are needed for P01. The current Starlette version emits a deprecation warning for its supported httpx test transport; a later toolchain update can migrate that test dependency without changing production HTTP behavior.
 

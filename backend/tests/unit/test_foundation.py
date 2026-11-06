@@ -37,10 +37,11 @@ def test_clean_install_from_lock(tmp_path):
         "uv",
         "sync",
         "--locked",
-        "--offline",
         "--no-dev",
         "--no-install-project",
     ]
+    if os.environ.get("CI") != "true":
+        command.append("--offline")
     result = subprocess.run(
         command, cwd=BACKEND, env=env, capture_output=True, text=True, timeout=180
     )

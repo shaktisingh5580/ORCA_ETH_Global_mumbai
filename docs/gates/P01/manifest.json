@@ -35,7 +35,7 @@
     "backend/.python-version": "f01d748a75eb195e6fd73201279bfb23f09036ddd360eb3e9ff40ef042acbc8a",
     "backend/fixtures/api/scenarios.json": "5fa1cfe578ad93ba8a47b6aed00441ece271ee0ef57cdb15702aa607717c2a27",
     "backend/pyproject.toml": "9058a6b545551a19ca6f8c003f0d7b8ce5e876323ca0eec77a53d81402536df3",
-    "backend/README.md": "2bade8507ce36fc0f0426827f1bea3dcb0b1cc21592560517b360027db04d795",
+    "backend/README.md": "ba47d801f365ad6ad22854b2c52402b9591e4c2c6a5f1be26b509934e9f51ce1",
     "backend/scripts/check_file_headers.py": "bad1c5aec230c3a131cdcf283e876ef3bd75150b355e970b74363b9e45dd8eee",
     "backend/scripts/check_import_boundaries.py": "d165967c4755bddcb64af4413c9ccaf89d42baf61da7a9d598b9f8e32e36da5f",
     "backend/scripts/export_openapi.py": "87a45bb5cf335549d80a9d4530f96eaf478ba3f1e5e1442788e4935d53655fbf",
@@ -72,7 +72,7 @@
     "backend/tests/security/test_rls_multitenant.py": "20c2b3e12a4dcffa3f4151d35b347ce2986d63f2b9995037ee38d8475d93dc87",
     "backend/tests/support/live_database.py": "70357cc899ce2f71a9238f1ef93d7f63317d8434b3fe90fb9ad276cb599b749d",
     "backend/tests/support/mock_server.py": "f9d2fa25b50d7a4888a157749c805ca3703c6fe34153ec10db6f6d97cfc563a9",
-    "backend/tests/unit/test_foundation.py": "3c261ec2d0452db9caef6024e22bc0f0253f8790da892a348af2eb050e1195de",
+    "backend/tests/unit/test_foundation.py": "ac36b4142f234ab20dbf093325d5b4dab279b1fdb73ace0af3de243b2fcd4bba",
     "backend/uv.lock": "9665ab37a66a296d1b5af2f503a6bc1ac471a350539b462c3f1824e322e10a43",
     "contracts/designed/orca-proposal.json": "408a454d9cfe49c663d4025cf39190a575c53d60fec891dc9ef5bd9cda1757a8",
     "contracts/openapi/orca-v1.json": "ccb242f878675a1fd9353bb1598c6f1ca3902ab1a214c0d37fb16b25b8b10e46",
@@ -83,7 +83,7 @@
     "docs/gates/P01/requirements.json": "ee0d8d6bb965340307262e29d7f7d13dfc580743105c0f5749c5cc0eea206185",
     "main_implementation plan.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad"
   },
-  "source_tree_sha256": "5ea5ee9da3151b103b6ad0d545486f10ef393ce091440363165eb15ed5a501b0",
+  "source_tree_sha256": "ca95680c07989c141b75ff61b2fe37a4cfeefbed36d7642ef20d63ee3d5494f9",
   "counts": {
     "required": 20,
     "collected": 23,
@@ -121,11 +121,11 @@
   },
   "evidence_hashes": {
     "build.txt": "b9fc3ac193ea90c9091bfe0ee1ca6ee1302b53cb66ba00636a552c7238f4d7e4",
-    "clean-install.txt": "59c9b893561dce1b91d36b0303183d929a8677135218dfee3deebc4285171a25",
+    "clean-install.txt": "c937c0d99c3d0c2292231ed9531ad7744993957d5f26211d15ea0f5a106e3f9d",
     "static-checks.txt": "8709e58abe23fc4c2151f71f8796e65a2105614aa2e83db252f322f313aad414",
-    "test-results.txt": "e68b403273aee05c5d4692d59ff7c7c4407538fe3688d6718a685da42ec6a6ac",
-    "test-results.xml": "61fad656d526b08b6edf70c3b600c11ed379b0da8f7773833affd0dbcabfa532"
+    "test-results.txt": "3cf83a564fc229d011893272c941d6d6d006126e1cf063b780d318b71f321e92",
+    "test-results.xml": "a1a06da274123394de69194a7d84d330cacb470ff3cbd0ff52f79491824d8d08"
   },
   "next_phase": "P02",
-  "generated_at": "2026-11-06T02:04:51.746060+00:00"
+  "generated_at": "2026-11-06T02:12:30.092362+00:00"
 }
