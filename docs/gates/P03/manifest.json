@@ -1,0 +1,25 @@
+{
+  "phase": "P03",
+  "gate_id": "G03",
+  "status": "INCOMPLETE",
+  "delivery": "Incremental implementation; not a completed phase or production release",
+  "implemented_components": [
+    "Tenant-scoped catalog contracts, persistence and immutable versions",
+    "Bounded ERDDAP retrieval and metadata parsing",
+    "Local exact-byte snapshot preservation and immutable manifest persistence",
+    "Provider/product/version/variable/coverage/license and snapshot read APIs"
+  ],
+  "remaining_work": [
+    "Durable source-probe and snapshot-request workflow APIs",
+    "Fitness and compatibility-check APIs",
+    "Project-scoped snapshot grants and remaining selected query semantics",
+    "Production object-store ingestion integration and recovery verification",
+    "All mandatory G03 named tests and complete phase runner",
+    "Compatible baseline and live scientific/QC/as-of evidence"
+  ],
+  "baseline_decision": "docs/decisions/P03-baseline-deferral.json",
+  "live_source_evidence": "docs/gates/P03/source-probes.json",
+  "regression_evidence": "docs/gates/P02/manifest.json",
+  "production_supabase_modified": false,
+  "next_phase": null
+}

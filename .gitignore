@@ -5,6 +5,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+backend/.tmp-p03-*/
 .ruff_cache/
 .mypy_cache/
 dist/
