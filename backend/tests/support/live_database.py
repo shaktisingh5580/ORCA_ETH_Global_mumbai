@@ -6,6 +6,7 @@ Refs: main plan P02.1-P02.4; Phase: P02 test support only.
 import os
 import subprocess
 from pathlib import Path
+from urllib.parse import urlparse
 from uuid import UUID, uuid4
 
 import psycopg
@@ -19,8 +20,15 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
     runtime = os.environ.get("ORCA_TEST_RUNTIME_DATABASE_URL", "")
     if not admin or not runtime:
         pytest.skip("live PostGIS runtime-role database unavailable")
-    if not admin.rsplit("/", 1)[-1].split("?", 1)[0].endswith("_test"):
-        pytest.fail("integration tests refuse a database not ending in _test")
+    database = admin.rsplit("/", 1)[-1].split("?", 1)[0]
+    host = urlparse(admin.replace("postgresql+psycopg", "postgresql", 1)).hostname or ""
+    dedicated_supabase = os.environ.get(
+        "ORCA_TEST_DATABASE_PURPOSE"
+    ) == "dedicated-staging" and host.endswith((".supabase.co", ".pooler.supabase.com"))
+    if not database.endswith("_test") and not dedicated_supabase:
+        pytest.fail(
+            "integration tests require a *_test database or an explicitly dedicated Supabase staging project"
+        )
     executable = str(
         BACKEND / (".venv/Scripts/alembic.exe" if os.name == "nt" else ".venv/bin/alembic")
     )

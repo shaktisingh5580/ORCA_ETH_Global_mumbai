@@ -6,6 +6,7 @@ Refs: main plan P02.1; docs/04_database.md sections 2,8,9; Phase: P02.
 import os
 import subprocess
 from pathlib import Path
+from urllib.parse import urlparse
 from uuid import uuid4
 
 import psycopg
@@ -18,8 +19,15 @@ def database_url() -> str:
     value = os.environ.get("ORCA_TEST_DATABASE_URL", "")
     if not value:
         pytest.skip("live PostGIS unavailable: set ORCA_TEST_DATABASE_URL")
-    if not value.rsplit("/", 1)[-1].split("?", 1)[0].endswith("_test"):
-        pytest.fail("migration tests refuse a database not ending in _test")
+    database = value.rsplit("/", 1)[-1].split("?", 1)[0]
+    host = urlparse(value.replace("postgresql+psycopg", "postgresql", 1)).hostname or ""
+    dedicated_supabase = os.environ.get(
+        "ORCA_TEST_DATABASE_PURPOSE"
+    ) == "dedicated-staging" and host.endswith((".supabase.co", ".pooler.supabase.com"))
+    if not database.endswith("_test") and not dedicated_supabase:
+        pytest.fail(
+            "migration tests require a *_test database or an explicitly dedicated Supabase staging project"
+        )
     return value
 
 
@@ -88,6 +96,13 @@ def test_postgis_extension_and_indexes():
         assert connection.execute(
             "SELECT extversion FROM pg_extension WHERE extname='postgis'"
         ).fetchone()
+        assert (
+            connection.execute("""SELECT n.nspname FROM pg_extension e
+                JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='postgis'""").fetchone()[
+                0
+            ]
+            == "extensions"
+        )
         indexes = {
             row[0]
             for row in connection.execute(

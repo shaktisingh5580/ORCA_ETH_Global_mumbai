@@ -12,7 +12,16 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+    op.execute("CREATE SCHEMA IF NOT EXISTS extensions")
+    op.execute("""DO $$ DECLARE installed_schema text; BEGIN
+      SELECT n.nspname INTO installed_schema FROM pg_extension e
+      JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='postgis';
+      IF installed_schema IS NULL THEN
+        EXECUTE 'CREATE EXTENSION postgis SCHEMA extensions';
+      ELSIF installed_schema <> 'extensions' THEN
+        RAISE EXCEPTION 'PostGIS must be installed in extensions schema, found %', installed_schema;
+      END IF;
+    END $$""")
     op.execute("CREATE SCHEMA IF NOT EXISTS iam")
     op.execute("""DO $$ BEGIN
       IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'orca_runtime') THEN
