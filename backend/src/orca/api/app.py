@@ -16,6 +16,7 @@ from starlette.responses import Response
 
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.catalog import router as catalog_router
+from orca.api.routers.demo import router as demo_router
 from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
@@ -24,7 +25,9 @@ from orca.api.routers.source_probes import router as source_probes_router
 from orca.config import Settings
 from orca.contracts.common import APIMetadata, Liveness, ReadinessReport
 from orca.infrastructure.auth.oidc import OIDCVerifier
+from orca.infrastructure.auth.supabase import SupabaseVerifier
 from orca.infrastructure.db.engine import create_runtime_engine
+from orca.infrastructure.storage.composition import snapshot_store
 
 
 def create_app(settings: Settings) -> FastAPI:
@@ -39,9 +42,15 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.snapshot_worker_enabled = settings.acquisition_enabled
     app.state.source_probes_enabled = settings.source_probes_enabled
     app.state.acquisition_sources = settings.acquisition_sources
+    if settings.research_demo_enabled:
+        app.state.demo_snapshot_store = snapshot_store(settings)
     if settings.database_url:
         app.state.runtime_engine = create_runtime_engine(settings.database_url)
-    if settings.oidc_issuer and settings.oidc_audience and settings.oidc_jwks_url:
+    if settings.auth_mode == "supabase" and settings.oidc_issuer and settings.supabase_anon_key:
+        app.state.oidc_verifier = SupabaseVerifier(
+            settings.oidc_issuer, settings.supabase_anon_key.get_secret_value()
+        )
+    elif settings.oidc_issuer and settings.oidc_audience and settings.oidc_jwks_url:
         app.state.oidc_verifier = OIDCVerifier(
             settings.oidc_issuer, settings.oidc_audience, settings.oidc_jwks_url
         )
@@ -51,6 +60,8 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(snapshots_router)
     app.include_router(snapshot_requests_router)
     app.include_router(source_probes_router)
+    if settings.research_demo_enabled:
+        app.include_router(demo_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:
