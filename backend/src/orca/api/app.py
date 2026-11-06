@@ -19,6 +19,7 @@ from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
 from orca.api.routers.fitness import router as fitness_router
+from orca.api.routers.identity import router as identity_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
@@ -40,13 +41,23 @@ def create_app(settings: Settings) -> FastAPI:
         redoc_url=None,
     )
     app.add_exception_handler(RequestValidationError, validation_error)  # type: ignore[arg-type]
-    if settings.cors_origins:
+    if settings.cors_origins or settings.cors_local_development:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=list(settings.cors_origins),
+            allow_origin_regex=r"^http://(?:localhost|127\.0\.0\.1)(?::[0-9]{1,5})?$"
+            if settings.cors_local_development
+            else None,
             allow_credentials=False,
             allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-            allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "If-Match"],
+            allow_headers=[
+                "Authorization",
+                "Content-Type",
+                "Idempotency-Key",
+                "If-Match",
+                "X-Request-ID",
+                "X-Organization-ID",
+            ],
             expose_headers=["ETag", "X-Request-ID"],
         )
     app.state.snapshot_worker_enabled = settings.acquisition_enabled
@@ -65,6 +76,7 @@ def create_app(settings: Settings) -> FastAPI:
             settings.oidc_issuer, settings.oidc_audience, settings.oidc_jwks_url
         )
     app.include_router(projects_router)
+    app.include_router(identity_router)
     app.include_router(catalog_router)
     app.include_router(fitness_router)
     app.include_router(snapshots_router)

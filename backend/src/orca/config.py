@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     monitoring_token: SecretStr = Field(min_length=32)
     docs_public: bool = False
     cors_origins: tuple[str, ...] = ()
+    cors_local_development: bool = False
     database_url: str | None = None
     oidc_issuer: str | None = None
     oidc_audience: str | None = None
@@ -40,6 +41,8 @@ class Settings(BaseSettings):
             raise ValueError("provide a generated monitoring token")
         if self.environment == "production" and self.docs_public:
             raise ValueError("public schema exposure is disabled in production")
+        if self.environment == "production" and self.cors_local_development:
+            raise ValueError("local-development CORS is disabled in production")
         configured_oidc = (self.oidc_issuer, self.oidc_audience, self.oidc_jwks_url)
         if any(configured_oidc) and not all(configured_oidc):
             raise ValueError("OIDC issuer, audience and JWKS URL must be configured together")
