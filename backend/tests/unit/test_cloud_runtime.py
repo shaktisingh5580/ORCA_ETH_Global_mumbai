@@ -46,7 +46,11 @@ def test_cloud_bundle_preserves_signers_but_does_not_distribute_database_credent
     assert dotenv_values(api)["ORCA_DATABASE_URL"] == values["database_url"]
     producer = dotenv_values(tmp_path / "state/ocean.env")
     assert "ORCA_DATABASE_URL" not in producer and "ORCA_OBJECT_STORE_SECRET_KEY" not in producer
-    assert len(commands) == 4
+    assert len(commands) == 5
+    assert any(name == "evidence-worker" for name, _ in commands)
+    bundle.settings["gemini_api_key"] = "test-only-gemini"
+    _, with_ai = materialize(bundle, tmp_path / "with-ai", "https://frontend.example.test")
+    assert {"reasoning-worker", "review-worker"}.issubset({name for name, _ in with_ai})
     monkeypatch.setenv("ORCA_RUNTIME_BUNDLE", bundle.model_dump_json())
     monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-only")
     assert (

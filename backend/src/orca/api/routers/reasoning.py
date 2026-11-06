@@ -10,10 +10,12 @@ from fastapi import APIRouter, Header, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from orca.api.dependencies import CurrentPrincipal
+from orca.api.routers.network import network_errors, runtime
 from orca.api.routers.normalization import service
 from orca.application.anchors import ResearchAnchors
 from orca.application.reasoning import ResearchReasoning
 from orca.application.review import EvidenceReview
+from orca.contracts.network import SignedEnvelope
 from orca.contracts.reasoning import ReasoningApproval, ReasoningRequest
 from orca.contracts.review import CandidateResult, CorrectionApproval
 
@@ -22,6 +24,28 @@ router = APIRouter(prefix="/v1/projects/{project_id}/reasoning", tags=["AI resea
 
 class PublicationConsent(BaseModel):
     approve_public_reference: Literal[True]
+
+
+@router.get("/{run_id}/anchors/{anchor_id}/verify")
+def verify_evidence(
+    project_id: UUID, run_id: UUID, anchor_id: UUID, request: Request, principal: CurrentPrincipal
+) -> dict[str, Any]:
+    with service(request, project_id, principal) as base:
+        anchors = ResearchAnchors(base.session, base.tenant, base.project, principal).anchors(
+            run_id
+        )
+        anchor = next((a for a in anchors if a["id"] == anchor_id), None)
+        if anchor is None:
+            raise HTTPException(404, "Publication not found")
+        if anchor["state"] != "indexed":
+            raise HTTPException(409, "Publication is not indexed")
+    configured = runtime(request)
+    with network_errors():
+        return configured.gateway.read(
+            anchor["receipt"]["entity_key"],
+            configured.configuration.coordinator,
+            SignedEnvelope.model_validate(anchor["envelope"]),
+        )
 
 
 @router.post("/{run_id}/anchors", status_code=202)

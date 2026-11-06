@@ -172,6 +172,21 @@ def materialize(
             ("research-worker", "orca.prototype_worker"),
         )
     )
+    if settings.prototype_enabled and settings.gemini_api_key:
+        commands.extend(
+            (name, [sys.executable, "-m", module, "--env-file", str(api_env)])
+            for name, module in (
+                ("reasoning-worker", "orca.reasoning_worker"),
+                ("review-worker", "orca.review_worker"),
+            )
+        )
+    if settings.prototype_enabled and settings.network_enabled:
+        commands.append(
+            (
+                "evidence-worker",
+                [sys.executable, "-m", "orca.anchor_worker", "--env-file", str(api_env)],
+            )
+        )
     if settings.file_uploads_enabled:
         commands.append(
             (
