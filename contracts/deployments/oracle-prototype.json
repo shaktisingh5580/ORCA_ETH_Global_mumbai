@@ -1,0 +1,21 @@
+{
+  "schema_version": "orca.prototype-deployment/1.0",
+  "provider": "Oracle Cloud",
+  "profile": "hackathon-team-operated-research-and-labelled-synthetic-demo",
+  "architecture": "linux/arm64",
+  "api_origin": "https://orca.130.210.15.82.sslip.io",
+  "liveness_url": "https://orca.130.210.15.82.sslip.io/livez",
+  "public_https_verified": true,
+  "allowed_frontend_origin": "https://orca-seven-phi.vercel.app",
+  "frontend_environment_variables": ["NEXT_PUBLIC_API_BASE_URL", "NEXT_PUBLIC_ORCA_API_URL"],
+  "base_url_includes_v1": false,
+  "authentication": "Existing Supabase user access token in Authorization Bearer header",
+  "database_and_private_objects": "Supabase",
+  "public_agent_reference_network": "Arkiv Rabdi, chain 7794095",
+  "persistent_agent_state": "Single-host Docker volumes on the VM disk",
+  "deployed_application_commit": "bf03afd",
+  "evidence": "docs/gates/HACKATHON/H05-oracle-runtime.json",
+  "authenticated_frontend_workflow_verified": false,
+  "ens_verified": false,
+  "institution_verified": false
+}

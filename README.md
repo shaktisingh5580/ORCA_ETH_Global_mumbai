@@ -19,9 +19,9 @@ The frontend is a separate existing Vercel application. The selected backend des
 
 `infra/Dockerfile.render` excludes demonstration tooling. `infra/Dockerfile.hackathon` deliberately includes separately labelled synthetic demonstration tooling, while the production Python wheel remains fixture-free. Neither image contains credentials or captured research files. Real source bytes are restored from private cloud storage and checked against pinned digests at runtime.
 
-No public deployment URL is claimed until the service reports Live and HTTPS checks pass. The frontend must use the resulting HTTPS backend origin, with its exact Vercel origin allowed by CORS. Private local deployment/handoff documents are excluded from this public repository by user policy; request those from the project operator.
+The live backend origin is https://orca.130.210.15.82.sslip.io; `/livez` returns 200 over trusted HTTPS and was opened successfully in a browser. The exact Vercel origin `https://orca-seven-phi.vercel.app` is allowed by CORS. Private local deployment/handoff documents are excluded from this public repository by user policy; request those from the project operator.
 
-Oracle ARM build and internal runtime checks have passed: real research execution/report generation, actual private A2A disagreement/correction, historical Arkiv reads, and persistence across a backend restart. Public ingress/TLS and the authenticated Vercel browser walkthrough remain pending. See `docs/gates/HACKATHON/H05-oracle-runtime.json`; internal liveness is not a claim of public deployment acceptance.
+Oracle ARM build, public HTTPS/preflight, real research execution/report generation, actual private A2A disagreement/correction, historical Arkiv reads, and persistence across a backend restart have passed. Vercel URL configuration, proposal-shaped frontend adapters and the authenticated frontend walkthrough remain pending. See `docs/gates/HACKATHON/H05-oracle-runtime.json`; browser liveness is not full frontend workflow acceptance.
 
 ## Reproduce the development environment
 

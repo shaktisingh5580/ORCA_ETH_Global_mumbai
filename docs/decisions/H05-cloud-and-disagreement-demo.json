@@ -6,6 +6,7 @@
   "mock_policy": "Deliberately altered dataset and fixture generation remain in isolated test/demo tooling excluded from production wheels. General result comparison supports an explicitly labelled synthetic_demo source profile without inserting mock values into production computation code",
   "demonstration": "Biased producer input -> numerical disagreement against clean reviewer input -> immutable challenge -> corrected input/rerun -> successful re-review",
   "selected_host": "Oracle Always Free Ubuntu ARM VM, with durable Docker volumes and a Caddy HTTPS proxy; capacity/account eligibility must be verified in the console",
-  "remaining_external_steps": ["Oracle VM creation within the account's Always Free allowance, public IP and locally held SSH key path", "ARM image build, safe signing-worker cutover and live HTTPS checks", "Exact Vercel frontend origin before cross-origin browser acceptance", "ENS namespace/controller and funded Ethereum deployment authorization for an actual ENSv2 integration"],
+  "deployment_status": "Oracle ARM backend deployed with trusted public HTTPS; private configuration, source restoration, real research, A2A demonstration, Arkiv reads, CORS and persistent-state restart checks passed",
+  "remaining_external_steps": ["Vercel environment update, frontend adapter reconciliation and authenticated browser workflow", "ENS namespace/controller and funded Ethereum deployment authorization for an actual ENSv2 integration"],
   "no_false_claims": ["Not deployed until actual cloud startup and HTTPS checks pass", "Synthetic data never labelled real", "No simulated on-chain confirmation", "Browser acceptance reported only after actual UI walkthrough"]
 }

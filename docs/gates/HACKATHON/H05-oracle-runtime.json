@@ -1,6 +1,6 @@
 {
   "phase": "H05",
-  "status": "ORACLE_INTERNAL_RUNTIME_PASS_PUBLIC_INGRESS_PENDING",
+  "status": "ORACLE_PUBLIC_HTTPS_PASS_FRONTEND_INTEGRATION_PENDING",
   "phase_complete": false,
   "deployed_code_commit": "bf03afd",
   "cloud": {
@@ -68,10 +68,14 @@
   },
   "public_access": {
     "intended_api_origin": "https://orca.130.210.15.82.sslip.io",
-    "public_tcp_80": "TIMED_OUT",
-    "public_tcp_443": "TIMED_OUT",
-    "public_tls_certificate": "PENDING: CA connection challenge timed out",
-    "public_api_verified": false,
+    "public_tcp_80": "PASS: HTTP 308 redirects to HTTPS",
+    "public_tcp_443": "PASS",
+    "public_tls_certificate": "PASS: Let's Encrypt certificate issued; external client verification enabled",
+    "public_api_verified": true,
+    "browser_liveness_verified": true,
+    "browser_observation": "https://orca.130.210.15.82.sslip.io/livez displayed status alive",
+    "external_api_checks": {"GET /livez": 200, "GET /v1/network/config": 200, "GET /v1/me without token": 401},
+    "external_full_header_preflight": {"configured_vercel_origin": 200, "unapproved_origin": 400},
     "actual_vercel_browser_session_verified": false
   },
   "frontend_readonly_review": {
@@ -82,8 +86,6 @@
     "private_handoff": "ORACLE_FRONTEND_CONNECTION_HANDOFF.md"
   },
   "remaining": [
-    "Add public-subnet stateful ingress TCP 80 and 443",
-    "Verify actual public HTTPS and certificate issuance",
     "Redeploy Vercel with the Oracle API origin",
     "Reconcile frontend adapters and complete authenticated browser workflow",
     "Optional Gemini key, external independent providers and ENS remain outside this acceptance"
