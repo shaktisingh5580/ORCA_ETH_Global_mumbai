@@ -42,7 +42,12 @@ def test_snapshot_http_empty_concealed_and_denied():
         assert response.status_code == 200
         assert response.json() == {"items": [], "next_cursor": None, "page_size": 20}
         assert client.get(path, params=query | {"digest": "invalid"}).status_code == 422
-        assert client.get(path, params=query | {"project_id": str(uuid4())}).status_code == 422
+        project = uuid4()
+        repository.return_value.project_member.return_value = False
+        assert client.get(path, params=query | {"project_id": str(project)}).status_code == 404
+        repository.return_value.project_member.return_value = True
+        assert client.get(path, params=query | {"project_id": str(project)}).status_code == 200
+        assert repository.return_value.list.call_args.kwargs["project_id"] == project
         for suffix in (f"/{uuid4()}", f"/{uuid4()}/manifest"):
             assert client.get(path + suffix, params=query).status_code == 404
         authorize.side_effect = HTTPException(403, "Dataset read scope required")

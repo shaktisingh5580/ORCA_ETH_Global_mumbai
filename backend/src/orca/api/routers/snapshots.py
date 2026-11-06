@@ -28,13 +28,28 @@ def list_snapshots(
     cursor: UUID | None = None,
     product_id: UUID | None = None,
     digest: Digest | None = None,
+    project_id: UUID | None = None,
 ) -> Page[DatasetSnapshot]:
     tenant = authorize(request, principal, organization_id)
-    if set(request.query_params) - {"organization_id", "limit", "cursor", "product_id", "digest"}:
+    if set(request.query_params) - {
+        "organization_id",
+        "limit",
+        "cursor",
+        "product_id",
+        "digest",
+        "project_id",
+    }:
         raise HTTPException(422, "Unsupported snapshot filter")
     with TenantUnitOfWork(engine(request), tenant) as session:
-        rows = SnapshotRepository(session, tenant).list(
-            after=cursor, limit=limit + 1, product_id=product_id, digest=digest
+        repository = SnapshotRepository(session, tenant)
+        if project_id is not None and not repository.project_member(project_id, principal.subject):
+            raise HTTPException(404, "Project not found")
+        rows = repository.list(
+            after=cursor,
+            limit=limit + 1,
+            product_id=product_id,
+            digest=digest,
+            project_id=project_id,
         )
         return Page[DatasetSnapshot](
             items=[DatasetSnapshot.from_manifest(row) for row in rows[:limit]],
