@@ -1,6 +1,6 @@
 """Purpose: verify the hackathon approval/run flow using actual isolated tenant persistence.
 Behavior: test HTTP idempotency, approval, token/project denial and completed-result immutability.
-Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02; Phase: H02; synthetic data confined to test DB.
+Refs: HACKATHON_IMPLEMENTATION_PLAN.md H02/H03; Phase: H02/H03; synthetic data confined to test DB.
 """
 
 from uuid import uuid4
@@ -63,6 +63,15 @@ def test_prototype_requires_approval_and_preserves_idempotency_and_project_bound
     )
     assert created.status_code == 201, created.text
     investigation = created.json()
+    detail_url = f"/v1/prototype/investigations/{investigation['id']}"
+    assert client.get(detail_url, params={"project_id": str(project)}).json() == investigation
+    assert client.get(detail_url, params={"project_id": str(foreign)}).status_code == 404
+    assert (
+        client.get(
+            f"/v1/prototype/investigations/{uuid4()}", params={"project_id": str(project)}
+        ).status_code
+        == 404
+    )
     assert (
         investigation["plan"]["planner"] == "guided"
         and investigation["plan"]["source_mode"] == "real"
@@ -83,6 +92,18 @@ def test_prototype_requires_approval_and_preserves_idempotency_and_project_bound
     assert first.status_code == second.status_code == 202
     assert first.json()["id"] == second.json()["id"] and first.json()["status"] == "queued"
     run = first.json()["id"]
+    filtered = client.get(
+        "/v1/prototype/runs",
+        params={"project_id": str(project), "investigation_id": investigation["id"]},
+    )
+    assert filtered.status_code == 200 and [row["id"] for row in filtered.json()] == [run]
+    assert (
+        client.get(
+            "/v1/prototype/runs",
+            params={"project_id": str(project), "investigation_id": str(uuid4())},
+        ).json()
+        == []
+    )
     assert (
         client.get(f"/v1/prototype/runs/{run}", params={"project_id": str(foreign)}).status_code
         == 404
@@ -106,6 +127,10 @@ def test_prototype_requires_approval_and_preserves_idempotency_and_project_bound
         ).status_code
         == 403
     )
+    client.app.dependency_overrides.clear()
+    # Exercise missing-token rejection with authentication configured; verification is never called.
+    client.app.state.oidc_verifier = object()
+    assert client.get(detail_url, params={"project_id": str(project)}).status_code == 401
 
 
 @pytest.mark.live
