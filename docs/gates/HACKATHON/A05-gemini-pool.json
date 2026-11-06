@@ -1,0 +1,21 @@
+{
+  "change": "Paid Gemini project round-robin pool",
+  "tests": {
+    "offline": "137 passed, 5 live deselected",
+    "mypy": "128 files passed",
+    "ruff": "passed",
+    "headers": "passed",
+    "boundaries": "passed"
+  },
+  "behavior": [
+    "Each worker retains cursor and cooldowns across jobs",
+    "No fixed sleep on failover",
+    "Retry-After and provider retryDelay honored",
+    "At most one attempt per configured unique key per turn",
+    "Keys remain secret; single-key config remains compatible"
+  ],
+  "limits": [
+    "Pool cursor is per worker process, not globally coordinated",
+    "Cloud acceptance pending rollout"
+  ]
+}
