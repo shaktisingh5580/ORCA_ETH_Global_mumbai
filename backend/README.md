@@ -242,3 +242,27 @@ To package the API, build `docker build -f infra/Dockerfile.demo -t orca-demo .`
 and inject `.env.demo` through the deployment platform's private environment.
 This image configuration has not yet been built/deployment-verified. Run migrations
 as a separate controlled admin step; the API always uses `orca_runtime`.
+
+## Frontend connection
+
+The local API base URL is `http://127.0.0.1:8000`. Configure `ORCA_CORS_ORIGINS`
+as a JSON array of exact frontend origins. The local `.env.demo` allows localhost
+and 127.0.0.1 on ports 3000 and 5173. Bearer-token requests do not use cross-origin
+cookies. Production requires an HTTPS API deployment and the exact deployed
+frontend origin; localhost does not point to this machine for remote users.
+
+Sign in using the same Supabase project's regular user authentication, retrieve
+`session.access_token`, and send `Authorization: Bearer <access_token>` with each
+private backend request. Never use a service-role or monitoring token in the browser.
+The session's subject must have an active organization membership.
+
+The demo consumer reads `GET /v1/demo/research-runs/{result_id}?organization_id={organization_id}`.
+Render `sample_mean`, `minimum`, `maximum`, `finite_count`, `units`,
+`daily_sample_means`, `measurement_definition`, `scientific_status` and `limitations`.
+Recompute via `POST /v1/demo/research-runs` with `organization_id` and `snapshot_id`.
+The live IDs are in local `.cache/demo/cloud-demo.json`. The demo-specific schema
+is `contracts/openapi/orca-demo.json`; the core profile schema is `orca-v1.json`.
+
+Only implemented routes in these contracts are available. The legacy Marine
+advisory/observation UI is excluded from the selected research product and must not
+call `/v1/marine/*`. A planned route in a design document is not a live endpoint.

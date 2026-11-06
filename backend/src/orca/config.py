@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     environment: Literal["development", "test", "production"] = "development"
     monitoring_token: SecretStr = Field(min_length=32)
     docs_public: bool = False
+    cors_origins: tuple[str, ...] = ()
     database_url: str | None = None
     oidc_issuer: str | None = None
     oidc_audience: str | None = None

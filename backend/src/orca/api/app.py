@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from starlette.middleware.base import RequestResponseEndpoint
@@ -39,6 +40,15 @@ def create_app(settings: Settings) -> FastAPI:
         redoc_url=None,
     )
     app.add_exception_handler(RequestValidationError, validation_error)  # type: ignore[arg-type]
+    if settings.cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(settings.cors_origins),
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+            allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "If-Match"],
+            expose_headers=["ETag", "X-Request-ID"],
+        )
     app.state.snapshot_worker_enabled = settings.acquisition_enabled
     app.state.source_probes_enabled = settings.source_probes_enabled
     app.state.acquisition_sources = settings.acquisition_sources
