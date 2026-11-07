@@ -33,7 +33,8 @@ def test_workspace_assets_and_public_configuration():
         assert "private-model-test-value" not in config.text
         assert "monitoring_token" not in config.text
         assert 'id="collaboration"' in page.text
-        assert "Institutional onboarding" in page.text
+        assert "Onboard agent" in page.text
+        assert 'id="agent-detail"' in page.text
         script = client.get("/research/assets/workspace.js")
         assert script.status_code == 200
         assert "/v1/network/agents?organization_id=" in script.text

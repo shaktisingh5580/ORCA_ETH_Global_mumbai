@@ -39,7 +39,9 @@ function updateActions() {
   $('upload-open').disabled = !state.project;
   $('publish-button').disabled = state.run?.state !== 'completed' || !$('publish-consent').checked || !state.config?.arkiv_configured;
 }
+let ownedAgents = [], selectedAgent = null, qualificationTimer = null;
 function resetProject() {
+  ownedAgents = []; selectedAgent = null; clearTimeout(qualificationTimer); $('onboard-open').disabled = true; $('agent-detail').hidden = true; empty('owned-agents','Sign in and select an organization to manage agents.'); empty('institution-directory','Sign in to discover qualified services.');
   $('network-refresh').disabled = true; empty('network-agents','Sign in and select a project to inspect registered services.'); empty('network-profile','No network configuration loaded.');
   state.generation++; state.run = null; state.datasets = []; state.selected.clear(); state.reviews = []; state.anchors = []; lastEvents = ''; clearTimeout(state.timer);
   $('run-select').innerHTML = '<option value="">Choose an investigation</option>'; $('candidate-section').hidden = true; $('mapping-section').hidden = true;
@@ -69,6 +71,7 @@ async function loadProject() {
   if (runs.length) await chooseRun(runs[0].id);
 }
 async function loadNetwork() {
+  void loadOwnedAgents();
   const generation = state.generation;
   const organization = $('organization').value;
   if (!state.token || !state.project || !organization) return;
@@ -85,6 +88,56 @@ async function loadNetwork() {
     empty('network-agents',`Network unavailable: ${error.message}`);
     empty('network-profile','The research workspace remains available. Retry the network separately.');
   } finally { if (generation === state.generation) $('network-refresh').disabled = !state.project; }
+}
+function agentsBase() { const id = $('organization').value; if (!state.token || !id) throw new Error('Select an authorized organization.'); return `/v1/organizations/${encodeURIComponent(id)}/agents`; }
+async function loadOwnedAgents() {
+  const generation = state.generation;
+  if (!state.token || !state.project) return;
+  try {
+    const [agents, directory] = await Promise.all([api(agentsBase()),api('/v1/network/institutional-agents')]); if (generation !== state.generation) return;
+    fill('institution-directory',directory.length ? directory.map(a=>`<div class="review-card"><strong>${esc(a.name)}</strong><p>${esc(a.capability)} · ${esc(a.operator_mode)}</p><p class="hash">${esc(a.endpoint)}</p><small>Service qualified · ENS and affiliation not verified</small></div>`).join('') : '<p class="muted">No active services have been qualified and approved for discovery.</p>');
+    ownedAgents = agents; $('onboard-open').disabled = false;
+    fill('owned-agents', agents.length ? agents.map(a=>`<button class="secondary agent-row" data-agent="${esc(a.id)}"><strong>${esc(a.registration.name)}</strong><span>${badge(a.state)} ${esc(a.registration.capability)}</span></button>`).join('') : '<p class="muted">No institution-owned agents yet. Register a provider to begin.</p>');
+    if (selectedAgent) { selectedAgent = agents.find(a=>a.id===selectedAgent.id) || null; renderAgent(); }
+  } catch(error) { if (generation === state.generation) { empty('owned-agents',`Agent registry unavailable: ${error.message}`); $('onboard-open').disabled = true; } }
+}
+function renderAgent() {
+  $('agent-detail').hidden = !selectedAgent; if (!selectedAgent) return;
+  const a = selectedAgent, r = a.registration;
+  let actions = '';
+  if (['draft','verification_pending'].includes(a.state)) actions += '<button data-agent-action="challenge">Create / renew challenge</button>';
+  if (a.state === 'verification_pending') actions += '<button class="secondary" data-agent-action="download">Download challenge</button><label>Signed proof JSON<input type="file" id="agent-proof-file" accept="application/json,.json"></label><button data-agent-action="proof">Verify service proof</button>';
+  if (a.state === 'verified') actions += '<button data-agent-action="qualify">Run A2A qualification</button>';
+  if (['qualified','suspended'].includes(a.state)) actions += '<button data-agent-action="activate">Activate service</button>';
+  if (a.state === 'active') actions += '<button class="secondary" data-agent-action="suspend">Suspend</button>';
+  if (a.state !== 'revoked') actions += '<button class="secondary" data-agent-action="revoke">Revoke binding</button>';
+  fill('agent-detail',`<div class="review-card"><div class="eyebrow">SERVICE DETAIL / VERSION ${esc(a.version)}</div><h3>${esc(r.name)}</h3><p class="hash">${esc(r.endpoint)}</p>${badge(a.state)}<p>Service eligible: ${a.service_eligible ? 'yes' : 'no'} · ENS: not verified · Affiliation: self-declared</p><p class="muted">${esc(r.operator_mode)} · Registration does not yet enable research-task dispatch.</p><details><summary>Step 2 — operator proof</summary><p>Download the challenge and transfer it to your provider host. Run the provider’s accept-challenge command there, then upload the returned public signature JSON here. Restart the provider after accepting the coordinator. Never upload its provider.json private configuration.</p></details><div class="form-actions">${actions}</div><details><summary>Rotate key / revise binding</summary><label>Updated public descriptor<textarea id="agent-revision" rows="5" spellcheck="false"></textarea></label><button class="secondary" data-agent-action="revise" ${a.state === 'revoked'?'disabled':''}>Save new binding revision</button><p class="muted">A changed endpoint, key or metadata returns the agent to draft and requires new proof and qualification.</p></details><div id="agent-job" class="muted"></div><div id="agent-events"></div></div>`);
+}
+async function refreshAgentDetail() {
+  const a = selectedAgent, generation = state.generation; if (!a) return;
+  const events = await api(`${agentsBase()}/${a.id}/events`);
+  if (generation !== state.generation || selectedAgent?.id !== a.id) return;
+  $('agent-events').innerHTML = detail('Registration activity',events);
+  const jobs = await api(`${agentsBase()}/${a.id}/qualifications`);
+  if (generation !== state.generation || selectedAgent?.id !== a.id) return;
+  if (jobs.length) { $('agent-job').textContent = `Latest qualification: ${jobs[0].state}${jobs[0].error_code?' · '+jobs[0].error_code:''}`; if (['queued','running'].includes(jobs[0].state)) qualificationTimer=setTimeout(()=>pollQualification(a.id,jobs[0].id,generation),3000); }
+}
+async function pollQualification(agent,job,generation) {
+  if (generation !== state.generation || selectedAgent?.id !== agent || !state.token) return;
+  try { const result = await api(`${agentsBase()}/${agent}/qualifications/${job}`); if (generation !== state.generation || selectedAgent?.id !== agent) return; $('agent-job').textContent = `Qualification ${result.state}${result.error_code?' · '+result.error_code:''}`;
+    if (['queued','running'].includes(result.state)) qualificationTimer=setTimeout(()=>pollQualification(agent,job,generation),3000);
+    else { await loadOwnedAgents(); await refreshAgentDetail(); }
+  } catch(error) { if (generation === state.generation) notice(error.message); }
+}
+async function agentAction(actionName) {
+  const a = selectedAgent; if (!a) return; const path = `${agentsBase()}/${a.id}`; const version = {expected_version:a.version};
+  if (actionName === 'download') { const challenge = await api(`${path}/verification-challenges`); const url=URL.createObjectURL(new Blob([pretty(challenge.payload)],{type:'application/json'})); const link=document.createElement('a'); link.href=url; link.download='orca-agent-challenge.json'; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); return; }
+  if (actionName === 'proof') { const file=$('agent-proof-file').files[0]; if (!file || file.size>8192) throw new Error('Choose the small signed proof JSON file.'); const proof=JSON.parse(await file.text()); await api(`${path}/verification-proofs`,{...version,challenge_id:proof.challenge_id,signature:proof.signature}); }
+  else if (actionName === 'challenge') await api(`${path}/verification-challenges`,version);
+  else if (actionName === 'qualify') { const job=await api(`${path}/qualifications`,version); $('agent-job').textContent=`Qualification ${job.state}`; clearTimeout(qualificationTimer); qualificationTimer=setTimeout(()=>pollQualification(a.id,job.id,state.generation),3000); return; }
+  else if (actionName === 'revise') await api(path,{...version,registration:JSON.parse($('agent-revision').value)},'PATCH');
+  else { if (actionName === 'revoke' && !confirm('Revoke this binding? It cannot be reactivated; history is retained.')) return; await api(`${path}/${actionName === 'revoke'?'revocations':actionName}`,version); }
+  await loadOwnedAgents(); await refreshAgentDetail();
 }
 function renderHistory(runs) {
   $('run-select').innerHTML = '<option value="">Choose an investigation</option>' + runs.map(r => `<option value="${esc(r.id)}">${esc(r.request.question.slice(0,55))} · ${esc(r.state)}</option>`).join('');
@@ -167,6 +220,10 @@ async function refreshRun() {
   finally { state.polling=false; if(state.run&&state.token){clearTimeout(state.timer);state.timer=setTimeout(refreshRun,5000);} }
 }
 function bind() {
+  $('onboard-open').onclick=()=>$('onboard-dialog').showModal(); $('onboard-close').onclick=()=>$('onboard-dialog').close();
+  $('onboard-form').onsubmit=e=>{e.preventDefault();action(e.submitter,async()=>{const descriptor=JSON.parse($('agent-descriptor').value); if (Object.keys(descriptor).some(k=>/private|secret|token|password/i.test(k))) throw new Error('Use the public describe output. Private configuration must stay on the provider host.'); descriptor.discoverable=$('agent-discoverable').checked; const created=await api(agentsBase(),descriptor); selectedAgent=created; $('onboard-dialog').close(); $('agent-descriptor').value=''; await loadOwnedAgents(); await refreshAgentDetail();});};
+  $('owned-agents').onclick=e=>{const b=e.target.closest('[data-agent]');if(!b)return;clearTimeout(qualificationTimer);selectedAgent=ownedAgents.find(a=>a.id===b.dataset.agent);renderAgent();refreshAgentDetail().catch(error=>notice(error.message));};
+  $('agent-detail').onclick=e=>{const b=e.target.closest('[data-agent-action]');if(b)action(b,()=>agentAction(b.dataset.agentAction));};
   $('network-refresh').onclick=()=>loadNetwork();
   $('account-button').onclick=()=>{if(state.token){state.token=null;state.refresh=null;state.project=null;resetProject();$('account-button').textContent='Sign in';$('account-state').textContent='Signed out';$('organization').disabled=true;$('project').disabled=true;empty('dataset-list','Sign in to load your evidence.');}else $('login-dialog').showModal();};
   $('login-close').onclick=()=>$('login-dialog').close();

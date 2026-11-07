@@ -26,6 +26,7 @@ def install_dashboard(app: FastAPI, settings: Settings) -> None:
                 "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
                 "X-Content-Type-Options": "nosniff",
                 "Referrer-Policy": "no-referrer",
+                "Cache-Control": "no-cache",
             },
         )
 
@@ -42,4 +43,5 @@ def install_dashboard(app: FastAPI, settings: Settings) -> None:
             if (settings.gemini_api_keys or settings.gemini_api_key)
             else None,
             "profile": "bounded research prototype",
+            "agent_onboarding_enabled": settings.agent_onboarding_enabled,
         }

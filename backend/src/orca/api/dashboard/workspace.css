@@ -6,3 +6,6 @@ Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; Phase: A05 dashboard increment. */
 
 /* Purpose: extend the research shell with a responsive agent overview. Refs: institutional plan F01.4; Phase: F01. */
 .network-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.network-grid article{min-width:0}.network-grid p{overflow-wrap:anywhere}#collaboration{margin-top:24px}#collaboration details{margin-top:18px}@media(max-width:640px){.network-grid{grid-template-columns:1fr;gap:14px}}
+
+/* Purpose: make the institutional onboarding steps readable in the existing shell. Refs: institutional phase F02; Phase: F02. */
+.agent-row{width:100%;display:flex;justify-content:space-between;gap:16px;text-align:left;margin:8px 0;flex-wrap:wrap}#agent-detail{margin-top:22px}#agent-detail textarea,#agent-descriptor{width:100%;max-width:100%;font:12px ui-monospace,monospace}#onboard-dialog{width:min(620px,92vw)}#agent-detail .form-actions{flex-wrap:wrap}#collaboration hr{border:0;border-top:1px solid var(--line);margin:24px 0}
