@@ -6,7 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { createServer } from 'node:http';
 import { createPublicClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
-import { prepareRegistry } from './ens-setup.mjs';
+import { prepareAgentResolver, prepareRegistry } from './ens-setup.mjs';
 
 const client = createPublicClient({
   chain: sepolia, ccipRead: false,
@@ -14,16 +14,22 @@ const client = createPublicClient({
 });
 let proposal;
 try {
-  proposal = await prepareRegistry(client, process.argv[2], process.argv[3], process.argv[4]);
+  const [name, controller, action, label] = process.argv.slice(2);
+  proposal = action === 'resolver'
+    ? await prepareAgentResolver(client, name, controller, label)
+    : await prepareRegistry(client, name, controller, action);
 } catch (error) {
   console.error('ENS simulation failed: ' + (error.shortMessage ?? error.message));
   process.exit(1);
 }
 const nonce = randomBytes(24).toString('base64');
 const attaching = proposal.action === 'attach_agent_subregistry';
-const port = attaching ? 8794 : 8793;
-const heading = attaching ? 'Attach the ORCA agent registry' : 'Deploy the ORCA agent registry';
-const description = attaching
+const resolver = proposal.action === 'deploy_agent_resolver';
+const port = resolver ? 8795 : attaching ? 8794 : 8793;
+const heading = resolver ? 'Deploy the ORCA agent resolver' : attaching ? 'Attach the ORCA agent registry' : 'Deploy the ORCA agent registry';
+const description = resolver
+  ? 'Deploy a separate resolver for this agent. Your wallet receives text record administration. Subname registration and delegation follow separately.'
+  : attaching
   ? 'Attach the verified registry to your ENS parent name. This enables registration of agent subnames.'
   : 'Deploy a registry with your wallet as registrar. Attaching the registry to your name comes after deployment.';
 const host = `127.0.0.1:${port}`;

@@ -10,6 +10,48 @@ import { EnsReader, pin } from './ens.mjs';
 
 const SET_SUBREGISTRY = 1n << 20n;
 const REGISTRAR = 1n;
+const SET_TEXT = 1n << 4n;
+
+export async function prepareAgentResolver(client, name, controller, agentLabel) {
+  if (!isAddress(controller) || !/^(analyst|reviewer)$/.test(agentLabel)) {
+    throw new Error('Expected a controller address and analyst or reviewer label');
+  }
+  const reader = new EnsReader(client);
+  const observation = await reader.inspect(name);
+  const parent = observation.hierarchy.at(-1);
+  if (observation.hierarchy.length !== 2 || !isAddressEqual(parent.owner, controller)) {
+    throw new Error('Expected a finalized second-level parent owned by the controller');
+  }
+  const { ETHRegistry, VerifiableFactory, PermissionedResolverImpl } = pin.contracts;
+  await reader.contract(VerifiableFactory.address, 'VerifiableFactory');
+  await reader.contract(PermissionedResolverImpl.address, 'PermissionedResolverImpl');
+  const latest = await client.getBlock({ blockTag: 'latest' });
+  const state = await client.readContract({
+    ...ETHRegistry, functionName: 'getState', args: [BigInt(keccak256(toHex(parent.label)))],
+    blockNumber: latest.number,
+  });
+  if (state.status !== 2 || state.expiry <= latest.timestamp || !isAddressEqual(state.latestOwner, controller)) {
+    throw new Error('Parent ownership changed');
+  }
+  const agentName = `${agentLabel}.${name}`;
+  const salt = BigInt(keccak256(toHex(`orca.agent-resolver/1.0:${agentName}`)));
+  const initialization = encodeFunctionData({
+    abi: PermissionedResolverImpl.abi, functionName: 'initialize',
+    args: [[{ account: controller, roleBitmap: SET_TEXT | (SET_TEXT << 128n) }], []],
+  });
+  const args = [PermissionedResolverImpl.address, salt, initialization];
+  const { result } = await client.simulateContract({
+    ...VerifiableFactory, functionName: 'deployProxy', args, account: controller, blockNumber: latest.number,
+  });
+  return {
+    chain_id: pin.chain_id, name: agentName, controller, action: 'deploy_agent_resolver',
+    predicted_resolver: result, finalized_block: observation.block_number, simulated_block: latest.number.toString(),
+    transaction: {
+      from: controller, to: VerifiableFactory.address, value: '0x0',
+      data: encodeFunctionData({ abi: VerifiableFactory.abi, functionName: 'deployProxy', args }),
+    },
+  };
+}
 
 export async function prepareRegistry(client, name, controller, deploymentHash) {
   if (!isAddress(controller) || controller.toLowerCase() === zeroAddress) {
