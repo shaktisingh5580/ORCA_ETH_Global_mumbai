@@ -1,0 +1,29 @@
+{
+  "phase": "F02",
+  "status": "PASS",
+  "agent_id": "7698906b-75f9-49c7-a6a9-1ddd109e9012",
+  "state": "active",
+  "binding_version": "b9323852-e9d1-4ff2-be31-80e2e1516f77",
+  "service_eligible": true,
+  "endpoint": "https://provider.130.210.15.82.sslip.io/a2a",
+  "public_https": true,
+  "authenticated_owner_http": true,
+  "service_proof": "provider-local Ed25519 signing of exact challenge",
+  "qualification": "official A2A client; signed C/K results; negative input; task status/replay",
+  "directory_contains_service": true,
+  "event_types": [
+    "draft_created",
+    "challenge_created",
+    "service_proof_verified",
+    "qualification_queued",
+    "qualification_queued",
+    "qualification_completed",
+    "activate"
+  ],
+  "operator_mode": "team_controlled",
+  "independent_institution_claimed": false,
+  "ens_verified": false,
+  "mcp_claimed": false,
+  "research_dispatch_enabled": false,
+  "authenticated_browser_flow_tested": false
+}

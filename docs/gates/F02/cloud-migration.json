@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "before": {
+    "revision": "0018_research_anchors",
+    "prototype_runs": 2,
+    "reasoning_runs": 4
+  },
+  "after": {
+    "revision": "0019_institutional_agents",
+    "prototype_runs": 2,
+    "reasoning_runs": 4
+  },
+  "operation": "additive upgrade only; no test reset"
+}

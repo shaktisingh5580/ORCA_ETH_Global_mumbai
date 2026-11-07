@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "provider_key_mode": "0o600",
+  "test_tooling_present": false,
+  "test_sources_present": false,
+  "provider_mounts": [
+    "/var/data/provider"
+  ],
+  "coordinator_secrets_in_environment": false
+}

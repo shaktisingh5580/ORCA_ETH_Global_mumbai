@@ -1,6 +1,6 @@
 {
   "phase": "F02",
-  "status": "LOCAL_GATES_PASS_CLOUD_GATE_PENDING",
+  "status": "PASS_SERVICE_ONBOARDING_PROFILE",
   "scope": "Institution-owned service onboarding, public-key proof, HTTPS conformance, durable qualification, lifecycle and dashboard",
   "local_checks": {
     "offline_suite": "155 passed, 5 explicitly live tests deselected",
@@ -14,11 +14,33 @@
     "node_syntax": "passed",
     "compose_configuration": "both Oracle and independent provider compose files validated"
   },
-  "deployment_gate": "PENDING: additive migration, separate provider container, real public HTTPS proof and A2A qualification",
+  "deployment_gate": "PASS: additive 0019; separate provider container; actual authenticated owner HTTPS proof/qualification/activation/directory",
   "identity_claim": "Service-only; ENS and affiliation not verified",
   "source_mode": "qualification_inputs",
   "research_dispatch_enabled": false,
   "provider_image": "infra/Dockerfile.provider; no tests/support or coordinator secrets copied",
   "next_phase": "F03 only after final F02 gate",
-  "source_integrity": "Critical protected source files unchanged"
+  "source_integrity": "Critical protected source files unchanged",
+  "cloud_acceptance": "cloud-acceptance.json",
+  "migration": "cloud-migration.json",
+  "provider_isolation": "provider-isolation.json",
+  "browser": {
+    "deployed_controls": "PASS: Onboard agent, Institution-owned agents and Discover qualified services observed after refresh",
+    "authenticated_end_to_end_browser": "NOT_CLAIMED; actual owner HTTP acceptance and local API authorization covered; full browser journey GF07"
+  },
+  "operational_notes": [
+    "User explicitly approved org_admin for existing account; membership change audited",
+    "Initial qualification attempt failed around provider restart and remains visible; a new request passed after readiness check",
+    "No ENS, institutional affiliation, MCP or research delegation completion inferred"
+  ],
+  "deployed_revision": "0259248",
+  "final_http_checks": {
+    "health": 200,
+    "dashboard": 200,
+    "onboarding_controls": true,
+    "worker_enabled": true,
+    "provider_unauthenticated": 401,
+    "cors": 200,
+    "cors_origin": "https://orca-seven-phi.vercel.app"
+  }
 }

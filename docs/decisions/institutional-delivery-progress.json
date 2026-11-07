@@ -1,0 +1,17 @@
+{
+  "profile": "institutional research collaboration prototype",
+  "phases": {
+    "F01": "PASS audit/recovery baseline",
+    "F02": "PASS service onboarding; live HTTPS gate",
+    "F03": "NEXT: ENSv2 authority and cross-chain binding",
+    "F04": "PLANNED: institutional data and MCP",
+    "F05": "PLANNED: unified task discovery/assignment/A2A execution",
+    "F06": "PLANNED: independent review and lineage",
+    "F07": "PLANNED: full collaboration browser journey",
+    "F08": "PLANNED: two-operator submission rehearsal"
+  },
+  "current_dashboard": "https://orca.130.210.15.82.sslip.io/research#collaboration",
+  "active_rehearsal_agent_id": "7698906b-75f9-49c7-a6a9-1ddd109e9012",
+  "operator_mode": "team_controlled",
+  "original_production_gates": "Not implied passed by prototype gates"
+}
