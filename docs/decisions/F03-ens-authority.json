@@ -1,0 +1,19 @@
+{
+  "phase": "F03.1",
+  "decision": "ENSv2 first-prize prototype uses Sepolia; namespace ownership is distinct from scientific or institutional accreditation",
+  "source_revision": "07e55a056f5b6a9c90119f501bdd05714e67dddd",
+  "sources": [
+    "https://docs.ens.domains/learn/deployments/",
+    "https://docs.ens.domains/ensv2/permissioned-registry/",
+    "https://docs.ens.domains/ensv2/permissioned-resolver/",
+    "https://docs.ens.domains/ensv2/enhanced-access-control/"
+  ],
+  "transport": "Fixed public Sepolia RPC; failure grants no authority; no automatic CCIP gateway requests",
+  "contracts": "Only pinned static protocol runtimes and factory-verified proxies with pinned implementations are accepted",
+  "name_profile": "Explicit normalized ASCII .eth names, maximum six labels; wildcard/inherited resolvers and other implementations remain unsupported",
+  "delegation_policy": "PermissionedResolver setter scopes are record-key-wide across the instance. Require isolated resolver boundaries and real sibling/root negative transactions before claiming isolation. A dedicated-looking address alone is insufficient proof.",
+  "observation_policy": "Read all hierarchy states, current owner, expiry, mutable token/resource, resolver and text records at one finalized block; record block hash and recheck it at end",
+  "registration_offer": "ETHGlobal free-domain redemption is not accepted as proof of network, ownership, delegation or ENSv2 use",
+  "production_effect": "None: read-only CLI is not wired into eligibility and is not deployed to Oracle yet",
+  "gate": "F03 incomplete; no advance to F04"
+}
