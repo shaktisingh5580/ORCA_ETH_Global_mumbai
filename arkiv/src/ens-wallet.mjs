@@ -10,7 +10,7 @@ import { prepareAgentResolver, prepareRegistry } from './ens-setup.mjs';
 
 const client = createPublicClient({
   chain: sepolia, ccipRead: false,
-  transport: http('https://ethereum-sepolia-rpc.publicnode.com', { timeout: 12000, retryCount: 2, retryDelay: 1500 }),
+  transport: http(sepolia.rpcUrls.default.http[0], { timeout: 12000, retryCount: 2, retryDelay: 1500 }),
 });
 let proposal;
 try {

@@ -189,7 +189,7 @@ export async function prepareRegistry(client, name, controller, deploymentHash) 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const client = createPublicClient({
     chain: sepolia, ccipRead: false,
-    transport: http('https://ethereum-sepolia-rpc.publicnode.com', { timeout: 12000, retryCount: 0 }),
+    transport: http(sepolia.rpcUrls.default.http[0], { timeout: 12000, retryCount: 0 }),
   });
   try {
     console.log(JSON.stringify(await prepareRegistry(client, process.argv[2], process.argv[3], process.argv[4]), null, 2));

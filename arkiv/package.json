@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.1.0",
   "description": "P11 accelerated demo: explicit public result publication and independent Arkiv reads",
-  "scripts": {"publish": "node src/cli.mjs publish", "read": "node src/cli.mjs read", "check": "node --check src/cli.mjs && node --check src/coordination.mjs && node --check src/ens.mjs", "test": "node --test tests/ens.test.mjs", "ens:preflight": "node src/ens.mjs preflight", "ens:inspect": "node src/ens.mjs inspect"},
+  "scripts": {"publish": "node src/cli.mjs publish", "read": "node src/cli.mjs read", "check": "node --check src/cli.mjs && node --check src/coordination.mjs && node --check src/ens.mjs && node --check src/ens-setup.mjs && node --check src/ens-wallet.mjs", "test": "node --test tests/ens.test.mjs tests/ens-setup.test.mjs", "ens:preflight": "node src/ens.mjs preflight", "ens:inspect": "node src/ens.mjs inspect"},
   "engines": {"node": ">=22.10"},
   "dependencies": {"@arkiv-network/sdk": "1.0.1", "viem": "2.57.16"}
 }

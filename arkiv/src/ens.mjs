@@ -119,7 +119,7 @@ export class EnsReader {
 
 export async function main(command, name) {
   // Public fixed transport; caller cannot choose RPC, URL, chain or signing material.
-  const client=createPublicClient({chain:sepolia,transport:http('https://ethereum-sepolia-rpc.publicnode.com',{timeout:12000,retryCount:0}),ccipRead:false});
+  const client=createPublicClient({chain:sepolia,transport:http(sepolia.rpcUrls.default.http[0],{timeout:12000,retryCount:0}),ccipRead:false});
   const reader=new EnsReader(client);
   if (command==='preflight') return reader.preflight();
   if (command==='inspect') return reader.inspect(name);

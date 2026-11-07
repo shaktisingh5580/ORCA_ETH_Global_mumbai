@@ -100,5 +100,14 @@
       "resolver": "0x2BDD8afdDb8fdE9e4Db2A5F72653E1C0e7e06018"
     },
     "subname_registration": "AWAITING_FINALIZED_PARENT_ATTACHMENT"
-  }
+  },
+  "rpc_crosscheck": {
+    "original_rpc": "Finalized state lagged at block 12080419",
+    "pinned_viem_rpc": "https://11155111.rpc.thirdweb.com",
+    "observed_finalized_block": 12080450,
+    "attachment_pointer": "0xAc2669cD54385d9711d0473A47170e90Be44Bb5F",
+    "new_safety_tests": 12,
+    "total_ens_offline_tests": 29
+  },
+  "submission_scope": "Live delegation remains incomplete; user requested a separately labelled simulated walkthrough"
 }
