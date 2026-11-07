@@ -1,6 +1,6 @@
 {
   "profile": "isolated simulated collaboration walkthrough",
-  "status": "LOCAL_CHECKS_PASS_DEPLOYMENT_PENDING",
+  "status": "PASS_SIMULATED_DEMO_DEPLOYMENT",
   "route": "/demo",
   "user_scope": "Explicitly requested mocking remaining integration for immediate demonstration",
   "data": "synthetic Celsius/Kelvin observations with differing baselines",
@@ -8,5 +8,15 @@
   "orchestration": "scripted simulated planner, claims, assignment, A2A/MCP, review and permissions",
   "chain_and_signatures": "simulated in this walkthrough",
   "test": "ASGI route and disclosure assertions passed; JavaScript syntax passed",
-  "production_package": "Demo tooling and hackathon image only"
+  "production_package": "Demo tooling and hackathon image only",
+  "public_url": "https://orca.130.210.15.82.sslip.io/demo",
+  "deployed_revision": "ee9e80d",
+  "content_sha256": "f8af3e62deb8bc60e7dd3d52affe81e3ce9d96b3872306a08ad8307603ce1a96",
+  "public_http": {
+    "demo": 200,
+    "research": 200,
+    "livez": 200
+  },
+  "script_checks": "All eight stages, scientific baseline correction and simulated permission revocation passed in a DOM stub. Authenticated browser acceptance is separate.",
+  "rollback_image": "orca-oracle-backend:pre-simulated-demo"
 }
