@@ -1,0 +1,56 @@
+{
+  "phase": "dashboard UX deployment",
+  "release_commit": "86d02e8",
+  "verified_at": "2026-11-07T03:57:06.021030+00:00",
+  "public_url": "https://orca.130.210.15.82.sslip.io/research",
+  "scope": "Dashboard organization, styles, tab navigation and asset revision URLs; no backend API change",
+  "local_checks": {
+    "dashboard_pytest": "1 passed",
+    "javascript_syntax": "passed",
+    "dom_bindings_and_tab_behavior": "passed",
+    "ruff": "passed",
+    "purpose_headers": "passed",
+    "import_boundaries": "passed"
+  },
+  "https_checks": {
+    "/research": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8"
+    },
+    "/research/assets/workspace.css?v=20261107-tabs1": {
+      "status": 200,
+      "content_type": "text/css; charset=utf-8"
+    },
+    "workspace.css": {
+      "sha256": "ab625ef18adf9ffdc56ca34d657bd327c678fec48520bde0773337609cf38245",
+      "matches_release_source": true
+    },
+    "/research/assets/workspace.js?v=20261107-tabs1": {
+      "status": 200,
+      "content_type": "text/javascript; charset=utf-8"
+    },
+    "workspace.js": {
+      "sha256": "b1193d9224a0706a287e867cab53cc3a4d15b6f263f6899066a9a2acdcb6f816",
+      "matches_release_source": true
+    },
+    "/livez": {
+      "status": 200,
+      "content_type": "application/json"
+    },
+    "/research/config": {
+      "status": 200,
+      "content_type": "application/json"
+    },
+    "configuration": {
+      "reasoning_configured": true,
+      "arkiv_configured": true,
+      "agent_onboarding_enabled": true
+    },
+    "/v1/me": {
+      "status": 401,
+      "anonymous_access_rejected": true
+    }
+  },
+  "browser_walkthrough": "Not performed: CUA could not determine the Chrome URL with sufficient confidence",
+  "signed_in_workflow": "Not rerun during this UI deployment"
+}
