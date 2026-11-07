@@ -25,7 +25,7 @@ try {
 const nonce = randomBytes(24).toString('base64');
 const attaching = proposal.action === 'attach_agent_subregistry';
 const resolver = proposal.action === 'deploy_agent_resolver';
-const port = resolver ? 8795 : attaching ? 8794 : 8793;
+const port = resolver ? (proposal.name.startsWith('reviewer.') ? 8796 : 8795) : attaching ? 8794 : 8793;
 const heading = resolver ? 'Deploy the ORCA agent resolver' : attaching ? 'Attach the ORCA agent registry' : 'Deploy the ORCA agent registry';
 const description = resolver
   ? 'Deploy a separate resolver for this agent. Your wallet receives text record administration. Subname registration and delegation follow separately.'
