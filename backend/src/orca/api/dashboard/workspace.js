@@ -1,27 +1,71 @@
 /* Purpose: connect ORCA's research, agent onboarding, review and provenance tabs to existing APIs.
-Behavior: keep tokens in memory, render untrusted data as text, poll actual events and require approvals.
+Behavior: restore same-tab sessions, share account state across views, escape untrusted data and require approvals.
 Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: dashboard UX increment. */
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pretty = value => JSON.stringify(value, null, 2);
 const detail = (title, value) => `<details><summary>${esc(title)}</summary><pre>${esc(pretty(value))}</pre></details>`;
 const badge = value => `<span class="badge">${esc(String(value).replaceAll('_', ' '))}</span>`;
-const state = {config:null, token:null, refresh:null, expires:0, project:null, datasets:[], selected:new Set(), run:null, reviews:[], anchors:[], timer:null, generation:0, polling:false};
+const state = {config:null, token:null, refresh:null, expires:0, user:null, restoring:false, project:null, datasets:[], selected:new Set(), run:null, reviews:[], anchors:[], timer:null, generation:0, polling:false};
+const sessionKey = 'orca.research.session.v1';
+let sessionGeneration = 0, restoredWorkspace = null;
 let refreshPromise = null, noticeTimer, previewMapping = null, lastEvents = '';
 function notice(message) { $('notice').textContent = message; $('notice').hidden = false; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => $('notice').hidden = true, 12000); }
 function empty(id, message) { $(id).classList.add('empty'); $(id).textContent = message; }
 function fill(id, html) { $(id).classList.remove('empty'); $(id).innerHTML = html; }
-async function responseBody(response) { let body; try { body = await response.json(); } catch { body = {}; } if (!response.ok) { const message = body.detail || body.error_description || body.msg || body.message || `Request failed (${response.status})`; throw new Error(typeof message === 'string' ? message : pretty(message)); } return body; }
+async function responseBody(response) { let body; try { body = await response.json(); } catch { body = {}; } if (!response.ok) { const message = body.detail || body.error_description || body.msg || body.message || `Request failed (${response.status})`; const error = new Error(typeof message === 'string' ? message : pretty(message)); error.status = response.status; throw error; } return body; }
+function renderAccountState() {
+  $('account-button').textContent = state.token ? 'Sign out' : 'Sign in';
+  $('account-button').disabled = state.restoring;
+  $('account-state').textContent = state.restoring ? 'Restoring session…' : state.token ? state.user?.email || 'Signed in' : 'No active session';
+  $('session-state').textContent = state.restoring ? 'Restoring session…' : state.token ? 'Signed in' : 'Signed out';
+}
+function persistSession() {
+  if (!state.token || !state.refresh) return;
+  try {
+    sessionStorage.setItem(sessionKey, JSON.stringify({auth_url:state.config.auth_url,access_token:state.token,refresh_token:state.refresh,expires:state.expires,user:state.user,organization:$('organization').value,project:state.project}));
+  } catch { /* Storage may be unavailable in a restricted browser; the in-memory session remains usable. */ }
+}
+function clearSession() {
+  sessionGeneration++;
+  state.token = state.refresh = state.user = state.project = null;
+  state.expires = 0; state.restoring = false; restoredWorkspace = null; refreshPromise = null;
+  try { sessionStorage.removeItem(sessionKey); } catch { /* No persisted session is available. */ }
+  resetProject();
+  $('organization').innerHTML = '<option value="">Sign in to select</option>';
+  $('project').innerHTML = '<option value="">Select institution</option>';
+  $('organization').disabled = $('project').disabled = true;
+  $('project-title').textContent = 'Research workspace';
+  empty('dataset-list','Sign in to load your evidence.');
+  renderAccountState();
+}
+async function restoreSession() {
+  let saved;
+  try { saved = JSON.parse(sessionStorage.getItem(sessionKey)); } catch { clearSession(); return; }
+  if (!saved) return;
+  if (saved.auth_url !== state.config.auth_url || typeof saved.access_token !== 'string' || !saved.access_token || typeof saved.refresh_token !== 'string' || !saved.refresh_token || !Number.isFinite(saved.expires)) { clearSession(); return; }
+  state.token = saved.access_token; state.refresh = saved.refresh_token; state.expires = saved.expires;
+  state.user = saved.user; state.restoring = true;
+  restoredWorkspace = {organization:saved.organization,project:saved.project}; renderAccountState();
+  try { await token(); await loadOrganizations(); }
+  catch (error) { if ([400,401].includes(error.status)) clearSession(); notice(error.message); }
+  finally { state.restoring = false; renderAccountState(); }
+}
 async function authRequest(grant, body) {
   if (!state.config?.auth_url || !state.config?.anon_key) throw new Error('Supabase login is not configured on this server.');
+  const generation = sessionGeneration;
   const response = await fetch(`${state.config.auth_url}/token?grant_type=${grant}`, {method:'POST', headers:{'Content-Type':'application/json',apikey:state.config.anon_key}, body:JSON.stringify(body), signal:AbortSignal.timeout(30000)});
-  const session = await responseBody(response); state.token = session.access_token; state.refresh = session.refresh_token; state.expires = Date.now() + session.expires_in * 1000;
+  const session = await responseBody(response);
+  if (generation !== sessionGeneration) throw new Error('Sign-in was cancelled. Please sign in again.');
+  if (!session.access_token || !session.refresh_token || !Number.isFinite(session.expires_in) || session.expires_in <= 0) throw new Error('The sign-in server returned an incomplete session.');
+  state.token = session.access_token; state.refresh = session.refresh_token; state.expires = Date.now() + session.expires_in * 1000; state.user = session.user;
+  persistSession(); renderAccountState();
   return session;
 }
 async function token() {
   if (!state.token) throw new Error('Sign in to your workspace first.');
   if (Date.now() > state.expires - 60000) {
-    if (!refreshPromise) refreshPromise = authRequest('refresh_token', {refresh_token:state.refresh}).finally(() => refreshPromise = null);
+    if (!refreshPromise) { const generation = sessionGeneration; const pending = authRequest('refresh_token', {refresh_token:state.refresh}).catch(error => { if (generation === sessionGeneration && [400,401].includes(error.status)) clearSession(); throw error; }).finally(() => { if (refreshPromise === pending) refreshPromise = null; }); refreshPromise = pending; }
     await refreshPromise;
   }
   return state.token;
@@ -29,12 +73,14 @@ async function token() {
 async function api(path, body, method = body === undefined ? 'GET' : 'POST') {
   const access = await token();
   const response = await fetch(path, {method, headers:{Authorization:`Bearer ${access}`, ...(body !== undefined ? {'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()} : {})}, ...(body !== undefined ? {body:JSON.stringify(body)} : {}), signal:AbortSignal.timeout(45000)});
+  if (response.status === 401 && state.token === access) clearSession();
   return responseBody(response);
 }
 function base() { if (!state.project) throw new Error('Choose a project first.'); return `/v1/projects/${encodeURIComponent(state.project)}`; }
 function runBase() { if (!state.run) throw new Error('Choose an investigation first.'); return `${base()}/reasoning/${state.run.id}`; }
 async function action(button, work) { if (button.disabled) return; button.disabled = true; try { await work(); } catch(error) { notice(error.message); } finally { button.disabled = false; updateActions(); } }
 function updateActions() {
+  renderAccountState();
   $('plan-button').disabled = !state.project || !state.selected.size || !state.config?.reasoning_configured;
   $('upload-open').disabled = !state.project;
   $('publish-button').disabled = state.run?.state !== 'completed' || !$('publish-consent').checked || !state.config?.arkiv_configured;
@@ -51,6 +97,7 @@ function resetProject() {
 async function loadOrganizations() {
   const user = await api('/v1/me');
   $('organization').innerHTML = user.orgs.map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('') || '<option value="">No authorized organizations</option>';
+  if (restoredWorkspace && user.orgs.some(o => o.id === restoredWorkspace.organization)) $('organization').value = restoredWorkspace.organization;
   $('organization').disabled = false; await loadProjects();
 }
 async function loadProjects() {
@@ -58,10 +105,13 @@ async function loadProjects() {
   if (!organization) { empty('dataset-list','Your account has no active organization membership.'); return; }
   const projects = await api(`/v1/research/projects?organization_id=${encodeURIComponent(organization)}&limit=100`);
   $('project').innerHTML = projects.items.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('') || '<option value="">No accessible projects</option>';
+  if (restoredWorkspace?.organization === organization && projects.items.some(p => p.id === restoredWorkspace.project)) $('project').value = restoredWorkspace.project;
+  restoredWorkspace = null;
   $('project').disabled = false; await loadProject();
 }
 async function loadProject() {
   state.project = $('project').value; resetProject(); $('project-title').textContent = $('project').selectedOptions[0]?.textContent || 'Overview';
+  persistSession();
   if (!state.project) { empty('dataset-list','Create a project in your existing ORCA workspace, then sign in again.'); return; }
   void loadNetwork();
   const version = state.generation;
@@ -217,6 +267,7 @@ function selectView(name, updateAddress = true) {
     panel.hidden = panel.dataset.viewPanel !== active;
   }
   if (updateAddress) history.replaceState(null, '', `#${active}`);
+  renderAccountState();
 }
 async function refreshRun() {
   if (!state.run || !state.token) return;
@@ -236,7 +287,7 @@ async function refreshRun() {
 }
 function bind() {
   for (const button of document.querySelectorAll('[data-view]')) {
-    button.onclick = () => selectView(button.dataset.view);
+    button.onclick = event => { event.preventDefault(); selectView(button.dataset.view); };
     button.onkeydown = event => {
       if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
       event.preventDefault();
@@ -254,9 +305,9 @@ function bind() {
   $('owned-agents').onclick=e=>{const b=e.target.closest('[data-agent]');if(!b)return;clearTimeout(qualificationTimer);selectedAgent=ownedAgents.find(a=>a.id===b.dataset.agent);renderAgent();refreshAgentDetail().catch(error=>notice(error.message));};
   $('agent-detail').onclick=e=>{const b=e.target.closest('[data-agent-action]');if(b)action(b,()=>agentAction(b.dataset.agentAction));};
   $('network-refresh').onclick=()=>loadNetwork();
-  $('account-button').onclick=()=>{if(state.token){state.token=null;state.refresh=null;state.project=null;resetProject();$('account-button').textContent='Sign in';$('account-state').textContent='Signed out';$('organization').disabled=true;$('project').disabled=true;empty('dataset-list','Sign in to load your evidence.');}else $('login-dialog').showModal();};
+  $('account-button').onclick=()=>{if(state.token)clearSession();else $('login-dialog').showModal();};
   $('login-close').onclick=()=>$('login-dialog').close();
-  $('login-form').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;$('login-error').textContent='';try{const session=await authRequest('password',{email:$('email').value,password:$('password').value});$('password').value='';$('account-state').textContent=session.user.email;$('account-button').textContent='Sign out';$('login-dialog').close();await loadOrganizations();}catch(error){$('login-error').textContent=error.message;notice(error.message);}finally{button.disabled=false;}};
+  $('login-form').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;$('login-error').textContent='';try{await authRequest('password',{email:$('email').value,password:$('password').value});$('password').value='';$('login-dialog').close();await loadOrganizations();}catch(error){$('login-error').textContent=error.message;notice(error.message);}finally{button.disabled=false;}};
   $('organization').onchange=()=>loadProjects().catch(e=>notice(e.message));$('project').onchange=()=>loadProject().catch(e=>notice(e.message));
   $('upload-open').onclick=()=>$('upload-dialog').showModal();$('upload-close').onclick=()=>$('upload-dialog').close();
   $('dataset-file').onchange=()=>{if(!$('dataset-name').value)$('dataset-name').value=$('dataset-file').files[0]?.name||'';};
@@ -277,3 +328,4 @@ function bind() {
 function selectedCount(){ $('selected-count').textContent=`${state.selected.size} dataset${state.selected.size===1?'':'s'} selected`;updateActions(); }
 bind();updateActions();
 try {const [config,health]=await Promise.all([fetch('/research/config').then(responseBody),fetch('/livez').then(responseBody)]);state.config=config;$('connection-state').textContent=health?'Backend connected':'Backend unavailable';if(!config.reasoning_configured)notice('Gemini is not configured on this server. Existing evidence remains available.');updateActions();}catch(error){$('connection-state').textContent='Backend unavailable';notice(error.message);}
+if (state.config) await restoreSession();
