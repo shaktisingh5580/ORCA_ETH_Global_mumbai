@@ -1,0 +1,21 @@
+# Purpose: deploy an institution-owned A2A service independently of the ORCA coordinator.
+# Behavior: retain only provider-local keys/tasks; bind locally behind the operator's TLS proxy.
+# Refs: institutional implementation plan F02.4; Phase: F02.
+name: orca-institution-provider
+services:
+  provider:
+    build:
+      context: ../..
+      dockerfile: infra/Dockerfile.provider
+    restart: unless-stopped
+    init: true
+    command: ['backend/.venv/bin/python', '-m', 'orca.institution_provider', 'serve', '--directory', '/var/data/provider', '--host', '0.0.0.0', '--port', '8080']
+    ports: ['127.0.0.1:18080:8080']
+    volumes: ['state:/var/data/provider']
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+volumes:
+  state:

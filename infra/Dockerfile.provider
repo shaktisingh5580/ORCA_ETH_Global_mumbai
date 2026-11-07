@@ -1,0 +1,12 @@
+# Purpose: package an independently operated institutional A2A provider without demo fixtures.
+# Behavior: install the pinned runtime and provider entrypoint; mount only provider-local state.
+# Refs: institutional implementation plan F02.4; Phase: F02.
+FROM python:3.12.12-slim-bookworm
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY backend/pyproject.toml backend/uv.lock backend/README.md ./backend/
+RUN pip install --no-cache-dir uv==0.9.30 && uv sync --project backend --frozen --no-dev --no-install-project
+COPY backend/src ./backend/src
+RUN uv pip install --python backend/.venv/bin/python --no-deps ./backend
+CMD ["backend/.venv/bin/python", "-m", "orca.institution_provider", "serve", "--directory", "/var/data/provider", "--host", "0.0.0.0", "--port", "8080"]
