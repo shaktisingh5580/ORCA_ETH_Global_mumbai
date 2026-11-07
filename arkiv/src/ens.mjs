@@ -127,5 +127,9 @@ export async function main(command, name) {
 }
 if (process.argv[1]===fileURLToPath(import.meta.url)) {
   try { console.log(JSON.stringify(await main(process.argv[2],process.argv[3]))); }
-  catch { console.error('ENS_READ_UNAVAILABLE_OR_UNSUPPORTED: no authority granted');process.exitCode=1; }
+  catch (error) {
+    const code = error.message === 'Name is not actively registered at every hierarchy level' ? 'ENS_NAME_INACTIVE' : 'ENS_READ_UNAVAILABLE_OR_UNSUPPORTED';
+    console.log(JSON.stringify({code,authority_verified:false}));
+    console.error('ENS_READ_UNAVAILABLE_OR_UNSUPPORTED: no authority granted');process.exitCode=1;
+  }
 }

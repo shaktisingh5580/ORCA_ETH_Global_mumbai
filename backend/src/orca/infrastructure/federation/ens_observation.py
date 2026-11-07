@@ -31,6 +31,20 @@ def inspect_name(name: str) -> dict[str, Any]:
             timeout=35,
             env=environment,
         )
+        if len(result.stdout) <= 200_000 and result.returncode:
+            try:
+                failure = json.loads(result.stdout)
+            except ValueError:
+                failure = {}
+            if failure.get("code") == "ENS_NAME_INACTIVE":
+                return {
+                    "name": name,
+                    "status": "ENS_NAME_INACTIVE",
+                    "authority_verified": False,
+                    "records": {},
+                    "message": "The name is not active at every ENSv2 hierarchy level on finalized Sepolia state. Complete the subname registration and wait for finality before retrying.",
+                    "research_dispatch_enabled": False,
+                }
         if result.returncode or len(result.stdout) > 200_000:
             raise RuntimeError("ENS_READ_UNAVAILABLE_OR_UNSUPPORTED")
         value: dict[str, Any] = json.loads(result.stdout)
