@@ -8127,6 +8127,75 @@
         ]
       }
     },
+    "/v1/organizations/{org_id}/agents/{agent_id}/ens-observation": {
+      "get": {
+        "operationId": "ens_observation_v1_organizations__org_id__agents__agent_id__ens_observation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Org Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ens Observation V1 Organizations  Org Id  Agents  Agent Id  Ens Observation Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Ens Observation",
+        "tags": [
+          "institutional agents"
+        ]
+      }
+    },
     "/v1/organizations/{org_id}/agents/{agent_id}/events": {
       "get": {
         "operationId": "events_v1_organizations__org_id__agents__agent_id__events_get",
