@@ -1,6 +1,6 @@
-/* Purpose: connect the monochrome workspace to real ORCA research and Supabase auth APIs.
+/* Purpose: connect ORCA's research, agent onboarding, review and provenance tabs to existing APIs.
 Behavior: keep tokens in memory, render untrusted data as text, poll actual events and require approvals.
-Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; Phase: A05 dashboard increment. */
+Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: dashboard UX increment. */
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pretty = value => JSON.stringify(value, null, 2);
@@ -203,6 +203,21 @@ function renderEvents(events) {
   if (!events.length) { empty('timeline','Waiting for the first recorded activity…'); return; }
   fill('timeline',events.map(e=>`<article class="event"><time>${esc(new Date(e.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}))}</time><div class="event-title">${esc(e.event_type.replaceAll('_',' '))}</div><p>${esc(e.data.role||e.data.tool||e.data.name||e.data.model||'')}</p>${detail('Inspect event',e.data)}</article>`).join(''));
 }
+function selectView(name, updateAddress = true) {
+  const known = ['research','agents','review','provenance'];
+  const aliases = {investigation:'research', evidence:'research', collaboration:'agents'};
+  const active = known.includes(name) ? name : Object.hasOwn(aliases, name) ? aliases[name] : 'research';
+  for (const button of document.querySelectorAll('[data-view]')) {
+    const selected = button.dataset.view === active;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-selected', String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  }
+  for (const panel of document.querySelectorAll('[data-view-panel]')) {
+    panel.hidden = panel.dataset.viewPanel !== active;
+  }
+  if (updateAddress) history.replaceState(null, '', `#${active}`);
+}
 async function refreshRun() {
   if (!state.run || !state.token) return;
   if (state.polling) { clearTimeout(state.timer); state.timer=setTimeout(refreshRun,1000); return; }
@@ -220,6 +235,20 @@ async function refreshRun() {
   finally { state.polling=false; if(state.run&&state.token){clearTimeout(state.timer);state.timer=setTimeout(refreshRun,5000);} }
 }
 function bind() {
+  for (const button of document.querySelectorAll('[data-view]')) {
+    button.onclick = () => selectView(button.dataset.view);
+    button.onkeydown = event => {
+      if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+      event.preventDefault();
+      const tabs = [...document.querySelectorAll('[data-view]')];
+      const index = tabs.indexOf(button);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+      tabs[next].focus();
+      selectView(tabs[next].dataset.view);
+    };
+  }
+  selectView(location.hash.slice(1), false);
+  window.addEventListener('hashchange', () => selectView(location.hash.slice(1), false));
   $('onboard-open').onclick=()=>$('onboard-dialog').showModal(); $('onboard-close').onclick=()=>$('onboard-dialog').close();
   $('onboard-form').onsubmit=e=>{e.preventDefault();action(e.submitter,async()=>{const descriptor=JSON.parse($('agent-descriptor').value); if (Object.keys(descriptor).some(k=>/private|secret|token|password/i.test(k))) throw new Error('Use the public describe output. Private configuration must stay on the provider host.'); descriptor.discoverable=$('agent-discoverable').checked; const created=await api(agentsBase(),descriptor); selectedAgent=created; $('onboard-dialog').close(); $('agent-descriptor').value=''; await loadOwnedAgents(); await refreshAgentDetail();});};
   $('owned-agents').onclick=e=>{const b=e.target.closest('[data-agent]');if(!b)return;clearTimeout(qualificationTimer);selectedAgent=ownedAgents.find(a=>a.id===b.dataset.agent);renderAgent();refreshAgentDetail().catch(error=>notice(error.message));};
