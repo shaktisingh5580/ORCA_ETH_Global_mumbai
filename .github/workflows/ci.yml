@@ -21,6 +21,9 @@ jobs:
         working-directory: arkiv
       - run: npm run check
         working-directory: arkiv
+      # Offline ENS safety tests do not claim live namespace/delegation acceptance.
+      - run: npm test
+        working-directory: arkiv
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.9.30'
