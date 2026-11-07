@@ -14,6 +14,7 @@ RUN uv pip install --python backend/.venv/bin/python --no-deps ./backend
 COPY arkiv/package.json arkiv/package-lock.json ./arkiv/
 RUN node /usr/local/lib/node_modules/npm/bin/npm-cli.js --prefix arkiv ci --omit=dev --ignore-scripts --no-audit --no-fund
 COPY arkiv/src ./arkiv/src
+COPY contracts/ens ./contracts/ens
 COPY backend/tests/support/network_setup.py backend/tests/support/disagreement_data.py backend/tests/support/disagreement_store.py backend/tests/support/disagreement_worker.py backend/tests/support/disagreement_demo.py backend/tests/support/demo_bootstrap.py backend/tests/support/cloud_demo.py ./demo_tooling/
 COPY backend/tests/support/collaboration_demo.html ./demo_tooling/collaboration_demo.html
 ENV OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONUNBUFFERED=1 ORCA_REPOSITORY_ROOT=/app
