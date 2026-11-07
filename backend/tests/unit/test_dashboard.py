@@ -32,13 +32,16 @@ def test_workspace_assets_and_public_configuration():
         assert config.json()["reasoning_configured"] is True
         assert "private-model-test-value" not in config.text
         assert "monitoring_token" not in config.text
-        assert 'id="collaboration"' in page.text
+        assert 'id="tab-agents"' in page.text and 'data-view="agents"' in page.text
+        assert 'id="view-agents"' in page.text and 'id="collaboration"' in page.text
+        assert page.text.index('id="view-agents"') < page.text.index('id="collaboration"')
         assert "Onboard agent" in page.text
         assert 'id="agent-detail"' in page.text
         script = client.get("/research/assets/workspace.js")
         assert script.status_code == 200
         assert "/v1/network/agents?organization_id=" in script.text
         assert "generation !== state.generation" in script.text
+        assert "ArrowLeft" in script.text and "aria-selected" in script.text
         assert client.get("/research/assets/workspace.css").status_code == 200
     with TestClient(
         create_app(Settings(monitoring_token="0123456789abcdefghijklmnopqrstuvwxyz"))
