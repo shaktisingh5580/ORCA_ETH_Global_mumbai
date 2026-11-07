@@ -1,0 +1,24 @@
+{
+  "phase": "F02",
+  "status": "LOCAL_GATES_PASS_CLOUD_GATE_PENDING",
+  "scope": "Institution-owned service onboarding, public-key proof, HTTPS conformance, durable qualification, lifecycle and dashboard",
+  "local_checks": {
+    "offline_suite": "155 passed, 5 explicitly live tests deselected",
+    "cancellation_and_dashboard": "2 passed after SDK callback fix",
+    "https_egress_suite": "16 passed including DNS/private IPv4/IPv6, pinned TLS, redirect/compression/size rejection",
+    "isolated_postgres_a2a_regressions": "11 passed on freshly migrated isolated orca_f02_test; no cloud reset",
+    "mypy": "136 files passed",
+    "headers": "passed",
+    "import_boundaries": "passed",
+    "ruff": "passed",
+    "node_syntax": "passed",
+    "compose_configuration": "both Oracle and independent provider compose files validated"
+  },
+  "deployment_gate": "PENDING: additive migration, separate provider container, real public HTTPS proof and A2A qualification",
+  "identity_claim": "Service-only; ENS and affiliation not verified",
+  "source_mode": "qualification_inputs",
+  "research_dispatch_enabled": false,
+  "provider_image": "infra/Dockerfile.provider; no tests/support or coordinator secrets copied",
+  "next_phase": "F03 only after final F02 gate",
+  "source_integrity": "Critical protected source files unchanged"
+}

@@ -1,0 +1,22 @@
+{
+  "phase": "F02",
+  "authority": "User requested the next institutional collaboration phase and integrated dashboard",
+  "data_model": "Additive 0019 registrations, immutable versions, expiring one-use challenges, qualification reports/jobs and audit events with tenant RLS",
+  "capability": "temperature_summary_v1; arithmetic_mean/1.0; explicit C/K values",
+  "verification": "Service key proof plus matching public HTTPS Agent Card and signed real A2A results",
+  "onboarding_worker": "Durable fenced lease; current org authority and binding version checked before and after qualification; stable operation namespace on retry",
+  "lifecycle": [
+    "draft",
+    "verification_pending",
+    "verified",
+    "qualified",
+    "active",
+    "suspended",
+    "revoked"
+  ],
+  "qualification_expiry": "1 day; expired qualifications are excluded from directory/service eligibility",
+  "independence": "Self-declared operator mode; Oracle rehearsal uses team_controlled",
+  "separation": "New active registration does not yet enable research task assignment; F05 integrates dispatch. Existing SST services unchanged. ENS/wallet binding F03; actual MCP F04.",
+  "protocol_compatibility": "A2A 0.3.0 SDK 0.3.22 retained; cancellation callback lacks call_context so durable owner is read after SDK TaskStore authorization",
+  "public_disclosure": "Discoverable name/endpoint/capability only with owner consent and active unexpired qualification; no private keys or project data"
+}

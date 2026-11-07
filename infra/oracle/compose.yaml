@@ -1,6 +1,6 @@
 # Purpose: host the full prototype on one Oracle Always Free ARM VM.
 # Behavior: expose HTTPS only through Caddy; preserve agent state and mount private settings as a file.
-# Refs: ORACLE_FREE_DEPLOYMENT_GUIDE.md; H05 cloud runtime decision; Phase: H05 Oracle adaptation.
+# Refs: ORACLE_FREE_DEPLOYMENT_GUIDE.md; H05 cloud runtime decision; Phase: H05 Oracle adaptation / F02 institutional provider.
 name: orca-oracle
 services:
   backend:
@@ -37,6 +37,7 @@ services:
     restart: unless-stopped
     environment:
       ORCA_PUBLIC_HOST: ${ORCA_PUBLIC_HOST:?Set the public DNS hostname in infra/oracle/.env}
+      ORCA_PROVIDER_HOST: ${ORCA_PROVIDER_HOST:-institution-provider.localhost}
     ports:
       - '80:80'
       - '443:443'
@@ -52,6 +53,23 @@ services:
       options:
         max-size: 10m
         max-file: '3'
+  institution-provider:
+    image: orca-institutional-provider:latest
+    build:
+      context: ../..
+      dockerfile: infra/Dockerfile.provider
+    profiles: ['institutional']
+    restart: unless-stopped
+    init: true
+    command: ['backend/.venv/bin/python', '-m', 'orca.institution_provider', 'serve', '--directory', '/var/data/provider', '--host', '0.0.0.0', '--port', '8080']
+    volumes:
+      - institution_provider_state:/var/data/provider
+    expose: ['8080']
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
 secrets:
   orca_runtime_bundle:
     file: ../../.cache/oracle/runtime-bundle.json
@@ -59,3 +77,4 @@ volumes:
   agent_state:
   tls_data:
   tls_config:
+  institution_provider_state:
