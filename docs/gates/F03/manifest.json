@@ -77,6 +77,14 @@
     "block_number": 12080399,
     "transaction_hash": "0xbe8c4368602ea7884cc408e307f995cb03568b6c0545b1d5147b83a7632a4855",
     "registry": "0xAc2669cD54385d9711d0473A47170e90Be44Bb5F",
-    "attachment": "SIMULATED_AWAITING_CONTROLLER_SIGNATURE"
+    "attachment": "SUCCESS_RECEIPT_AND_LATEST_POINTER_VERIFIED_PENDING_FINALITY"
+  },
+  "registry_attachment": {
+    "transaction_hash": "0xf1a1e9cd20958a2998756eba6091e0cd59491a5e70053e152154e5628cd0f5f5",
+    "block_number": 12080424,
+    "block_hash": "0x324ded843fd86556d3d3b01fed4ea13ea713d92abfba40e7b4d30b0a570f90ec",
+    "observed_latest_block": 12080430,
+    "observed_finalized_block": 12080355,
+    "observed_registry": "0xAc2669cD54385d9711d0473A47170e90Be44Bb5F"
   }
 }
