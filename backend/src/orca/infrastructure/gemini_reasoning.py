@@ -71,11 +71,18 @@ class GeminiReasoner:
                 }
                 for attempt in range(len(self.keys)):
                     key = self.select_key()
-                    response = client.post(
-                        f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
-                        headers={"x-goog-api-key": key},
-                        json=payload,
-                    )
+                    try:
+                        response = client.post(
+                            f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
+                            headers={"x-goog-api-key": key},
+                            json=payload,
+                        )
+                    except httpx.TransportError:
+                        with self.lock:
+                            self.cooldowns[key] = time.monotonic() + 15
+                        if attempt + 1 < len(self.keys):
+                            continue
+                        raise ModelUnavailable("GEMINI_TRANSPORT_UNAVAILABLE") from None
                     if response.status_code == 429 or response.status_code >= 500:
                         self.cool(key, response)
                         if attempt + 1 < len(self.keys):

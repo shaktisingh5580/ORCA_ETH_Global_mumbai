@@ -9,13 +9,14 @@ import pytest
 from orca.infrastructure import gemini_reasoning as module
 
 
-def test_provider_throttle_retries_once_with_json(monkeypatch):
+@pytest.mark.parametrize("status", [429, 503])
+def test_provider_throttle_retries_once_with_json(monkeypatch, status):
     requests = []
 
     def handler(request):
         requests.append(request)
         return (
-            httpx.Response(429, json={})
+            httpx.Response(status, json={})
             if len(requests) == 1
             else httpx.Response(
                 200, json={"candidates": [{"content": {"role": "model", "parts": []}}]}
@@ -84,4 +85,21 @@ def test_all_throttled_fail_bounded_without_sleep(monkeypatch):
         model.turn("test", [], [])
     with pytest.raises(module.ModelUnavailable, match="GEMINI_POOL_COOLDOWN"):
         model.turn("test", [], [])
+    assert seen == ["first", "second"]
+
+
+def test_transport_failure_tries_next_project_without_exposing_details(monkeypatch):
+    seen = []
+
+    def handler(request):
+        seen.append(request.headers["x-goog-api-key"])
+        if len(seen) == 1:
+            raise httpx.ConnectTimeout("private-provider-detail")
+        return httpx.Response(200, json={"candidates": [{"content": {"parts": []}}]})
+
+    original = httpx.Client
+    monkeypatch.setattr(
+        module.httpx, "Client", lambda **kw: original(transport=httpx.MockTransport(handler))
+    )
+    module.GeminiReasoner("first,second").turn("test", [], [])
     assert seen == ["first", "second"]
