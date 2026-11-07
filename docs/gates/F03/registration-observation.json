@@ -1,0 +1,27 @@
+{
+  "schema": "orca.ens-registration-observation/1.0",
+  "chain_id": 11155111,
+  "name": "orca-research-lab.eth",
+  "source": "https://ethereum-sepolia-rpc.publicnode.com",
+  "registry": "0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4",
+  "latest": {
+    "block_number": 12080258,
+    "block_hash": "0xc8cd924b36ed8280e5f909a1bcf3f26548a4e5f1fadeba86533067114d95f333",
+    "block_timestamp": 1794013128,
+    "status": "REGISTERED",
+    "owner": "0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8",
+    "expiry": 1825570608,
+    "matches_proposed_controller": true
+  },
+  "finalized": {
+    "block_number": 12080165,
+    "block_hash": "0x245df500a9fac65df8d1b2ae053e965fd6fa5a7f1ffe9be7f42e8e9a1dd4bda2",
+    "block_timestamp": 1794011988,
+    "status": "AVAILABLE",
+    "owner": "0x0000000000000000000000000000000000000000"
+  },
+  "acceptance": "PENDING_FINALITY_AND_REMAINING_F03_GATES",
+  "authority_verified": false,
+  "delegation_verified": false,
+  "transactions_sent_by_agent": 0
+}

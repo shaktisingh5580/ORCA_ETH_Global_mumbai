@@ -19,13 +19,16 @@
   "live_preflight": {
     "status": "BLOCKED_RPC_RATE_LIMIT",
     "last_error": "Public Sepolia RPC returned HTTP 429 during interface checks; no complete pass recorded",
-    "transactions_sent": 0
+    "transactions_sent": 0,
+    "note": "Subsequent namespace inspection reached registration-state checks; latest vs finalized reads show the new registration is not finalized. A full finalized namespace/resolver pass is still pending."
   },
   "live_namespace": {
-    "status": "PENDING_USER_REGISTRATION",
-    "name": null,
+    "status": "REGISTERED_LATEST_PENDING_FINALITY",
+    "name": "orca-research-lab.eth",
     "proposed_controller": "0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8",
-    "controller_proof": "NOT_PROVIDED"
+    "controller_proof": "NOT_PROVIDED",
+    "latest_owner_matches_proposed_controller": true,
+    "observation": "registration-observation.json"
   },
   "remaining_gate_requirements": [
     "Complete finalized-block live deployment and controlled namespace observation",
