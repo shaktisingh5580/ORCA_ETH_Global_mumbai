@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node --test backend/tests/ui/dashboard-session.test.cjs
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: arkiv
       - run: npm run check
