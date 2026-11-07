@@ -14,9 +14,10 @@ const client = createPublicClient({
 });
 let proposal;
 try {
-  const [name, controller, action, label] = process.argv.slice(2);
-  proposal = action === 'resolver'
-    ? await prepareAgentResolver(client, name, controller, label)
+  const [name, controller, action, label, deploymentHash] = process.argv.slice(2);
+  if (action === 'register' && !deploymentHash) throw new Error('Resolver deployment hash required');
+  proposal = action === 'resolver' || action === 'register'
+    ? await prepareAgentResolver(client, name, controller, label, action === 'register' ? deploymentHash : undefined)
     : await prepareRegistry(client, name, controller, action);
 } catch (error) {
   console.error('ENS simulation failed: ' + (error.shortMessage ?? error.message));
@@ -25,9 +26,13 @@ try {
 const nonce = randomBytes(24).toString('base64');
 const attaching = proposal.action === 'attach_agent_subregistry';
 const resolver = proposal.action === 'deploy_agent_resolver';
-const port = resolver ? (proposal.name.startsWith('reviewer.') ? 8796 : 8795) : attaching ? 8794 : 8793;
-const heading = resolver ? 'Deploy the ORCA agent resolver' : attaching ? 'Attach the ORCA agent registry' : 'Deploy the ORCA agent registry';
-const description = resolver
+const registering = proposal.action === 'register_agent_subname';
+const reviewer = proposal.name.startsWith('reviewer.');
+const port = registering ? (reviewer ? 8798 : 8797) : resolver ? (reviewer ? 8796 : 8795) : attaching ? 8794 : 8793;
+const heading = registering ? 'Register the ORCA agent subname' : resolver ? 'Deploy the ORCA agent resolver' : attaching ? 'Attach the ORCA agent registry' : 'Deploy the ORCA agent registry';
+const description = registering
+  ? 'Register the agent under your ENS parent and assign its separate resolver. Your wallet owns the subname.'
+  : resolver
   ? 'Deploy a separate resolver for this agent. Your wallet receives text record administration. Subname registration and delegation follow separately.'
   : attaching
   ? 'Attach the verified registry to your ENS parent name. This enables registration of agent subnames.'

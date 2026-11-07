@@ -12,7 +12,7 @@ const SET_SUBREGISTRY = 1n << 20n;
 const REGISTRAR = 1n;
 const SET_TEXT = 1n << 4n;
 
-export async function prepareAgentResolver(client, name, controller, agentLabel) {
+export async function prepareAgentResolver(client, name, controller, agentLabel, deploymentHash) {
   if (!isAddress(controller) || !/^(analyst|reviewer)$/.test(agentLabel)) {
     throw new Error('Expected a controller address and analyst or reviewer label');
   }
@@ -40,6 +40,48 @@ export async function prepareAgentResolver(client, name, controller, agentLabel)
     args: [[{ account: controller, roleBitmap: SET_TEXT | (SET_TEXT << 128n) }], []],
   });
   const args = [PermissionedResolverImpl.address, salt, initialization];
+  const data = encodeFunctionData({ abi: VerifiableFactory.abi, functionName: 'deployProxy', args });
+  if (deploymentHash !== undefined) {
+    if (!/^0x[0-9a-f]{64}$/i.test(deploymentHash)) throw new Error('Full resolver deployment hash required');
+    const registry = parent.subregistry;
+    if (registry === zeroAddress) throw new Error('The parent registry attachment is awaiting Sepolia finality');
+    await reader.contract(registry, 'UserRegistryImpl', true);
+    const { UserRegistryImpl } = pin.contracts;
+    const [deployment, receipt, currentRegistry, resolver] = await Promise.all([
+      client.getTransaction({ hash: deploymentHash }),
+      client.getTransactionReceipt({ hash: deploymentHash }),
+      client.readContract({ ...ETHRegistry, functionName: 'getSubregistry', args: [parent.label], blockNumber: latest.number }),
+      client.readContract({ ...VerifiableFactory, functionName: 'predictProxyAddress', args: [controller, salt], blockNumber: latest.number }),
+    ]);
+    if (receipt.status !== 'success' || receipt.blockNumber > latest.number ||
+        !deployment.to || !isAddressEqual(deployment.to, VerifiableFactory.address) ||
+        !isAddressEqual(deployment.from, controller) || deployment.input !== data ||
+        deployment.value !== 0n || deployment.blockHash !== receipt.blockHash ||
+        !isAddressEqual(currentRegistry, registry)) {
+      throw new Error('Resolver deployment or current parent registry does not match the proposal');
+    }
+    const implementation = await client.readContract({
+      ...VerifiableFactory, functionName: 'verifyContract', args: [resolver], blockNumber: latest.number,
+    });
+    if (!isAddressEqual(implementation, PermissionedResolverImpl.address) || isAddressEqual(resolver, parent.resolver)) {
+      throw new Error('Expected a separate factory-verified permissioned resolver');
+    }
+    const expiry = state.expiry < BigInt(parent.expiry) ? state.expiry : BigInt(parent.expiry);
+    const registerArgs = [agentLabel, controller, zeroAddress, resolver, 0n, expiry];
+    await client.simulateContract({
+      address: registry, abi: UserRegistryImpl.abi, functionName: 'register', args: registerArgs,
+      account: controller, blockNumber: latest.number,
+    });
+    return {
+      chain_id: pin.chain_id, name: agentName, controller, action: 'register_agent_subname',
+      registry, resolver, deployment_hash: deploymentHash, resolver_deployment_block: receipt.blockNumber.toString(),
+      expiry: expiry.toString(), finalized_block: observation.block_number, simulated_block: latest.number.toString(),
+      transaction: {
+        from: controller, to: registry, value: '0x0',
+        data: encodeFunctionData({ abi: UserRegistryImpl.abi, functionName: 'register', args: registerArgs }),
+      },
+    };
+  }
   const { result } = await client.simulateContract({
     ...VerifiableFactory, functionName: 'deployProxy', args, account: controller, blockNumber: latest.number,
   });
@@ -48,7 +90,7 @@ export async function prepareAgentResolver(client, name, controller, agentLabel)
     predicted_resolver: result, finalized_block: observation.block_number, simulated_block: latest.number.toString(),
     transaction: {
       from: controller, to: VerifiableFactory.address, value: '0x0',
-      data: encodeFunctionData({ abi: VerifiableFactory.abi, functionName: 'deployProxy', args }),
+      data,
     },
   };
 }

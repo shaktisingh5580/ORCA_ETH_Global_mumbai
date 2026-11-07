@@ -86,5 +86,19 @@
     "observed_latest_block": 12080430,
     "observed_finalized_block": 12080355,
     "observed_registry": "0xAc2669cD54385d9711d0473A47170e90Be44Bb5F"
+  },
+  "agent_resolver_deployments": {
+    "status": "BOTH_RECEIPTS_AND_FACTORY_IMPLEMENTATIONS_VERIFIED",
+    "analyst": {
+      "transaction_hash": "0x1a528adaa6f526e3cc657f5d37bb1b4d573ab4134ce914d935c91d23d1f38f72",
+      "block_number": 12080466,
+      "resolver": "0xC0D3A9f3916e839Ae1A4Cc98a0D647b03Bd2F06c"
+    },
+    "reviewer": {
+      "transaction_hash": "0xe9a81154f19a3f388681ece34f89d8f15dda23e474cec8e1d64f1289067b262e",
+      "block_number": 12080472,
+      "resolver": "0x2BDD8afdDb8fdE9e4Db2A5F72653E1C0e7e06018"
+    },
+    "subname_registration": "AWAITING_FINALIZED_PARENT_ATTACHMENT"
   }
 }
