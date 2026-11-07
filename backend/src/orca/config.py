@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     network_private_key: SecretStr | None = None
     network_wallet_env_file: str = ".env.arkiv"
     network_state_dir: str = ".cache/network/coordinator"
+    agent_onboarding_enabled: bool = False
     gemini_api_keys: SecretStr | None = None
     gemini_api_key: SecretStr | None = None
     gemini_model: str = Field(default="gemini-flash-latest", pattern=r"^[a-z0-9][a-z0-9.-]{0,90}$")

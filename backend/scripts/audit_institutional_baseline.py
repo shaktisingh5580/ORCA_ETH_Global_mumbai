@@ -48,7 +48,9 @@ def inventory() -> dict[str, Any]:
         "source_gate": "PASS" if all(sources.values()) else "BLOCKED_MISSING_LOCAL_SOURCES",
         "capabilities": {
             "operator_pinned_sst_a2a": "implemented; loopback only",
-            "institution_owned_onboarding": "not implemented",
+            "institution_owned_onboarding": "registered; qualification and external deployment gates are separate"
+            if "POST /v1/organizations/{org_id}/agents" in routes
+            else "not implemented",
             "ens_bindings": "not implemented",
             "mcp_scientific_tools": "not implemented",
             "tabular_reasoning": "implemented; coordinator workers",

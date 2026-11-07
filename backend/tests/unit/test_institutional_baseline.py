@@ -13,8 +13,8 @@ from audit_institutional_baseline import inventory  # noqa: E402
 def test_inventory_records_actual_routes_and_missing_federation():
     report = inventory()
     assert "POST /v1/projects/{project_id}/reasoning" in report["operations"]
-    assert "POST /v1/organizations/{org_id}/agents" not in report["operations"]
-    assert report["capabilities"]["institution_owned_onboarding"] == "not implemented"
+    assert "POST /v1/organizations/{org_id}/agents" in report["operations"]
+    assert report["capabilities"]["institution_owned_onboarding"].startswith("registered;")
     assert report["capabilities"]["tabular_a2a_delegation"] == "not implemented"
     assert "0018_research_anchors.py" in report["migrations"]
     assert report["packages"]["a2a-sdk"] == "0.3.22"

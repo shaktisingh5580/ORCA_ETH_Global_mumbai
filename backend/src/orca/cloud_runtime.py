@@ -172,6 +172,17 @@ def materialize(
             ("research-worker", "orca.prototype_worker"),
         )
     )
+    if (
+        settings.prototype_enabled
+        and settings.network_enabled
+        and settings.agent_onboarding_enabled
+    ):
+        commands.append(
+            (
+                "agent-onboarding-worker",
+                [sys.executable, "-m", "orca.onboarding_worker", "--env-file", str(api_env)],
+            )
+        )
     if settings.prototype_enabled and (settings.gemini_api_keys or settings.gemini_api_key):
         commands.extend(
             (name, [sys.executable, "-m", module, "--env-file", str(api_env)])

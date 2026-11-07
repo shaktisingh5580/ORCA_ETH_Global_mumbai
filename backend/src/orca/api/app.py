@@ -17,6 +17,8 @@ from starlette.responses import Response
 
 from orca.api.dashboard import install_dashboard
 from orca.api.errors import Problem, problem_response, validation_error
+from orca.api.routers.agents import directory_router
+from orca.api.routers.agents import router as agents_router
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
 from orca.api.routers.files import router as files_router
@@ -88,6 +90,7 @@ def create_app(settings: Settings) -> FastAPI:
         app.state.upload_store = upload_store(settings)
     if settings.prototype_enabled:
         app.state.prototype_settings = settings
+        app.state.agent_onboarding_enabled = settings.agent_onboarding_enabled
     if settings.network_enabled:
         app.state.network_runtime = load_runtime(settings)
     if settings.research_demo_enabled:
@@ -119,6 +122,8 @@ def create_app(settings: Settings) -> FastAPI:
         app.include_router(prototype_router)
         app.include_router(normalization_router)
         app.include_router(reasoning_router)
+        app.include_router(agents_router)
+        app.include_router(directory_router)
         install_dashboard(app, settings)
     if settings.network_enabled:
         app.include_router(network_router)
