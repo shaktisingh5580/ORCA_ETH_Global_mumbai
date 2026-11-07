@@ -1,0 +1,55 @@
+{
+  "phase": "F03",
+  "subphase": "F03.1",
+  "status": "IN_PROGRESS_LIVE_GATE_BLOCKED",
+  "profile": "institutional collaboration prototype",
+  "implementation": [
+    "Pinned Sepolia ABI artifacts and normalized runtime fingerprints from official contracts-v2 revision 07e55a056f5b6a9c90119f501bdd05714e67dddd",
+    "Read-only finalized-block hierarchy and five ORCA text-record observations",
+    "ERC165, implementation-slot and VerifiableFactory proxy-provenance checks",
+    "Bounded normalized ASCII .eth names; no arbitrary RPC or CCIP URL input",
+    "No signing, transactions, authority grants, database migrations or cloud rollout"
+  ],
+  "pin_sha256": "e49f9351f28dafb89d9c3ee237244506f42c2db6d40a1f635c0a5707e06dcd3d",
+  "offline_safety_tests": {
+    "passed": 17,
+    "failed": 0,
+    "command": "node --test arkiv/tests/ens.test.mjs"
+  },
+  "live_preflight": {
+    "status": "BLOCKED_RPC_RATE_LIMIT",
+    "last_error": "Public Sepolia RPC returned HTTP 429 during interface checks; no complete pass recorded",
+    "transactions_sent": 0
+  },
+  "live_namespace": {
+    "status": "PENDING_USER_REGISTRATION",
+    "name": null,
+    "proposed_controller": "0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8",
+    "controller_proof": "NOT_PROVIDED"
+  },
+  "remaining_gate_requirements": [
+    "Complete finalized-block live deployment and controlled namespace observation",
+    "Controller-signed namespace/subname setup and isolated resolver boundary",
+    "Real allowed delegated update, sibling/root denial and revoke enforcement",
+    "EIP712 controller/service/Arkiv binding with nonce, expiry and EOA/ERC1271 verification",
+    "Fresh runtime eligibility and UI integration"
+  ],
+  "authority_verified": false,
+  "research_dispatch_enabled": false,
+  "next_phase": "F04 NOT STARTED",
+  "regressions": {
+    "protected_source_hashes": "PASS unchanged against F01 baseline",
+    "javascript_syntax": "PASS existing Arkiv CLI, coordination bridge, new ENS reader",
+    "purpose_headers": "PASS",
+    "import_boundaries": "PASS",
+    "offline_backend_suite": {
+      "passed": 157,
+      "deselected_live_tests": 54,
+      "command": "python -m pytest -q -m 'not live' --basetemp <fresh workspace path> backend/tests",
+      "clean_install": "PASS",
+      "ruff": "PASS",
+      "mypy": "PASS 136 files",
+      "note": "First run hit Windows temp access errors; rerun with fresh workspace temp directory passed."
+    }
+  }
+}

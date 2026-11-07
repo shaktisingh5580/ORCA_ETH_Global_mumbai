@@ -3,7 +3,7 @@
   "phases": {
     "F01": "PASS audit/recovery baseline",
     "F02": "PASS service onboarding; live HTTPS gate",
-    "F03": "NEXT: ENSv2 authority and cross-chain binding",
+    "F03": "IN PROGRESS: read adapter tested; live namespace, delegation and cross-chain binding gate pending",
     "F04": "PLANNED: institutional data and MCP",
     "F05": "PLANNED: unified task discovery/assignment/A2A execution",
     "F06": "PLANNED: independent review and lineage",
