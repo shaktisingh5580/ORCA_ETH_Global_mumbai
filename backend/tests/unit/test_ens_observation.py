@@ -41,3 +41,18 @@ def test_observation_is_read_only_and_process_has_no_keys(monkeypatch):
 
     monkeypatch.setattr(ens.subprocess, "run", run)
     assert ens.inspect_name(name)["authority_verified"] is False
+
+
+def test_inactive_name_is_a_setup_result_without_granted_authority(monkeypatch):
+    monkeypatch.setattr(ens.shutil, "which", lambda _: "node")
+    monkeypatch.setattr(
+        ens.subprocess,
+        "run",
+        lambda *a, **k: SimpleNamespace(
+            returncode=1, stdout=json.dumps({"code": "ENS_NAME_INACTIVE"})
+        ),
+    )
+    result = ens.inspect_name("analyst.orca-research-lab.eth")
+    assert result["status"] == "ENS_NAME_INACTIVE"
+    assert result["authority_verified"] is False
+    assert result["research_dispatch_enabled"] is False

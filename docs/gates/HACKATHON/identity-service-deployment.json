@@ -1,0 +1,64 @@
+{
+  "phase": "ENS onboarding observation and Gemini resilience increment",
+  "release_commit": "6f01645",
+  "verified_at": "2026-11-07T11:52:42.205705+05:30",
+  "public_url": "https://orca.130.210.15.82.sslip.io/research",
+  "scope": "Authorized read-only ENSv2 inspection, registration record comparisons, structured 503 display and bounded Gemini transport failover",
+  "local_checks": {
+    "dashboard_pytest": "1 passed",
+    "javascript_session_tests": "8 passed with isolated HTTP responses",
+    "javascript_syntax": "passed",
+    "purpose_headers": "passed",
+    "import_boundaries": "passed",
+    "ens_and_gemini_pytest": "10 passed"
+  },
+  "https_checks": {
+    "/research": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8"
+    },
+    "/research/assets/workspace.css?v=20261107-identity1": {
+      "status": 200,
+      "content_type": "text/css; charset=utf-8"
+    },
+    "workspace.css": {
+      "sha256": "a3fc160ea0aac508bd2844e99f4d6645458b22543b0f6be31b5624db02fc5a10",
+      "matches_release_source": true
+    },
+    "/research/assets/workspace.js?v=20261107-identity1": {
+      "status": 200,
+      "content_type": "text/javascript; charset=utf-8"
+    },
+    "workspace.js": {
+      "sha256": "ae654f8526fa2420d88ba60de2668d0c29d0b4159d0b5fc58a079f6d153971b3",
+      "matches_release_source": true
+    },
+    "/livez": {
+      "status": 200,
+      "content_type": "application/json"
+    },
+    "/research/config": {
+      "status": 200,
+      "content_type": "application/json"
+    },
+    "configuration": {
+      "reasoning_configured": true,
+      "arkiv_configured": true,
+      "agent_onboarding_enabled": true
+    },
+    "/v1/me": {
+      "status": 401,
+      "anonymous_access_rejected": true
+    }
+  },
+  "browser_walkthrough": "Not performed during this session repair deployment",
+  "signed_in_workflow": "Not rerun during this UI deployment",
+  "live_ens": "analyst.orca-research-lab.eth: hierarchy not active; authority and dispatch remain unverified",
+  "live_arkiv": "Fresh existing receipt read passed: current_chain_owner_and_service_signature_verified",
+  "remaining_scope": [
+    "Complete ENS subname setup and controller/delegation proof",
+    "Unify institutional agent research dispatch with tabular workflow",
+    "Reproduce signed-in browser acceptance",
+    "Gemini availability remains provider-dependent"
+  ]
+}
