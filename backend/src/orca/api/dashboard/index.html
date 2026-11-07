@@ -1,30 +1,123 @@
 <!doctype html>
-<!-- Purpose: present real research evidence, model activity and publication receipts.
-Behavior: white/black accessible workspace backed by authenticated APIs, with no embedded demo data.
-Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; Phase: A05 dashboard increment. -->
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ORCA — Research workspace</title><link rel="stylesheet" href="/research/assets/workspace.css"><script type="module" src="/research/assets/workspace.js"></script></head>
+<!-- Purpose: present ORCA's live research, agent onboarding, review and provenance workflows.
+Behavior: organize existing authenticated API-backed features into focused tabs without changing API contracts.
+Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: dashboard UX increment.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>ORCA — Marine research workspace</title>
+  <link rel="stylesheet" href="/research/assets/workspace.css">
+  <script type="module" src="/research/assets/workspace.js"></script>
+</head>
 <body>
-<aside class="sidebar"><a class="brand" href="/research"><span class="mark">O</span> ORCA<span class="edition">RESEARCH</span></a>
-<div class="workspace-label">YOUR WORKSPACE</div><label for="organization">Organization</label><select id="organization" disabled><option>Sign in to select</option></select><label for="project">Project</label><select id="project" disabled><option>Select organization</option></select>
-<nav aria-label="Workspace sections"><a class="active" href="#investigation"><span>01</span> Investigation</a><a href="#evidence"><span>02</span> Evidence library</a><a href="#review"><span>03</span> Review & correction</a><a href="#provenance"><span>04</span> Provenance</a><a href="#collaboration"><span>05</span> Agent network</a></nav>
-<div class="sidebar-bottom"><div class="tiny">THE RESEARCH LOOP</div><p>Ask. Inspect. Challenge.<br>Make every conclusion traceable.</p><button id="account-button" class="secondary">Sign in</button><small id="account-state">No active session</small></div></aside>
-<div class="shell"><header class="topbar"><span>Research workspace <span class="slash">/</span> <strong id="project-title">Overview</strong></span><div class="connection"><span class="dot"></span><span id="connection-state">Connecting…</span></div></header>
-<main><div id="notice" role="status" aria-live="polite" hidden></div>
-<section class="intro" id="investigation"><div><div class="eyebrow">EVIDENCE BEFORE CONCLUSIONS</div><h1>Research, in the open.</h1><p>From raw observations to a result you can inspect, challenge and verify.</p></div><span class="badge">PROTOTYPE · TEAM OPERATED</span></section>
-<section class="panel" id="collaboration" aria-labelledby="collaboration-title"><div class="panel-heading"><div><span class="eyebrow">INSTITUTIONAL COLLABORATION</span><h2 id="collaboration-title">Your agent network.</h2></div><div class="form-actions"><button class="secondary" id="network-refresh" disabled>Refresh network</button><button id="onboard-open" disabled>Onboard agent</button></div></div><p class="muted">Inspect the registered services available to this organization. Onboard a service you operate, prove its signing key, and qualify its declared capability.</p><div class="network-grid"><article><h3>Registered services</h3><div id="network-agents" class="empty">Sign in and select a project to inspect registered services.</div></article><article><h3>Coordination profile</h3><div id="network-profile" class="empty">No network configuration loaded.</div></article></div><hr><div class="panel-heading"><h3>Institution-owned agents</h3></div><div id="owned-agents" class="empty">Sign in to manage your institution’s agents.</div><div id="agent-detail" hidden></div><h3>Discover qualified services</h3><div id="institution-directory" class="empty">Sign in to view owner-approved discoverable services.</div><details><summary>What onboarding verifies</summary><p>Service key possession, an HTTPS Agent Card and bounded A2A temperature-summary conformance. ENS authority, institutional affiliation, MCP tooling and research-task delegation are separate integrations.</p><p class="muted">Provider private keys stay on the operator’s host. Onboarding does not grant access to project datasets.</p></details></section>
-<ol class="steps"><li><b>01</b><div>Bring evidence<small>CSV or JSON observations</small></div></li><li><b>02</b><div>Approve a plan<small>Gemini proposes · you decide</small></div></li><li><b>03</b><div>Review the result<small>Check evidence · resolve findings</small></div></li><li><b>04</b><div>Publish a reference<small>Signed evidence on Arkiv</small></div></li></ol>
-<div class="workspace-grid"><div class="work-column">
-<section class="panel" id="evidence"><div class="panel-heading"><div><span class="eyebrow">01 / INPUTS</span><h2>Evidence library</h2></div><button class="secondary" id="upload-open">+ Add dataset</button></div>
-<p class="muted">Select up to four datasets for this investigation. Original files are preserved.</p><div id="dataset-list" class="empty">Sign in and choose a project to load its evidence.</div>
-<details id="mapping-section" hidden><summary>Inspect & normalize a dataset</summary><form id="mapping-form" class="form-grid"><label class="span2">Dataset<select id="mapping-dataset"></select></label><label>Timestamp column<select id="timestamp-column"></select></label><label>Value column<select id="value-column"></select></label><label>Source temperature unit<select id="unit"><option value="">Choose explicitly</option><option value="C">Celsius (°C)</option><option value="K">Kelvin (K)</option></select></label><label>Timezone for undated offsets<select id="timezone"><option value="">Require timezone in data</option><option value="UTC">Treat timestamps as UTC</option></select></label><label>Duplicate policy<select id="duplicates"><option value="reject">Reject duplicates</option><option value="keep_first">Keep first occurrence</option></select></label><div class="form-actions"><button type="submit" class="secondary">Preview mapping</button><button type="button" id="save-mapping" class="secondary" disabled>Approve normalization</button></div></form><div id="mapping-preview"></div></details></section>
-<section class="panel"><div class="panel-heading"><div><span class="eyebrow">02 / RESEARCH QUESTION</span><h2>What would you like to investigate?</h2></div></div><form id="question-form"><label class="sr-only" for="question">Research question</label><textarea id="question" rows="4" minlength="10" maxlength="2000" required placeholder="Describe the comparison, temperature units, timestamp timezone and what each dataset represents…"></textarea><div class="question-footer"><span id="selected-count" class="muted">No evidence selected</span><button id="plan-button" type="submit">Propose research plan <span aria-hidden="true">↗</span></button></div></form><p class="small muted">Supports temperature normalization and differences between observation means. The planner will explain unsupported questions or missing evidence.</p></section>
-<section class="panel"><div class="panel-heading"><div><span class="eyebrow">INVESTIGATION</span><h2>Plan & results</h2></div><select id="run-select" aria-label="Investigation history"><option value="">Choose an investigation</option></select></div><div id="run-content" class="empty">Your proposed plan will appear here.<small>Calculations run only after your approval.</small></div></section>
-<section class="panel" id="review"><div class="panel-heading"><div><span class="eyebrow">03 / PEER REVIEW</span><h2>Challenge the conclusion.</h2></div></div><p class="muted">A reviewer compares a submitted candidate against independently recomputed evidence. The coordinator proposes the next step.</p><div id="candidate-section" hidden><div class="form-grid"><label class="span2">Candidate label<input id="candidate-label" maxlength="120" value="Computed result for review"></label><label class="span2">Candidate origin<select id="candidate-mode"><option value="computed">Computed from approved evidence</option><option value="uploaded">Externally supplied result</option><option value="synthetic_demo">Synthetic demonstration</option></select></label></div><div id="candidate-means"></div><p class="small muted">To demonstrate disagreement, submit an explicitly labelled candidate with a different mean. Review findings come from the comparison, not a prewritten verdict.</p><button id="submit-review">Request evidence review</button></div><div id="reviews" class="empty">Complete an approved calculation to request a review.</div></section>
-<section class="panel" id="provenance"><div class="panel-heading"><div><span class="eyebrow">04 / ARKIV</span><h2>A verifiable evidence trail.</h2></div><span class="badge">RABDI TESTNET</span></div><p class="muted">Publish a signed reference to this result and its completed reviews. Raw files and model outputs remain in your workspace.</p><label class="consent"><input type="checkbox" id="publish-consent"> I approve publishing investigation identifiers, source label and evidence digests on a public network.</label><button id="publish-button" disabled>Publish evidence reference</button><div id="anchors" class="empty">No publication loaded.</div><details><summary>What this proves</summary><p class="small">This is a coordinator-signed evidence attestation with a seven-day Arkiv retention window. It is not proof of independent institutional review or of CSV/JSON execution over A2A. The existing SST A2A flow remains a separate workflow.</p></details></section>
-</div><aside class="timeline panel"><div class="panel-heading"><div><span class="eyebrow">LIVE ACTIVITY</span><h2>Behind the result</h2></div><span id="event-count" class="badge">0 events</span></div><p class="muted small">Actual model requests, tool outputs and decisions. No hidden model thoughts.</p><div id="timeline" class="empty">Choose an investigation to follow its activity.</div></aside></div>
-<footer><span>ORCA / Research workspace</span><span>Model reasoning + deterministic verification + signed provenance</span></footer></main></div>
-<dialog id="login-dialog"><form id="login-form"><div class="eyebrow">WELCOME TO ORCA</div><h2>Open your workspace.</h2><p class="muted">Use your existing Supabase account.</p><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><p id="login-error" role="alert"></p><div class="form-actions"><button type="submit">Sign in</button><button type="button" class="secondary" id="login-close">Cancel</button></div></form></dialog>
-<dialog id="upload-dialog"><form id="upload-form"><div class="eyebrow">ADD EVIDENCE</div><h2>Start with your observations.</h2><p class="muted">CSV with headers or a flat JSON array. Maximum 5 MB, 10,000 rows.</p><label>Dataset name<input id="dataset-name" maxlength="120" required></label><label>File<input id="dataset-file" type="file" accept=".csv,.json,text/csv,application/json" required></label><label>Evidence origin<select id="dataset-mode"><option value="uploaded">Uploaded observations</option><option value="synthetic_demo">Synthetic demonstration data</option></select></label><p id="upload-error" role="alert"></p><div class="form-actions"><button type="submit">Upload & inspect</button><button type="button" class="secondary" id="upload-close">Cancel</button></div></form></dialog>
-<dialog id="onboard-dialog"><form id="onboard-form"><div class="eyebrow">INSTITUTIONAL AGENT / STEP 1</div><h2>Register your service.</h2><p class="muted">Deploy the ORCA institutional provider on your own HTTPS host, then paste the public descriptor from its describe command. Only organization owners and administrators can register services.</p><label>Public provider descriptor<textarea id="agent-descriptor" rows="9" required spellcheck="false"></textarea></label><label class="consent"><input id="agent-discoverable" type="checkbox">Allow the service name, endpoint and capability to appear in the authenticated network directory after activation.</label><p id="onboard-error" role="alert"></p><div class="form-actions"><button type="submit">Create registration</button><button type="button" class="secondary" id="onboard-close">Cancel</button></div></form></dialog>
-</body></html>
+  <aside class="sidebar">
+    <a class="brand" href="/research"><span class="mark" aria-hidden="true">O</span><span>ORCA</span><span class="edition">MARINE RESEARCH</span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <label for="organization">Institution</label>
+    <select id="organization" disabled><option>Sign in to select</option></select>
+    <label for="project">Investigation</label>
+    <select id="project" disabled><option>Select institution</option></select>
+    <div class="sidebar-bottom">
+      <div class="tiny">RESEARCH YOU CAN INSPECT</div>
+      <p>Evidence, independent agents, review, and a traceable record.</p>
+      <button id="account-button" class="secondary">Sign in</button>
+      <small id="account-state">No active session</small>
+    </div>
+  </aside>
+
+  <div class="shell">
+    <header class="topbar">
+      <div class="breadcrumbs"><span>ORCA</span><span class="slash">/</span><strong id="project-title">Research workspace</strong></div>
+      <div class="connection"><span class="dot" aria-hidden="true"></span><span id="connection-state">Connecting…</span></div>
+    </header>
+
+    <main>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">MARINE RESEARCH · SHARED WITH CONTROL</div>
+          <h1>Make ocean findings reproducible.</h1>
+          <p>Bring observations together, coordinate institution-operated agents, and inspect how each conclusion was reached.</p>
+        </div>
+        <span class="badge">RESEARCH PROTOTYPE</span>
+      </section>
+
+      <nav class="view-tabs" role="tablist" aria-label="Research workspace views">
+        <button id="tab-research" class="view-tab active" type="button" role="tab" aria-selected="true" aria-controls="view-research" data-view="research"><span>01</span> Research</button>
+        <button id="tab-agents" class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="view-agents" data-view="agents"><span>02</span> Agent onboarding</button>
+        <button id="tab-review" class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="view-review" data-view="review"><span>03</span> Independent review</button>
+        <button id="tab-provenance" class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="view-provenance" data-view="provenance"><span>04</span> Provenance</button>
+      </nav>
+
+      <section class="view-panel" id="view-research" role="tabpanel" aria-labelledby="tab-research" data-view-panel="research">
+        <ol class="steps" aria-label="Research workflow">
+          <li><b>01</b><div>Bring evidence<small>CSV or JSON observations</small></div></li>
+          <li><b>02</b><div>Approve a plan<small>Gemini proposes · you decide</small></div></li>
+          <li><b>03</b><div>Inspect calculations<small>Deterministic and traceable</small></div></li>
+          <li><b>04</b><div>Invite review<small>Challenge the result</small></div></li>
+        </ol>
+
+        <div class="workspace-grid">
+          <div class="work-column">
+            <section class="panel" id="evidence" aria-labelledby="evidence-title">
+              <div class="panel-heading"><div><span class="eyebrow">01 / OBSERVATIONS</span><h2 id="evidence-title">Evidence library</h2></div><button class="secondary" id="upload-open">＋ Add dataset</button></div>
+              <p class="muted">Select up to four datasets for this investigation. Original files are preserved.</p>
+              <div id="dataset-list" class="empty">Sign in and choose a project to load its evidence.</div>
+              <details id="mapping-section" hidden><summary>Inspect and normalize a dataset</summary><form id="mapping-form" class="form-grid"><label class="span2">Dataset<select id="mapping-dataset"></select></label><label>Timestamp column<select id="timestamp-column"></select></label><label>Value column<select id="value-column"></select></label><label>Source temperature unit<select id="unit"><option value="">Choose explicitly</option><option value="C">Celsius (°C)</option><option value="K">Kelvin (K)</option></select></label><label>Timezone for undated offsets<select id="timezone"><option value="">Require timezone in data</option><option value="UTC">Treat timestamps as UTC</option></select></label><label>Duplicate policy<select id="duplicates"><option value="reject">Reject duplicates</option><option value="keep_first">Keep first occurrence</option></select></label><div class="form-actions"><button type="submit" class="secondary">Preview mapping</button><button type="button" id="save-mapping" class="secondary" disabled>Approve normalization</button></div></form><div id="mapping-preview"></div></details>
+            </section>
+
+            <section class="panel" aria-labelledby="question-title">
+              <div class="panel-heading"><div><span class="eyebrow">02 / RESEARCH QUESTION</span><h2 id="question-title">What should we investigate?</h2></div></div>
+              <form id="question-form"><label class="sr-only" for="question">Research question</label><textarea id="question" rows="4" minlength="10" maxlength="2000" required placeholder="For example: compare sea-surface temperatures across these observations. Describe units, time coverage, and what each dataset represents."></textarea><div class="question-footer"><span id="selected-count" class="muted">No evidence selected</span><button id="plan-button" type="submit">Propose research plan <span aria-hidden="true">↗</span></button></div></form>
+              <p class="small muted">The planner identifies evidence needs and limitations. Calculations run only after you approve the proposed plan.</p>
+            </section>
+
+            <section class="panel" aria-labelledby="results-title">
+              <div class="panel-heading"><div><span class="eyebrow">03 / INVESTIGATION</span><h2 id="results-title">Plan and results</h2></div><select id="run-select" aria-label="Investigation history"><option value="">Choose an investigation</option></select></div>
+              <div id="run-content" class="empty">Your proposed plan will appear here.<small>Calculations run only after your approval.</small></div>
+            </section>
+          </div>
+          <aside class="timeline panel" aria-labelledby="activity-title"><div class="panel-heading"><div><span class="eyebrow">LIVE ACTIVITY</span><h2 id="activity-title">Research timeline</h2></div><span id="event-count" class="badge">0 events</span></div><p class="muted small">Recorded model requests, tool outputs, and decisions. Hidden model thoughts are not shown.</p><div id="timeline" class="empty">Choose an investigation to follow its activity.</div></aside>
+        </div>
+      </section>
+
+      <section class="view-panel" id="view-agents" role="tabpanel" aria-labelledby="tab-agents" data-view-panel="agents" hidden>
+        <section class="agents-hero">
+          <div><span class="eyebrow">INSTITUTIONAL COLLABORATION</span><h2>Bring your institution’s agent into ORCA.</h2><p class="muted">Register an operator-managed service, verify control of its signing key, then run a bounded A2A qualification before discovery.</p></div>
+          <button id="onboard-open" disabled>＋ Onboard agent</button>
+        </section>
+        <ol class="onboarding-steps" aria-label="Agent onboarding steps">
+          <li><span class="step-number">1</span><div><strong>Register</strong><p>Submit the public service descriptor.</p></div></li>
+          <li><span class="step-number">2</span><div><strong>Prove control</strong><p>Sign a one-time challenge on the provider host.</p></div></li>
+          <li><span class="step-number">3</span><div><strong>Qualify</strong><p>Run the bounded A2A capability check.</p></div></li>
+          <li><span class="step-number">4</span><div><strong>Activate</strong><p>Choose whether to list the qualified service.</p></div></li>
+        </ol>
+        <div class="network-grid">
+          <section class="panel"><div class="panel-heading"><div><span class="eyebrow">ORGANIZATION REGISTRY</span><h2>Institution-owned agents</h2></div><span class="badge">OWNER / ADMIN</span></div><p class="muted">Choose an agent to inspect its registration, current state, qualification, and available operator actions.</p><div id="owned-agents" class="empty">Sign in to manage your institution’s agents.</div><div id="agent-detail" hidden></div></section>
+          <section class="panel"><div class="panel-heading"><div><span class="eyebrow">DISCOVERY</span><h2>Qualified services</h2></div><button class="secondary" id="network-refresh" disabled>Refresh</button></div><p class="muted">Only active services approved for discovery appear here. Listing a service does not grant it access to research datasets.</p><div id="institution-directory" class="empty">Sign in to view owner-approved discoverable services.</div></section>
+        </div>
+        <section class="panel network-status" id="collaboration" aria-labelledby="network-title"><div class="panel-heading"><div><span class="eyebrow">CONNECTED NETWORK</span><h2 id="network-title">Service availability</h2></div></div><div class="network-grid"><article><h3>Registered services</h3><div id="network-agents" class="empty">Sign in and select a project to inspect registered services.</div></article><article><h3>Coordination profile</h3><div id="network-profile" class="empty">No network configuration loaded.</div></article></div>
+          <details><summary>What onboarding currently verifies</summary><p>Service key possession, an HTTPS Agent Card, and bounded A2A temperature-summary conformance. ENS authority, institutional affiliation, MCP tooling, and research-task delegation are separate integrations.</p><p class="muted">Provider private keys remain on the operator’s host. Onboarding does not grant access to project datasets.</p></details>
+        </section>
+      </section>
+
+      <section class="view-panel" id="view-review" role="tabpanel" aria-labelledby="tab-review" data-view-panel="review" hidden>
+        <section class="panel" id="review" aria-labelledby="review-title"><div class="panel-heading"><div><span class="eyebrow">INDEPENDENT VERIFICATION</span><h2 id="review-title">Challenge a conclusion.</h2></div><span class="badge">EVIDENCE-BASED</span></div><p class="muted">A reviewer compares a submitted candidate against independently recomputed evidence. The coordinator proposes a next step; you approve corrections.</p><div id="candidate-section" hidden><div class="form-grid"><label class="span2">Candidate label<input id="candidate-label" maxlength="120" value="Computed result for review"></label><label class="span2">Candidate origin<select id="candidate-mode"><option value="computed">Computed from approved evidence</option><option value="uploaded">Externally supplied result</option><option value="synthetic_demo">Synthetic demonstration</option></select></label></div><div id="candidate-means"></div><p class="small muted">Review findings are generated by comparing this candidate with evidence and calculation outputs.</p><button id="submit-review">Request evidence review</button></div><div id="reviews" class="empty">Complete an approved calculation to request a review.</div></section>
+      </section>
+
+      <section class="view-panel" id="view-provenance" role="tabpanel" aria-labelledby="tab-provenance" data-view-panel="provenance" hidden>
+        <section class="panel" id="provenance" aria-labelledby="provenance-title"><div class="panel-heading"><div><span class="eyebrow">PUBLIC REFERENCE · ARKIV</span><h2 id="provenance-title">A verifiable evidence trail.</h2></div><span class="badge">RABDI TESTNET</span></div><p class="muted">After a completed run, approve publication of a signed reference to the result and its completed reviews. Raw files and full model outputs stay in your workspace.</p><div class="privacy-note"><strong>Review the disclosure</strong><p>Publication includes investigation identifiers, a source label, and evidence digests. Check the manifest before approving a public reference.</p></div><label class="consent"><input type="checkbox" id="publish-consent"> I approve publishing the investigation identifiers, source label, and evidence digests to the public network.</label><button id="publish-button" disabled>Publish evidence reference</button><div id="anchors" class="empty">No publication loaded.</div><details><summary>What an Arkiv receipt proves</summary><p class="small">The receipt supports verification of a signed evidence reference and its digest. It does not prove institutional independence, scientific validity, or A2A execution of the uploaded CSV/JSON workflow.</p></details></section>
+      </section>
+
+      <footer><span>ORCA / Marine research workspace</span><span>Human-approved reasoning · deterministic calculations · inspectable provenance</span></footer>
+    </main>
+  </div>
+
+  <dialog id="login-dialog"><form id="login-form"><div class="eyebrow">WELCOME TO ORCA</div><h2>Open your workspace.</h2><p class="muted">Use your existing Supabase account.</p><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><p id="login-error" role="alert"></p><div class="form-actions"><button type="submit">Sign in</button><button type="button" class="secondary" id="login-close">Cancel</button></div></form></dialog>
+  <dialog id="upload-dialog"><form id="upload-form"><div class="eyebrow">ADD EVIDENCE</div><h2>Start with your observations.</h2><p class="muted">CSV with headers or a flat JSON array. Maximum 5 MB, 10,000 rows.</p><label>Dataset name<input id="dataset-name" maxlength="120" required></label><label>File<input id="dataset-file" type="file" accept=".csv,.json,text/csv,application/json" required></label><label>Evidence origin<select id="dataset-mode"><option value="uploaded">Uploaded observations</option><option value="synthetic_demo">Synthetic demonstration data</option></select></label><p id="upload-error" role="alert"></p><div class="form-actions"><button type="submit">Upload and inspect</button><button type="button" class="secondary" id="upload-close">Cancel</button></div></form></dialog>
+  <dialog id="onboard-dialog"><form id="onboard-form"><div class="eyebrow">INSTITUTIONAL AGENT / STEP 1</div><h2>Register your service.</h2><p class="muted">Deploy the ORCA institutional provider on your own HTTPS host, then paste its public descriptor from the describe command. Only organization owners and administrators can register services.</p><label>Public provider descriptor<textarea id="agent-descriptor" rows="9" required spellcheck="false"></textarea></label><label class="consent"><input id="agent-discoverable" type="checkbox">Allow the service name, endpoint, and capability to appear in the authenticated network directory after activation.</label><p id="onboard-error" role="alert"></p><div class="form-actions"><button type="submit">Create registration</button><button type="button" class="secondary" id="onboard-close">Cancel</button></div></form></dialog>
+</body>
+</html>
