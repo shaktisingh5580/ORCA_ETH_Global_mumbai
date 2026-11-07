@@ -13,7 +13,7 @@ let refreshPromise = null, noticeTimer, previewMapping = null, lastEvents = '';
 function notice(message) { $('notice').textContent = message; $('notice').hidden = false; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => $('notice').hidden = true, 12000); }
 function empty(id, message) { $(id).classList.add('empty'); $(id).textContent = message; }
 function fill(id, html) { $(id).classList.remove('empty'); $(id).innerHTML = html; }
-async function responseBody(response) { let body; try { body = await response.json(); } catch { body = {}; } if (!response.ok) { const message = body.detail || body.error_description || body.msg || body.message || `Request failed (${response.status})`; const error = new Error(typeof message === 'string' ? message : pretty(message)); error.status = response.status; throw error; } return body; }
+async function responseBody(response) { let body; try { body = await response.json(); } catch { body = {}; } if (!response.ok) { const detail = body.detail; const message = detail?.message || detail || body.error_description || body.msg || body.message || `Request failed (${response.status})`; const requestId=response.headers?.get('X-Request-ID'); const error = new Error(`${typeof message === 'string' ? message : pretty(message)}${response.status === 503 ? ' This service is temporarily unavailable; your saved work is retained.' : ''}${requestId ? ` Request ID: ${requestId}` : ''}`); error.status = response.status; throw error; } return body; }
 function renderAccountState() {
   $('account-button').textContent = state.token ? 'Sign out' : 'Sign in';
   $('account-button').disabled = state.restoring;
@@ -165,6 +165,12 @@ function renderAgent() {
 }
 async function refreshAgentDetail() {
   const a = selectedAgent, generation = state.generation; if (!a) return;
+  if (!document.getElementById('agent-ens-inspect')) {
+    const section = document.createElement('section');
+    section.innerHTML = '<h3>ENSv2 identity · Sepolia</h3><p class="muted">Inspect an agent subname and compare its public records with this service. Lookup does not grant controller authority or research access.</p><label>Agent ENS name<input id="agent-ens-name" placeholder="analyst.orca-research-lab.eth" autocomplete="off"></label><button class="secondary" id="agent-ens-inspect">Inspect ENS records</button><div id="agent-ens-result" role="status"></div>';
+    $('agent-detail').append(section);
+    $('agent-ens-inspect').onclick=e=>action(e.currentTarget,async()=>{const target=a.id;const observation=await api(`${agentsBase()}/${target}/ens-observation?name=${encodeURIComponent($('agent-ens-name').value.trim())}`);if(generation!==state.generation||selectedAgent?.id!==target)return;$('agent-ens-result').innerHTML=detail('Finalized ENS observation and service comparison',observation);});
+  }
   const events = await api(`${agentsBase()}/${a.id}/events`);
   if (generation !== state.generation || selectedAgent?.id !== a.id) return;
   $('agent-events').innerHTML = detail('Registration activity',events);
