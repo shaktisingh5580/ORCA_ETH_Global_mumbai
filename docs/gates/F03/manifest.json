@@ -1,7 +1,7 @@
 {
   "phase": "F03",
   "subphase": "F03.1",
-  "status": "IN_PROGRESS_LIVE_GATE_BLOCKED",
+  "status": "IN_PROGRESS_DELEGATION_PENDING",
   "profile": "institutional collaboration prototype",
   "implementation": [
     "Pinned Sepolia ABI artifacts and normalized runtime fingerprints from official contracts-v2 revision 07e55a056f5b6a9c90119f501bdd05714e67dddd",
@@ -17,13 +17,15 @@
     "command": "node --test arkiv/tests/ens.test.mjs"
   },
   "live_preflight": {
-    "status": "BLOCKED_RPC_RATE_LIMIT",
-    "last_error": "Public Sepolia RPC returned HTTP 429 during interface checks; no complete pass recorded",
-    "transactions_sent": 0,
-    "note": "Subsequent namespace inspection reached registration-state checks; latest vs finalized reads show the new registration is not finalized. A full finalized namespace/resolver pass is still pending."
+    "status": "PASS_FINALIZED_NAMESPACE_READ",
+    "block_number": 12080259,
+    "block_hash": "0x42016f5fad8fa715fbb5fbaf7960136eca895437ef68182f376100f1ac67d809",
+    "resolver_proxy": "0x1CE0EF45A4e47e913C24a8530004169e869ea9E5",
+    "resolver_implementation": "0x115eb53f0c60696633855f90b138178fb40b2b2c",
+    "records": "Five ORCA text records read successfully and empty"
   },
   "live_namespace": {
-    "status": "REGISTERED_LATEST_PENDING_FINALITY",
+    "status": "REGISTERED_FINALIZED_OWNER_MATCH",
     "name": "orca-research-lab.eth",
     "proposed_controller": "0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8",
     "controller_proof": "NOT_PROVIDED",
@@ -31,7 +33,6 @@
     "observation": "registration-observation.json"
   },
   "remaining_gate_requirements": [
-    "Complete finalized-block live deployment and controlled namespace observation",
     "Controller-signed namespace/subname setup and isolated resolver boundary",
     "Real allowed delegated update, sibling/root denial and revoke enforcement",
     "EIP712 controller/service/Arkiv binding with nonce, expiry and EOA/ERC1271 verification",
@@ -54,5 +55,20 @@
       "mypy": "PASS 136 files",
       "note": "First run hit Windows temp access errors; rerun with fresh workspace temp directory passed."
     }
+  },
+  "unsigned_registry_simulation": {
+    "status": "PASS",
+    "block_number": 12080343,
+    "predicted_registry": "0xAc2669cD54385d9711d0473A47170e90Be44Bb5F",
+    "transactions_sent": 0
+  },
+  "demo_recheck": {
+    "scope": "Authenticated deployed API, existing investigation",
+    "run_id": "c32eeea0-c77e-403d-ac7b-4ed2b0de0999",
+    "state": "completed",
+    "events": 41,
+    "completed_reviews": 2,
+    "fresh_arkiv_http": 200,
+    "fresh_arkiv_verification": "current_chain_owner_and_service_signature_verified"
   }
 }
