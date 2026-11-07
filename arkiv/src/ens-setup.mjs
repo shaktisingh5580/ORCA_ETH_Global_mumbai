@@ -4,14 +4,14 @@
  * Phase: F03.2. The controller signs in their wallet.
  */
 import { fileURLToPath } from 'node:url';
-import { createPublicClient, encodeFunctionData, http, isAddress, keccak256, toHex, zeroAddress } from 'viem';
+import { createPublicClient, encodeFunctionData, http, isAddress, isAddressEqual, keccak256, toHex, zeroAddress } from 'viem';
 import { sepolia } from 'viem/chains';
 import { EnsReader, pin } from './ens.mjs';
 
 const SET_SUBREGISTRY = 1n << 20n;
 const REGISTRAR = 1n;
 
-export async function prepareRegistry(client, name, controller) {
+export async function prepareRegistry(client, name, controller, deploymentHash) {
   if (!isAddress(controller) || controller.toLowerCase() === zeroAddress) {
     throw new Error('A public controller wallet address is required');
   }
@@ -46,6 +46,47 @@ export async function prepareRegistry(client, name, controller) {
     args: [[{ account: controller, roleBitmap: REGISTRAR }]],
   });
   const args = [UserRegistryImpl.address, salt, initialization];
+  const data = encodeFunctionData({ abi: VerifiableFactory.abi, functionName: 'deployProxy', args });
+  if (deploymentHash !== undefined) {
+    if (!/^0x[0-9a-f]{64}$/i.test(deploymentHash)) throw new Error('Full deployment transaction hash required');
+    const [deployment, receipt] = await Promise.all([
+      client.getTransaction({ hash: deploymentHash }),
+      client.getTransactionReceipt({ hash: deploymentHash }),
+    ]);
+    if (receipt.status !== 'success' || receipt.blockNumber > latest.number ||
+        !deployment.to || !isAddressEqual(deployment.to, VerifiableFactory.address) ||
+        !isAddressEqual(deployment.from, controller) || deployment.value !== 0n ||
+        deployment.input !== data || deployment.blockHash !== receipt.blockHash) {
+      throw new Error('Deployment receipt does not match the reviewed registry transaction');
+    }
+    const registry = await client.readContract({
+      ...VerifiableFactory, functionName: 'predictProxyAddress', args: [controller, salt],
+      blockNumber: latest.number,
+    });
+    const implementation = await client.readContract({
+      ...VerifiableFactory, functionName: 'verifyContract', args: [registry], blockNumber: latest.number,
+    });
+    const registrar = await client.readContract({
+      address: registry, abi: UserRegistryImpl.abi, functionName: 'hasRoles',
+      args: [0n, REGISTRAR, controller], blockNumber: latest.number,
+    });
+    if (!isAddressEqual(implementation, UserRegistryImpl.address) || !registrar) {
+      throw new Error('Registry implementation or controller role mismatch');
+    }
+    const attachArgs = [label, registry];
+    await client.simulateContract({
+      ...ETHRegistry, functionName: 'setSubregistry', args: attachArgs, account: controller,
+      blockNumber: latest.number,
+    });
+    return {
+      chain_id: pin.chain_id, name, controller, action: 'attach_agent_subregistry',
+      deployment_hash: deploymentHash, registry, simulated_block: latest.number.toString(),
+      transaction: {
+        from: controller, to: ETHRegistry.address, value: '0x0',
+        data: encodeFunctionData({ abi: ETHRegistry.abi, functionName: 'setSubregistry', args: attachArgs }),
+      },
+    };
+  }
   const { result } = await client.simulateContract({
     ...VerifiableFactory, functionName: 'deployProxy', args, account: controller,
     blockNumber: latest.number,
@@ -56,7 +97,7 @@ export async function prepareRegistry(client, name, controller) {
     predicted_registry: result,
     transaction: {
       from: controller, to: VerifiableFactory.address, value: '0x0',
-      data: encodeFunctionData({ abi: VerifiableFactory.abi, functionName: 'deployProxy', args }),
+      data,
     },
   };
 }
@@ -67,7 +108,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     transport: http('https://ethereum-sepolia-rpc.publicnode.com', { timeout: 12000, retryCount: 0 }),
   });
   try {
-    console.log(JSON.stringify(await prepareRegistry(client, process.argv[2], process.argv[3]), null, 2));
+    console.log(JSON.stringify(await prepareRegistry(client, process.argv[2], process.argv[3], process.argv[4]), null, 2));
   } catch (error) {
     console.error(error.shortMessage ?? error.message);
     process.exitCode = 1;

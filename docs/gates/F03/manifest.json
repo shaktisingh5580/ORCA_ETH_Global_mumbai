@@ -70,5 +70,13 @@
     "completed_reviews": 2,
     "fresh_arkiv_http": 200,
     "fresh_arkiv_verification": "current_chain_owner_and_service_signature_verified"
+  },
+  "registry_deployment": {
+    "status": "SUCCESS_RECEIPT_AND_REGISTRAR_VERIFIED",
+    "chain_id": 11155111,
+    "block_number": 12080399,
+    "transaction_hash": "0xbe8c4368602ea7884cc408e307f995cb03568b6c0545b1d5147b83a7632a4855",
+    "registry": "0xAc2669cD54385d9711d0473A47170e90Be44Bb5F",
+    "attachment": "SIMULATED_AWAITING_CONTROLLER_SIGNATURE"
   }
 }

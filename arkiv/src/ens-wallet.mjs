@@ -14,20 +14,25 @@ const client = createPublicClient({
 });
 let proposal;
 try {
-  proposal = await prepareRegistry(client, process.argv[2], process.argv[3]);
+  proposal = await prepareRegistry(client, process.argv[2], process.argv[3], process.argv[4]);
 } catch (error) {
   console.error('ENS simulation failed: ' + (error.shortMessage ?? error.message));
   process.exit(1);
 }
 const nonce = randomBytes(24).toString('base64');
-const port = 8793;
+const attaching = proposal.action === 'attach_agent_subregistry';
+const port = attaching ? 8794 : 8793;
+const heading = attaching ? 'Attach the ORCA agent registry' : 'Deploy the ORCA agent registry';
+const description = attaching
+  ? 'Attach the verified registry to your ENS parent name. This enables registration of agent subnames.'
+  : 'Deploy a registry with your wallet as registrar. Attaching the registry to your name comes after deployment.';
 const host = `127.0.0.1:${port}`;
 const page = `<!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>ORCA ENS registry deployment</title>
+<title>${heading}</title>
 <style nonce="${nonce}">body{font:1rem system-ui;max-width:46rem;margin:3rem auto;padding:1rem;color:#161616}button{background:#161616;color:white;padding:.8rem 1rem;font:inherit}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f3f3;padding:1rem}</style>
-<main><h1>Deploy the ORCA agent registry</h1>
-<p>Sepolia testnet. This deploys a registry with your wallet as registrar. The transaction transfers 0 ETH and uses testnet gas. Attaching the registry to your name comes after deployment.</p>
+<main><h1>${heading}</h1>
+<p>Sepolia testnet. ${description} The transaction transfers 0 ETH and uses testnet gas.</p>
 <details open><summary>Review the simulated transaction</summary><pre id="proposal"></pre></details>
 <button id="review" type="button">Review in MetaMask</button>
 <p id="status" role="status"></p><pre id="hash" hidden></pre>
@@ -53,7 +58,7 @@ button.addEventListener('click', async () => {
     requested = true;
     const hash = await wallet.request({ method: 'eth_sendTransaction', params: [proposal.transaction] });
     if (!/^0x[0-9a-f]{64}$/i.test(hash)) throw new Error('Check MetaMask Activity for the transaction before retrying.');
-    status.textContent = 'Submitted. Share this public hash so the deployment receipt can be verified.';
+    status.textContent = 'Submitted. Share this public hash so the receipt can be verified.';
     const output = document.getElementById('hash');
     output.hidden = false;
     output.textContent = hash;
