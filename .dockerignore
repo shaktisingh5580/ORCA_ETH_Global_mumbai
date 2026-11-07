@@ -27,3 +27,4 @@ backend/dist
 docs/sources
 *.md
 !backend/README.md
+!backend/tests/support/collaboration_demo.html
