@@ -20,11 +20,44 @@ from orca.api.routers.projects import engine, resolve_tenant
 from orca.application.agent_onboarding import Onboarding
 from orca.contracts.agents import AgentDraft, AgentProof, AgentRevision, AgentVersion
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.federation.ens_observation import inspect_name
 from orca.infrastructure.federation.https_egress import fetch_card
 
 router = APIRouter(prefix="/v1/organizations/{org_id}/agents", tags=["institutional agents"])
 directory_router = APIRouter(prefix="/v1/network", tags=["institutional directory"])
 Idempotency = Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)]
+
+
+@router.get("/{agent_id}/ens-observation")
+def ens_observation(
+    org_id: UUID, agent_id: UUID, name: str, request: Request, principal: CurrentPrincipal
+) -> dict[str, Any]:
+    with service(request, org_id, principal) as app:
+        registration = app.row(agent_id)["registration"]
+    try:
+        observation = inspect_name(name)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(
+            503,
+            {
+                "code": str(error),
+                "message": "ENS lookup could not verify this name on finalized Sepolia state. Retry later or check the name, resolver and records. Service registration remains available.",
+                "authority_verified": False,
+            },
+            headers={"Retry-After": "15"},
+        ) from error
+    records = observation.get("records", {})
+    observation["registration_matches"] = {
+        field: records.get(key) == registration[field]
+        for field, key in [
+            ("endpoint", "org.orca.endpoint"),
+            ("public_key", "org.orca.serviceKey"),
+            ("card_digest", "org.orca.cardDigest"),
+        ]
+    }
+    return observation
 
 
 @contextmanager
