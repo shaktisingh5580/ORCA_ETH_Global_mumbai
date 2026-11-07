@@ -13,5 +13,7 @@
   "current_dashboard": "https://orca.130.210.15.82.sslip.io/research#collaboration",
   "active_rehearsal_agent_id": "7698906b-75f9-49c7-a6a9-1ddd109e9012",
   "operator_mode": "team_controlled",
-  "original_production_gates": "Not implied passed by prototype gates"
+  "original_production_gates": "Not implied passed by prototype gates",
+  "delivery_priority": "User requested an explicitly simulated collaboration walkthrough for the immediate demo",
+  "simulation_route": "/demo"
 }

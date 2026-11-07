@@ -1,0 +1,98 @@
+<!doctype html>
+<!-- Purpose: present an isolated, explicitly simulated ORCA collaboration walkthrough.
+Behavior: calculate synthetic temperature evidence locally and replay scripted agent decisions.
+Refs: ORCA_DEMO_FIRST_PLAN.md; Phase: accelerated collaboration demonstration tooling. -->
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORCA · Collaboration demonstration</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#fafafa;color:#171717;font:15px/1.6 system-ui,sans-serif}header,main{max-width:1180px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd}.brand{font-weight:800;font-size:22px;letter-spacing:.12em}a{color:inherit}h1{font-size:clamp(28px,4vw,44px);line-height:1.2;margin:14px 0}h2{font-size:19px}h3{font-size:15px}.eyebrow{font-size:11px;letter-spacing:.13em;font-weight:700;color:#555}.banner{border:1px solid #aaa;background:#eee;padding:14px 18px;margin-bottom:24px}.muted{color:#666}.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}.card{border:1px solid #ddd;background:white;padding:22px;border-radius:6px;margin-bottom:20px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}button{font:inherit;border:1px solid #222;border-radius:4px;background:#171717;color:white;padding:9px 16px;cursor:pointer}button.secondary{background:white;color:#171717}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #777;outline-offset:3px}.metric{font-size:34px;font-weight:650}.pill{display:inline-block;border:1px solid #bbb;border-radius:3px;padding:2px 7px;font-size:11px;letter-spacing:.05em}.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #eee}.row:last-child{border:0}.step{border-left:2px solid #ccc;padding:0 0 18px 16px;margin-left:5px}.step strong{display:block}.step small{color:#666}pre{background:#f5f5f5;padding:14px;overflow:auto;font:12px/1.6 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.empty{color:#777;padding:25px 0}.progress{height:3px;background:#ddd;margin:20px 0}.progress span{display:block;height:100%;background:#111;width:0;transition:width .2s}.full{grid-column:1/-1}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #eee;padding:8px}th{font-size:12px;color:#666}#live{font-size:13px}.question{font-size:19px;max-width:780px}footer{font-size:12px;color:#666;padding:24px 0}summary{cursor:pointer}#decision{min-height:90px}@media(max-width:760px){.grid{grid-template-columns:1fr}header,main{padding:18px}.card{padding:16px}.metric{font-size:28px}}
+</style>
+<header><div class="brand">ORCA</div><a href="/research" id="live">Open live Research Lab ↗</a></header>
+<main>
+<div class="banner"><strong>SIMULATED COLLABORATION DEMO</strong><br>Synthetic observations and scripted agent messages. Calculations run in this browser. ENS permissions, MCP calls, Arkiv claims, signatures and transactions shown in the walkthrough are simulated.</div>
+<div class="eyebrow">MARINE RESEARCH / COLLABORATION</div>
+<h1>Follow the evidence.<br>Challenge the conclusion.</h1>
+<p class="question">Has the sea surface warmed in this synthetic Arabian Sea sample, and can a second agent reproduce the finding?</p>
+<div class="actions"><button id="run">Run scripted walkthrough</button><button class="secondary" id="next">Next step</button><button class="secondary" id="reset">Reset</button><button class="secondary" id="export">Export demo evidence</button></div>
+<p id="status" role="status" aria-live="polite">Ready · 8 simulated stages</p><div class="progress"><span id="progress"></span></div>
+<div class="grid">
+<section class="card"><div class="eyebrow">QUESTION → PLAN → ASSIGNMENT</div><h2>Investigation board</h2><div id="board" class="empty">Start the walkthrough to build the task.</div></section>
+<section class="card"><div class="eyebrow">INSTITUTIONAL AGENTS</div><h2>Two perspectives</h2><div class="row"><span><strong>Analyst</strong><br><small>Simulated institution A · temperature analysis</small></span><span class="pill">SIMULATED</span></div><div class="row"><span><strong>Reviewer</strong><br><small>Simulated institution B · reproduction</small></span><span class="pill">SIMULATED</span></div><p class="muted">Operator independence and agent authority are part of this scripted scenario.</p><div id="permission">Delegation scenario becomes available at stage 8.</div></section>
+<section class="card"><div class="eyebrow">DETERMINISTIC CALCULATION</div><h2>Normalize before comparing</h2><table><thead><tr><th>Source</th><th>Input</th><th>Mean °C</th></tr></thead><tbody id="numbers"></tbody></table><p class="muted">Kelvin values are converted using °C = K − 273.15. Both observation files describe the same two measurements.</p><details><summary>Inspect synthetic source files</summary><pre id="sources"></pre></details></section>
+<section class="card"><div class="eyebrow">REVIEW & CORRECTION</div><h2 id="verdict">Awaiting evidence review</h2><div id="decision" class="empty">The reviewer will check both the arithmetic and the declared baseline.</div></section>
+<section class="card full"><div class="eyebrow">SCRIPTED AGENT / TOOL TIMELINE</div><h2>What happened, and why</h2><div id="timeline" class="empty">Each simulated event will appear here. Use Next step to control the pace.</div></section>
+<section class="card full"><div class="eyebrow">PROVENANCE</div><h2>Keep every version</h2><div id="provenance" class="empty">The simulated lineage will connect the original result, challenge and corrected result.</div><p><a href="/research#provenance">Inspect actual signed evidence in the live Research Lab ↗</a></p></section>
+</div>
+<footer>This demonstration runs locally in your browser. Exported artifacts carry simulation labels. The live Research Lab is a separate authenticated workflow.</footer>
+</main>
+<script>
+const sources = {
+  source_mode: 'synthetic_demo',
+  analyst: {unit:'C', observations:[28,30], baseline:[26,28], baseline_id:'baseline-A'},
+  reviewer: {unit:'K', observations:[301.15,303.15], baseline:[25,27], baseline_id:'baseline-B'}
+};
+const mean = values => values.reduce((sum,value) => sum + value,0) / values.length;
+const observationsC = sources.analyst.observations;
+const reviewerC = sources.reviewer.observations.map(value => value - 273.15);
+const metrics = {
+  analyst_mean_c: mean(observationsC), reviewer_mean_c: mean(reviewerC),
+  analyst_baseline_c: mean(sources.analyst.baseline), reviewer_baseline_c: mean(sources.reviewer.baseline)
+};
+metrics.original_anomaly_c = metrics.analyst_mean_c - metrics.analyst_baseline_c;
+metrics.review_anomaly_c = metrics.reviewer_mean_c - metrics.reviewer_baseline_c;
+metrics.corrected_review_anomaly_c = metrics.reviewer_mean_c - metrics.analyst_baseline_c;
+const stages = [
+  {title:'Research planner', detail:'Scripted planner selects two temperature observations, explicit units, arithmetic mean and baseline comparison. Human approval is simulated.',board:'Plan approved · temperature mean and anomaly task',event:'simulated.plan.approved'},
+  {title:'Arkiv task discovery',detail:'Simulated task publication is discovered by Analyst and a second candidate. No public transaction is submitted.',board:'Task published · 2 simulated claims received',event:'simulated.claims.received'},
+  {title:'Exclusive assignment',detail:'The coordinator selects Analyst for generation 1. The competing claim remains unassigned in this simulated board.',board:'Analyst assigned · competing claim unassigned · generation 1',event:'simulated.assignment.selected'},
+  {title:'A2A execution and MCP tool',detail:'Scripted A2A/MCP stage. The browser computes the mean from the synthetic Celsius observations and records a proposed anomaly.',board:'Analyst result ready · reviewer assigned separately',event:'simulated.result.created'},
+  {title:'Reviewer challenges the baseline',detail:'The Kelvin observations normalize to the same mean. The reviewer uses baseline-B, which differs from baseline-A. The anomaly differs because the baselines differ.',board:'Challenge open · baseline support mismatch',event:'simulated.review.challenged'},
+  {title:'Coordinator proposes correction',detail:'Scripted coordinator requests an explicit common baseline. This playback simulates approval to recompute using baseline-A and retains the original review.',board:'Correction approved in simulation · generation 2',event:'simulated.correction.approved'},
+  {title:'Reproduction agrees',detail:'Reviewer recomputes with baseline-A. Observation mean and anomaly now agree. The baseline mismatch remains visible in the original challenge.',board:'Resolved · generation 2 reproduced in simulation',event:'simulated.review.agreed'},
+  {title:'Lineage and delegation scenario',detail:'Simulated result → challenge → correction → agreement lineage is retained. The role model permits the analyst record, denies the sibling, and denies updates after revocation.',board:'Walkthrough complete · simulated lineage exported on request',event:'simulated.lineage.recorded'}
+];
+let position = 0;
+let timer = null;
+let events = [];
+let revoked = false;
+const element = id => document.getElementById(id);
+const number = value => value.toFixed(2);
+element('sources').textContent = JSON.stringify(sources,null,2);
+element('numbers').innerHTML = '<tr><td>Analyst</td><td>28, 30 °C</td><td>'+number(metrics.analyst_mean_c)+'</td></tr><tr><td>Reviewer</td><td>301.15, 303.15 K</td><td>'+number(metrics.reviewer_mean_c)+'</td></tr><tr><td>Baseline A</td><td>26, 28 °C</td><td>'+number(metrics.analyst_baseline_c)+'</td></tr><tr><td>Baseline B</td><td>25, 27 °C</td><td>'+number(metrics.reviewer_baseline_c)+'</td></tr>';
+function stop(){clearInterval(timer);timer=null;element('run').disabled=position===stages.length;}
+function next(){
+  if(position===stages.length){stop();return;}
+  const stage=stages[position++];
+  if(position===1)element('timeline').textContent='';
+  events.push({sequence:position,simulation:true,event_type:stage.event,summary:stage.detail});
+  element('board').className='';element('board').textContent=stage.board;
+  element('timeline').className='';
+  const entry=document.createElement('article');entry.className='step';
+  const title=document.createElement('strong');title.textContent=position+'. '+stage.title+' · SIMULATED';
+  const text=document.createElement('small');text.textContent=stage.detail;
+  entry.append(title,text);element('timeline').append(entry);
+  element('status').textContent='Scripted stage '+position+' of '+stages.length;
+  element('progress').style.width=(position/stages.length*100)+'%';
+  element('next').disabled=position===stages.length;
+  if(position>=4){element('decision').className='';element('verdict').textContent='Analyst proposes +'+number(metrics.original_anomaly_c)+' °C';element('decision').textContent='Observation mean '+number(metrics.analyst_mean_c)+' °C minus baseline-A '+number(metrics.analyst_baseline_c)+' °C.';}
+  if(position>=5){element('verdict').textContent='Challenge · different baselines';element('decision').textContent='Analyst anomaly +'+number(metrics.original_anomaly_c)+' °C. Reviewer anomaly +'+number(metrics.review_anomaly_c)+' °C. The observation means agree, but the baseline means differ. Preserve both baseline identifiers before correcting.';}
+  if(position>=7){element('verdict').textContent='Resolved · common baseline';element('decision').textContent='Both agents use baseline-A. Recomputed anomaly +'+number(metrics.original_anomaly_c)+' °C. Original baseline-B challenge is retained as generation 1.';}
+  if(position===8){
+    element('provenance').className='';element('provenance').textContent='SIMULATED · task-1 → assignment-1 → result-1 → challenge-1 → correction-2 → result-2 → agreement-2. Chain publication and cryptographic signatures are simulated.';
+    element('permission').innerHTML='<p>Simulated permission checks</p><button class="secondary" id="own">Edit analyst</button> <button class="secondary" id="sibling">Edit reviewer</button> <button class="secondary" id="revoke">Revoke delegate</button><p id="access" role="status"></p>';
+    element('own').onclick=()=>element('access').textContent=revoked?'SIMULATED · denied after revocation':'SIMULATED · analyst record update permitted';
+    element('sibling').onclick=()=>element('access').textContent='SIMULATED · sibling record update denied';
+    element('revoke').onclick=()=>{revoked=true;element('access').textContent='SIMULATED · delegate revoked. Try Edit analyst again.';};
+    stop();
+  }
+}
+element('next').onclick=()=>{stop();next();};
+element('run').onclick=()=>{stop();element('run').disabled=true;next();if(position<stages.length)timer=setInterval(next,1200);};
+element('reset').onclick=()=>{stop();position=0;events=[];revoked=false;element('run').disabled=false;element('next').disabled=false;element('timeline').textContent='Ready for a new scripted walkthrough.';element('board').textContent='Ready';element('verdict').textContent='Awaiting evidence review';element('decision').textContent='Run the walkthrough to compare the two baselines.';element('provenance').textContent='Awaiting simulated lineage.';element('permission').textContent='Delegation scenario becomes available at stage 8.';element('status').textContent='Ready · 8 simulated stages';element('progress').style.width='0%';};
+element('export').onclick=()=>{
+  const artifact={schema:'orca.simulated-collaboration/1.0',simulation:true,source_mode:'synthetic_demo',messages:'scripted',chain_publication:'simulated',signatures:'simulated',sources,metrics,events};
+  const url=URL.createObjectURL(new Blob([JSON.stringify(artifact,null,2)],{type:'application/json'}));
+  const link=document.createElement('a');link.href=url;link.download='orca-simulated-evidence.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+</script></html>

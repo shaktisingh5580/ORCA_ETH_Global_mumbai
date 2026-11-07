@@ -1,0 +1,12 @@
+{
+  "profile": "isolated simulated collaboration walkthrough",
+  "status": "LOCAL_CHECKS_PASS_DEPLOYMENT_PENDING",
+  "route": "/demo",
+  "user_scope": "Explicitly requested mocking remaining integration for immediate demonstration",
+  "data": "synthetic Celsius/Kelvin observations with differing baselines",
+  "calculations": "actual browser arithmetic; observation mean 29 C, baseline means 27 C and 26 C",
+  "orchestration": "scripted simulated planner, claims, assignment, A2A/MCP, review and permissions",
+  "chain_and_signatures": "simulated in this walkthrough",
+  "test": "ASGI route and disclosure assertions passed; JavaScript syntax passed",
+  "production_package": "Demo tooling and hackathon image only"
+}
