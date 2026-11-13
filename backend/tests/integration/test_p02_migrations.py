@@ -65,7 +65,7 @@ def test_empty_db_upgrade_head():
     with psycopg.connect(url) as connection:
         assert (
             connection.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-            == "0014_agent_coordination"
+            == "0019_institutional_agents"
         )
 
 
@@ -167,4 +167,10 @@ def test_schema_no_old_tables_assumed():
         ("research", "prototype_investigations"),
         ("research", "prototype_runs"),
         ("research", "prototype_publications"),
+        ("research", "tabular_datasets"),
+        ("research", "tabular_normalizations"),
+        ("research", "reasoning_runs"),
+        ("research", "reasoning_events"),
+        ("research", "evidence_reviews"),
+        ("research", "evidence_anchors"),
     }

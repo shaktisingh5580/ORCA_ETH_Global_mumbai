@@ -55,6 +55,13 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
         # The test administrator can truncate the disposable audit table; runtime
         # UPDATE/DELETE remains denied and the immutable-row trigger stays installed.
         connection.execute("TRUNCATE TABLE iam.membership_audit")
+        # Reset the catalog dependency group together. Row-level immutability
+        # triggers remain in effect for application operations.
+        connection.execute(
+            "TRUNCATE research.demo_results, research.snapshot_project_grants, "
+            "research.snapshot_requests, research.source_probes, research.dataset_snapshots, "
+            "research.catalog_versions, research.catalog_products"
+        )
         connection.execute("DELETE FROM iam.organization_creation_keys")
         connection.execute("DELETE FROM iam.invitations")
         connection.execute("DELETE FROM iam.access_grants")
