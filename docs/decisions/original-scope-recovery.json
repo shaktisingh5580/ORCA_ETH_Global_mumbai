@@ -1,0 +1,52 @@
+{
+  "decision_date": "2026-11-11",
+  "status": "ACCEPTED_SCOPE_PREREQUISITES_BLOCKED",
+  "authority": "User requested restoration of the original research-only platform and continued implementation",
+  "selected_release": "research-federated",
+  "scope_authority": "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md",
+  "references": [
+    "main_implementation plan.md",
+    "api design.md",
+    "docs/adr/ADR-R01-research-only-scope.json",
+    "docs/adr/ADR-R02-native-mur-inputs.json"
+  ],
+  "precedence": "Restores research-only full-product scope over hackathon delivery shortcuts. Historical documents and gate reports remain unchanged.",
+  "preserve": [
+    "Existing Oracle deployment and dashboard contracts",
+    "Supabase data and additive migration history",
+    "Registered source documents and historical evidence",
+    "Reusable AI, scientific calculation, onboarding, ENS and Arkiv implementations"
+  ],
+  "current_work": "P00-P02 prerequisite recovery before advancing P03",
+  "current_evidence": "docs/gates/recovery/original-input-audit.json",
+  "prerequisite_findings": {
+    "P00": "Two registered inputs differ: main plan and README. Other P00 decision tests pass.",
+    "P01": "Fourteen recorded input hashes differ; full fresh gate required.",
+    "P02": "Nine recorded input hashes differ; fresh gate and isolated live evidence required."
+  },
+  "next_subphases": [
+    {
+      "id": "recovery.1",
+      "work": "Reconcile source provenance using the preserved original plan archive and documented hackathon amendment; classify README as maintained documentation without erasing its historical checksum.",
+      "acceptance": "Verify original archived bytes, current amendment lineage and unchanged guide; source tampering still fails. Do not replace expected hashes merely to obtain PASS."
+    },
+    {
+      "id": "recovery.2",
+      "work": "Rebuild the wheel and rerun foundation, contract and tenant regressions on the current tree.",
+      "acceptance": "Clean installation, required tests, lint, format, types and import boundaries pass with fresh machine-readable evidence."
+    },
+    {
+      "id": "recovery.3",
+      "work": "Revalidate P02 in a dedicated disposable environment, retaining cloud data.",
+      "acceptance": "RLS isolation, grants, uploads, revocation and recovery pass; no destructive fixtures against deployed Supabase."
+    },
+    {
+      "id": "P03",
+      "work": "Close acquisition, baseline, rights, QC, grants and recovery requirements for the bounded MUR investigation.",
+      "acceptance": "Current predecessor gates and all G03 required scientific/live evidence pass."
+    }
+  ],
+  "future_order": ["P04 methods", "P05 orchestration", "P06 evidence", "P07 independent review", "P08 core integration", "P09 providers", "P10 ENS authority", "P11 Arkiv coordination", "P12 research integration", "P13 evaluation", "P14 release assurance"],
+  "full_gate_pass_claimed": false,
+  "deployment_changed": false
+}
