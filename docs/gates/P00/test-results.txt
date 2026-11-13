@@ -19,6 +19,6 @@ test_unknown_license_cannot_gain_export_permission (p00_tests.P00Decisions.test_
 test_unknown_license_cannot_gain_ingest_permission (p00_tests.P00Decisions.test_unknown_license_cannot_gain_ingest_permission) ... ok
 
 ----------------------------------------------------------------------
-Ran 19 tests in 0.138s
+Ran 19 tests in 4.860s
 
 OK

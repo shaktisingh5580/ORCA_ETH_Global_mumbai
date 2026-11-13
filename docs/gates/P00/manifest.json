@@ -45,10 +45,12 @@
     "G02 remains blocked until dedicated staging Supabase live checks pass"
   ],
   "source_commit": null,
-  "source_tree_sha256": "1d6295b0258127c2eca7227dd36dd00e0608f197cfe0f2720e27a97169cd022e",
+  "source_tree_sha256": "803e691fbbeecb31824d0c0bb37627c926cce0548fac11cacade78b7adc9346e",
   "source_hash_scope": "registered inputs and P00 artifacts; excludes generated reports",
   "input_hashes": {
+    ".cache/reference-history/main_implementation_plan_0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
     "api design.md": "4384d317467d0194db36d95b41c917f2a8f83f57b1ecefa136f681097dc6a178",
+    "backend/scripts/source_provenance.py": "658d2c4662249af1cfa7705f0c4fe6aaca65a6e174788f94ce65c20c9653d3ee",
     "contracts/designed/orca-research-selected.json": "e9b4d5e8557490f9e75462e3cf76aa9ed7abea63a565354ccc7a29767a99360a",
     "contracts/designed/research-route-dispositions.json": "7ec6ef6bcd77cdf70cf17f1fa47dd0e7e3184d7bde3d24cf05a36de82dab5156",
     "design.md": "37f45ad481f3f2a508c2c8a38b04338335782901a090c5e5f6fb48dcb60674df",
@@ -66,6 +68,9 @@
     "docs/adr/ADR-003-auth-queue-storage.md": "f77de36ed52825eaf3ef4f7a65cad0c5fa84e96735a99b09a3a1e5b8bcd92785",
     "docs/adr/ADR-004-safety-and-tenant-policy.md": "b767dad2d5c27dbeda6b1600376689b77c5b223eb8e4668aa4fbe47c86939fb5",
     "docs/adr/ADR-R01-research-only-scope.json": "2e53e016094ce32b1c81ce137d51e507d8c02773429aca4173c13ac39a514dca",
+    "docs/adr/ADR-R02-native-mur-inputs.json": "6a0e82daa4dbda6e96962a4170bd1cbbbf1793f4568ff15f9ae5cc877489422b",
+    "docs/decisions/original-scope-recovery.json": "86650234ba5d58bcf1964df3015d8e9b389f8d9d5036646a4540dde94fc3d9d5",
+    "docs/decisions/source-revisions.json": "efd650885484deeaa4705804af3148e8505e2847596b3e5486d08552c2f65a77",
     "docs/gates/P00/acceptance_matrix.csv": "1e5ef627e652c4145b8647a30ba623f06b63c70ea615ef9d46cf65e7f1f00504",
     "docs/gates/P00/decisions.yaml": "e4594f06cbec4e5e31d2a14e454ce273f7effa37781fe3ac8d576580bd1b4230",
     "docs/gates/P00/requirements.json": "741ddd2f5c168067f0aaf93f3132afeeaecf0dbf6ba0c893216aaaa48162db05",
@@ -78,7 +83,7 @@
     "docs/sources/source_checksums.sha256": "60bec990cc22515fa062300ac6e73ba066c004ca0107c3413f116bb7fe2cc0c1",
     "docs/sources/source_register.yaml": "1e950ed5c7a6ce73298b362891b456db7cefde92deaf81f1ebfe1fbd383885ec",
     "implementation plan.md": "1287316a9ea2c1f8284286e111b9628fdc358c2e10d7cb7a3eaf2478926a7e11",
-    "main_implementation plan.md": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
+    "main_implementation plan.md": "d5d86340e9e590622cfe64156f0e945855f5f2882732b95ed3726971e6e09567",
     "missing_detaiesl_md.md": "ff44cc7ee4c7b4402a88a0fe1f68865f6dd75a8b7d59d1086b6f0a5903c80d91",
     "ORCA Archetecture Document 6_Memory_and_Context_Architecture_Deep_Research_and_Implementation.md": "6e77d2228ad27156eabb35ea1106b5f47837cfec90a06df04f25acc9952e31a6",
     "ORCA Architecture Document 1 \u2014 Complete User Flow Architecture.md": "e530c7b69f7ffbc95bd18737265d241cf3c733c434201775996c94f5753226c1",
@@ -107,11 +112,11 @@
     "ORCA_System_7_Scientific_and_Marine_Intelligence_System.md": "2ad0580c2986eec7ce8c41b270a46930e3ac3281d7fa19d51daaa85d97f46918",
     "ORCA_Technical_Approach.md": "ff3acf18d0a20d0938f89f4fca09305ef972077bcd4b093c054f19d30936b8d5",
     "phases and subphases.md": "83c809ce5d1f5456d712d74eb69b8b4dc25073f4c427cd6375ca2b62a7d187c6",
-    "README.md": "7e3b554247f95e54159f495df5d8f70aff2adbfd9aad5f4a7c76da6e20351d78",
-    "tests/contracts/test_p00_decisions.py": "635a2a228db4b8a4f4733650edf7aba2043a57178bb9a7b3d450299840f415aa",
-    "tools/run_p00_gate.py": "46570f6d6562035bbeea1001f57b971ba9be1f19cf28ff06b9ee4eb089b6a3a2"
+    "README.md": "cb70fac7cfc56fca35f84c4206577dcc30303ba80923f2a7ddef8d441bcc74f4",
+    "tests/contracts/test_p00_decisions.py": "28aaccc36eca655625ab162ff155d55e5f17af3f01df2c4f11e633cb20d185d3",
+    "tools/run_p00_gate.py": "b658f9f39187a58afd39fd3e15f1e0c892484524e686d9adbdf52bd1a97fbc17"
   },
-  "generated_at": "2026-11-06T08:24:42.423153+00:00",
+  "generated_at": "2026-11-13T06:12:09.622393+00:00",
   "runner_version": "p00-bootstrap/1",
   "environment": {
     "python": "3.12.12 (main, Feb  3 2026, 22:54:57) [MSC v.1944 64 bit (AMD64)]",
@@ -133,7 +138,7 @@
     "G00.5": "PASS"
   },
   "static_checks": [],
-  "test_output_sha256": "9d68e2f9efc11526d172ef3a1c25f07a6015db27217779ac8bd3930fd3471ff1",
+  "test_output_sha256": "d3f74822437cfe36e865be12c6a5246df85f69db52d9ebf902adc26d7c85e5ba",
   "unresolved_historical_links": 11,
   "next_phase": "P01"
 }
