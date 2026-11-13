@@ -1,0 +1,16 @@
+{
+  "README.md": {
+    "original_sha256": "7e3b554247f95e54159f495df5d8f70aff2adbfd9aad5f4a7c76da6e20351d78",
+    "current_sha256": "cb70fac7cfc56fca35f84c4206577dcc30303ba80923f2a7ddef8d441bcc74f4",
+    "exception": "user-approved-readme-baseline-2026-11-13",
+    "reason": "User explicitly approved retaining the unavailable historical checksum and adopting current README bytes as a new baseline. Original README remains unverified; all code, security and science tests remain mandatory.",
+    "decision": "docs/decisions/original-scope-recovery.json"
+  },
+  "main_implementation plan.md": {
+    "original_sha256": "0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad",
+    "current_sha256": "d5d86340e9e590622cfe64156f0e945855f5f2882732b95ed3726971e6e09567",
+    "archive": ".cache/reference-history/main_implementation_plan_0501f27213126f6b186a78f3ab0eeca9bdff58991137c572fe8f0ab456020fad.md",
+    "reason": "Previously authorized hackathon preamble was added; original bytes were archived. Current recovery restores research-only scope without rewriting either revision.",
+    "decision": "docs/decisions/original-scope-recovery.json"
+  }
+}

@@ -10,9 +10,12 @@ from datetime import datetime
 from pathlib import Path
 import re
 import unittest
+import sys
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'backend/scripts'))
+from source_provenance import verify_source
 
 
 def read_yaml(relative):
@@ -44,8 +47,9 @@ class P00Decisions(unittest.TestCase):
                 self.assertTrue(row['origin'])
                 self.assertTrue(row['classification'])
                 self.assertRegex(row['captured_date'], r'^\d{4}-\d{2}-\d{2}$')
-                digest = hashlib.sha256((ROOT / row['path']).read_bytes()).hexdigest()
-                self.assertEqual(digest, row['sha256'])
+                revisions = read_yaml('docs/decisions/source-revisions.json')
+                verify_source(ROOT, row['path'], row['sha256'], revisions)
+                digest = row['sha256']
                 self.assertIn(f"{digest}  {row['path']}\n", checksums)
                 if row['origin'] == 'user_attachment':
                     self.assertEqual(digest, row['origin_sha256'])

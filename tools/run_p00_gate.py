@@ -67,6 +67,14 @@ def main():
     ET.ElementTree(xml).write(OUT / 'test-results.xml', encoding='utf-8', xml_declaration=True)
     source_register = module.read_yaml('docs/sources/source_register.yaml')
     input_paths = {ROOT / x['path'] for x in source_register['sources']}
+    revisions_path = ROOT / 'docs/decisions/source-revisions.json'
+    revisions = json.loads(revisions_path.read_text(encoding='utf-8'))
+    input_paths.add(revisions_path)
+    input_paths.add(ROOT / 'backend/scripts/source_provenance.py')
+    for revision in revisions.values():
+        if 'archive' in revision:
+            input_paths.add(ROOT / revision['archive'])
+        input_paths.add(ROOT / revision['decision'])
     input_paths.update((ROOT / 'docs/adr').glob('ADR-00*.md'))
     input_paths.update((ROOT / 'docs/adr').glob('ADR-R*.json'))
     input_paths.add(ROOT / 'docs/review/research-only-source-snapshot.json')
