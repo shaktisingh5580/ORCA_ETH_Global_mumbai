@@ -1,8 +1,8 @@
 {
   "phase": "H05",
-  "status": "LOCAL_BACKEND_CHECKS_PASS_CLOUD_GATE_PENDING",
+  "status": "ORACLE_PUBLIC_HTTPS_PASS_FRONTEND_INTEGRATION_PENDING",
   "phase_complete": false,
-  "deployment_live": false,
+  "deployment_live": true,
   "browser_acceptance_passed": false,
   "unique_selected_tests_passed": 68,
   "test_accounting": "66 passed in broad run; its one database-reset interference error passed in sequential rerun; one additional HTTP boundary test passed. Discovery and package-isolation failures from earlier attempts were fixed and passed in the broad run.",
@@ -41,20 +41,19 @@
     "schema": "orca.public-coordination/1.0",
     "truncated": false
   },
+  "oracle_runtime_evidence": "docs/gates/HACKATHON/H05-oracle-runtime.json",
   "not_claimed": [
-    "Render deployment",
-    "Container startup acceptance",
-    "Actual Vercel browser walkthrough",
+    "Authenticated Vercel browser walkthrough",
     "Live v2 discovery/import smoke test",
-    "Live synthetic-chain publication",
+    "New live Arkiv write from the deployed cloud service",
     "ENS verification",
     "External independent operators"
   ],
   "remaining": [
-    "Local Docker daemon did not respond to build or image-inspect commands; only those task CLI processes were stopped",
-    "Render sign-in and paid-resource estimate approval",
-    "Cloud cutover drain and signing-journal preservation",
-    "Exact Vercel origin and authenticated browser acceptance"
+    "Redeploy Vercel with the Oracle API origin https://orca.130.210.15.82.sslip.io",
+    "Reconcile the existing frontend API adapters, required project query parameters, and disagreement controls with contracts/openapi/orca-prototype.json",
+    "Complete an authenticated Vercel browser walkthrough and verify login persistence across dashboard tabs",
+    "Inspect loading, empty, unauthorized, retry, backend-error, and result source-mode states in the deployed browser"
   ],
   "private_handoffs": [
     "DISAGREEMENT_FRONTEND_HANDOFF.md",
