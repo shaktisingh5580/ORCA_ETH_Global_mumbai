@@ -18,6 +18,8 @@ from orca.application.projects import IdempotencyConflict, PreconditionRequired,
 from orca.application.workspace_access import authorize_project
 from orca.contracts.common import Page
 from orca.contracts.investigations import (
+    ApprovedPlanView,
+    ApprovePlan,
     CreateInvestigation,
     InvestigationPlanView,
     InvestigationView,
@@ -51,12 +53,22 @@ class Investigations:
     def _investigation(row: Any) -> InvestigationView:
         values = {key: row[key] for key in InvestigationView.model_fields if key != "etag"}
         values["etag"] = f'"{row["version"]}"'
+        values["source_readiness"] = (
+            "not_assessed" if row["current_plan_revision"] == 0 else "unverified"
+        )
+        values["scientific_status"] = "not_run"
         return InvestigationView.model_validate(values)
 
     @staticmethod
     def _plan(row: Any) -> InvestigationPlanView:
-        values = {key: row[key] for key in InvestigationPlanView.model_fields}
+        values = {key: row[key] for key in InvestigationPlanView.model_fields if key != "etag"}
+        values["etag"] = f'"{row["plan_digest"]}"'
         return InvestigationPlanView.model_validate(values)
+
+    @staticmethod
+    def _approval(row: Any) -> ApprovedPlanView:
+        values = {key: row[key] for key in ApprovedPlanView.model_fields}
+        return ApprovedPlanView.model_validate(values)
 
     def create(self, body: CreateInvestigation, idempotency_key: str) -> InvestigationView:
         params = self._authorize("research:plan")
@@ -118,15 +130,17 @@ class Investigations:
         return self._investigation(row)
 
     def list_investigations(
-        self, *, limit: int = 20, cursor: UUID | None = None
+        self, *, limit: int = 20, cursor: UUID | None = None, state: str | None = None
     ) -> Page[InvestigationView]:
         if not 1 <= limit <= 100:
             raise ValueError("Page limit must be from 1 to 100")
         params = self._authorize("project:read")
         rows = self.session.execute(
             text("""SELECT * FROM research.investigations WHERE tenant_id=:tenant AND project_id=:project
-              AND (CAST(:cursor AS uuid) IS NULL OR id>:cursor) ORDER BY id LIMIT :limit"""),
-            {**params, "cursor": cursor, "limit": limit + 1},
+              AND (CAST(:cursor AS uuid) IS NULL OR id>:cursor)
+              AND (CAST(:state AS varchar) IS NULL OR state=CAST(:state AS varchar))
+              ORDER BY id LIMIT :limit"""),
+            {**params, "cursor": cursor, "state": state, "limit": limit + 1},
         ).mappings()
         fetched = list(rows)
         has_more = len(fetched) > limit
@@ -290,3 +304,121 @@ class Investigations:
         if row is None:
             raise LookupError("Investigation plan not found")
         return self._plan(row)
+
+    def approve_plan(
+        self,
+        identifier: UUID,
+        plan_id: UUID,
+        body: ApprovePlan,
+        if_match: str | None,
+        idempotency_key: str,
+    ) -> ApprovedPlanView:
+        """Atomically bind a run-capable approval to one immutable plan digest."""
+        params = self._authorize("research:run")
+        if if_match is None:
+            raise PreconditionRequired()
+        if not 1 <= len(idempotency_key) <= 128:
+            raise ValueError("Invalid idempotency key")
+        investigation = (
+            self.session.execute(
+                text("""SELECT * FROM research.investigations
+                  WHERE tenant_id=:tenant AND project_id=:project AND id=:id FOR UPDATE"""),
+                {**params, "id": identifier},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if investigation is None:
+            raise LookupError("Investigation not found")
+        plan = (
+            self.session.execute(
+                text("""SELECT * FROM research.investigation_plans
+                  WHERE tenant_id=:tenant AND project_id=:project
+                    AND investigation_id=:investigation AND id=:id FOR UPDATE"""),
+                {**params, "investigation": identifier, "id": plan_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if plan is None:
+            raise LookupError("Investigation plan not found")
+        if if_match != f'"{plan["plan_digest"]}"':
+            raise StaleVersion()
+        if body.digest != plan["plan_digest"]:
+            raise ValueError("Approval digest does not match the persisted plan")
+
+        typed = TypedPlan.model_validate(plan["plan"])
+        if set(body.accepted_assumptions) != set(typed.assumptions) or len(
+            body.accepted_assumptions
+        ) != len(typed.assumptions):
+            raise ValueError("Approval must acknowledge exactly the plan assumptions")
+
+        existing = (
+            self.session.execute(
+                text("""SELECT * FROM research.plan_approvals
+                  WHERE tenant_id=:tenant AND project_id=:project AND investigation_id=:investigation
+                    AND idempotency_key=:key"""),
+                {**params, "investigation": identifier, "key": idempotency_key},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if existing is not None:
+            if (
+                existing["plan_digest"] == body.digest
+                and existing["accepted_assumptions"] == body.accepted_assumptions
+                and existing["approver_comment"] == body.approver_comment
+            ):
+                return self._approval(existing)
+            raise IdempotencyConflict()
+
+        approved_plan = (
+            self.session.execute(
+                text("""SELECT * FROM research.plan_approvals
+                  WHERE tenant_id=:tenant AND project_id=:project AND plan_id=:plan"""),
+                {**params, "plan": plan_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if approved_plan is not None:
+            if (
+                approved_plan["plan_digest"] == body.digest
+                and approved_plan["accepted_assumptions"] == body.accepted_assumptions
+                and approved_plan["approver_comment"] == body.approver_comment
+            ):
+                return self._approval(approved_plan)
+            raise IdempotencyConflict()
+
+        if investigation["state"] != "PLAN_READY":
+            raise ValueError("Investigation is not awaiting plan approval")
+        if investigation["current_plan_revision"] != plan["revision"]:
+            raise StaleVersion()
+        approval = (
+            self.session.execute(
+                text("""INSERT INTO research.plan_approvals
+                  (id,tenant_id,project_id,investigation_id,plan_id,plan_digest,accepted_assumptions,
+                   approver_comment,approved_by,idempotency_key)
+                  VALUES(:id,:tenant,:project,:investigation,:plan,:digest,CAST(:assumptions AS jsonb),
+                    :comment,:actor,:key) RETURNING *"""),
+                {
+                    **params,
+                    "id": uuid4(),
+                    "investigation": identifier,
+                    "plan": plan_id,
+                    "digest": body.digest,
+                    "assumptions": json.dumps(body.accepted_assumptions),
+                    "comment": body.approver_comment,
+                    "actor": self.principal.subject,
+                    "key": idempotency_key,
+                },
+            )
+            .mappings()
+            .one()
+        )
+        self.session.execute(
+            text("""UPDATE research.investigations SET state='APPROVED',version=version+1,
+              updated_at=clock_timestamp() WHERE tenant_id=:tenant AND project_id=:project AND id=:id"""),
+            {**params, "id": identifier},
+        )
+        return self._approval(approval)

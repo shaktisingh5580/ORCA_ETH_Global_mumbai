@@ -48,6 +48,10 @@ class InvestigationView(Contract):
     as_of: datetime | None
     risk_tier: str
     state: Literal["DRAFT", "PLAN_PENDING", "PLAN_READY", "APPROVED"]
+    # A plan is not a result. These fields deliberately remain explicit until a
+    # later worker phase establishes source readiness and a scientific outcome.
+    source_readiness: Literal["not_assessed", "unverified"]
+    scientific_status: Literal["not_run"]
     current_plan_revision: int
     version: int
     created_at: UTCDateTime
@@ -64,3 +68,32 @@ class InvestigationPlanView(Contract):
     plan_digest: Digest
     created_by: str
     created_at: UTCDateTime
+    etag: str
+
+
+class ApprovePlan(Contract):
+    """Exact plan acknowledgement; the digest prevents approval drift."""
+
+    digest: Digest
+    accepted_assumptions: list[str] = Field(default_factory=list, max_length=24)
+    approver_comment: str | None = Field(default=None, max_length=2000)
+
+    @model_validator(mode="after")
+    def unique_assumptions(self) -> Self:
+        if len(set(self.accepted_assumptions)) != len(self.accepted_assumptions):
+            raise ValueError("accepted assumptions must be unique")
+        if any(not item or len(item) > 500 for item in self.accepted_assumptions):
+            raise ValueError("accepted assumptions must contain 1 to 500 characters")
+        return self
+
+
+class ApprovedPlanView(Contract):
+    id: UUID
+    investigation_id: UUID
+    plan_id: UUID
+    project_id: UUID
+    plan_digest: Digest
+    accepted_assumptions: list[str]
+    approver_comment: str | None
+    approved_by: str
+    approved_at: UTCDateTime

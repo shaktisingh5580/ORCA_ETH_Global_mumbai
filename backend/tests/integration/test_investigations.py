@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from orca.application.investigations import Investigations
 from orca.application.projects import IdempotencyConflict, PreconditionRequired, StaleVersion
-from orca.contracts.investigations import CreateInvestigation, PatchInvestigation
+from orca.contracts.investigations import ApprovePlan, CreateInvestigation, PatchInvestigation
 from orca.contracts.research_plans import PlanNode, TypedPlan
 from orca.domain.identity import ROLE_SCOPES, Principal
 from orca.infrastructure.db.engine import create_runtime_engine
@@ -115,5 +115,93 @@ def test_investigation_idempotency_etag_plan_revisions_and_tenant_scope():
             service = Investigations(session, other_tenant, other_project, other_principal)
             with pytest.raises(LookupError):
                 service.get(draft.id)
+    finally:
+        db.dispose()
+
+
+@pytest.mark.live
+def test_approval_binds_digest():
+    admin, runtime, tenant, _, project, _ = prepare_database()
+    subject = str(uuid4())
+    with psycopg.connect(admin) as connection:
+        connection.execute(
+            "INSERT INTO iam.memberships(id,tenant_id,subject,role) VALUES(%s,%s,%s,'org_owner')",
+            (uuid4(), tenant, subject),
+        )
+    db = create_runtime_engine(runtime)
+    principal = Principal(subject, "test", frozenset().union(*ROLE_SCOPES.values()))
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            service = Investigations(session, tenant, project, principal)
+            draft = service.create(investigation(project), "approval-draft")
+            plan = service.create_plan(
+                draft.id, typed_plan(1), "approval-plan", maximum_budget=Decimal("5")
+            )
+        with pytest.raises(ValueError, match="digest"), TenantUnitOfWork(db, tenant) as session:
+            Investigations(session, tenant, project, principal).approve_plan(
+                draft.id,
+                plan.id,
+                ApprovePlan(digest="sha256:" + "0" * 64, accepted_assumptions=[]),
+                plan.etag,
+                "wrong-digest",
+            )
+        with TenantUnitOfWork(db, tenant) as session:
+            approved = Investigations(session, tenant, project, principal).approve_plan(
+                draft.id,
+                plan.id,
+                ApprovePlan(digest=plan.plan_digest, accepted_assumptions=[]),
+                plan.etag,
+                "approval-key",
+            )
+            assert approved.plan_digest == plan.plan_digest
+            assert approved.plan_id == plan.id
+            assert (
+                Investigations(session, tenant, project, principal).get(draft.id).state
+                == "APPROVED"
+            )
+    finally:
+        db.dispose()
+
+
+@pytest.mark.live
+def test_mutated_plan_after_approval_conflict():
+    admin, runtime, tenant, _, project, _ = prepare_database()
+    subject = str(uuid4())
+    with psycopg.connect(admin) as connection:
+        connection.execute(
+            "INSERT INTO iam.memberships(id,tenant_id,subject,role) VALUES(%s,%s,%s,'org_owner')",
+            (uuid4(), tenant, subject),
+        )
+    db = create_runtime_engine(runtime)
+    principal = Principal(subject, "test", frozenset().union(*ROLE_SCOPES.values()))
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            service = Investigations(session, tenant, project, principal)
+            draft = service.create(investigation(project), "approved-draft")
+            plan = service.create_plan(
+                draft.id, typed_plan(1), "approved-plan", maximum_budget=Decimal("5")
+            )
+            service.approve_plan(
+                draft.id,
+                plan.id,
+                ApprovePlan(digest=plan.plan_digest, accepted_assumptions=[]),
+                plan.etag,
+                "approved-key",
+            )
+        with (
+            pytest.raises(ValueError, match="not accepting"),
+            TenantUnitOfWork(db, tenant) as session,
+        ):
+            Investigations(session, tenant, project, principal).create_plan(
+                draft.id, typed_plan(2), "post-approval-plan", maximum_budget=Decimal("5")
+            )
+        with (
+            pytest.raises(SQLAlchemyError, match="immutable"),
+            TenantUnitOfWork(db, tenant) as session,
+        ):
+            session.execute(
+                text("UPDATE research.investigation_plans SET plan='{}' WHERE id=:id"),
+                {"id": plan.id},
+            )
     finally:
         db.dispose()

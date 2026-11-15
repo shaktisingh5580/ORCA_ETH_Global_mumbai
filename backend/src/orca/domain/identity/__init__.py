@@ -18,6 +18,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "project:share",
             "dataset:read",
             "research:plan",
+            "research:run",
         }
     ),
     "org_admin": frozenset(
@@ -30,6 +31,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "project:share",
             "dataset:read",
             "research:plan",
+            "research:run",
         }
     ),
     "principal_investigator": frozenset(
@@ -40,6 +42,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "project:share",
             "dataset:read",
             "research:plan",
+            "research:run",
         }
     ),
     "researcher": frozenset(

@@ -45,6 +45,14 @@ from orca.contracts.files import (
     UploadSession,
     UploadStatus,
 )
+from orca.contracts.investigations import (
+    ApprovedPlanView,
+    ApprovePlan,
+    CreateInvestigation,
+    InvestigationPlanView,
+    InvestigationView,
+    PatchInvestigation,
+)
 from orca.contracts.invitations import (
     AcceptInvitation,
     AccessGrant,
@@ -60,6 +68,7 @@ from orca.contracts.organizations import (
     PatchOrganization,
 )
 from orca.contracts.projects import CreateProject, PatchProject, UploadIntent
+from orca.contracts.research_plans import PlanNode, PlanRequest, TypedPlan
 from orca.contracts.workspace_access import (
     AddProjectMember,
     OrgPolicy,
@@ -114,6 +123,15 @@ MODELS: list[type[BaseModel]] = [
     AcceptInvitation,
     GrantAccess,
     AccessGrant,
+    CreateInvestigation,
+    PatchInvestigation,
+    InvestigationView,
+    InvestigationPlanView,
+    ApprovePlan,
+    ApprovedPlanView,
+    PlanRequest,
+    PlanNode,
+    TypedPlan,
 ]
 
 
