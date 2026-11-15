@@ -45,7 +45,7 @@
   "next_slice": "P05.1-C: expose the draft/plan read-write contracts over the P05 API paths, add exact-digest append-only approval records and stale-If-Match conflicts, then verify OpenAPI and auth behavior",
   "migration_revision": "0021_investigations (parent 0020_science_evidence is available at origin/main commit 027f5fd)",
   "git": {
-    "commit": null,
-    "push": "P04 migration parent 0020 was pushed at 027f5fd; P05.1-B commit and normal push are next"
+    "commit": "55716df",
+    "push": "P05.1-B development commit pushed normally to origin/main"
   }
 }
