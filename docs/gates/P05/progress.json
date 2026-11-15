@@ -56,6 +56,6 @@
   "migration_revision": "0022_plan_approvals (parent 0021_investigations)",
   "git": {
     "commit": "56d58ab P05.1-C code, migration and focused-test development commit",
-    "push": "pending P05.1-C development push"
+    "push": "56d58ab and 3e05a46 pushed normally to origin/main; unrelated P03 work remains uncommitted"
   }
 }
