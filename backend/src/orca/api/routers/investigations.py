@@ -24,10 +24,13 @@ from orca.contracts.investigations import (
     InvestigationPlanView,
     InvestigationView,
     PatchInvestigation,
+    RunView,
+    StartRun,
 )
 from orca.contracts.research_plans import PlanRequest
 from orca.domain.identity import Principal
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
 
 router = APIRouter(prefix="/v1/research/investigations", tags=["investigations"])
 
@@ -266,3 +269,136 @@ def approve_plan(
         raise_service_error(error)
     response.headers["ETag"] = if_match or ""
     return result
+
+
+@router.post("/{investigation_id}/runs", response_model=Operation, status_code=202)
+def start_run(
+    investigation_id: UUID,
+    body: StartRun,
+    request: Request,
+    principal: CurrentPrincipal,
+    idempotency_key: Annotated[str, Header(min_length=1, max_length=128)],
+) -> Operation:
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            Investigations(session, tenant, project, principal)._authorize("research:run")
+            row = (
+                session.execute(
+                    text("""SELECT p.plan_digest,(p.plan->'budget'->>'max_amount') AS limit_amount
+              FROM research.investigation_plans p JOIN research.plan_approvals a ON a.tenant_id=p.tenant_id AND a.project_id=p.project_id AND a.plan_id=p.id
+              WHERE p.tenant_id=:tenant AND p.project_id=:project AND p.investigation_id=:investigation AND p.id=:plan"""),
+                    {
+                        "tenant": tenant,
+                        "project": project,
+                        "investigation": investigation_id,
+                        "plan": body.plan_id,
+                    },
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if row is None or row["plan_digest"] != body.digest:
+                raise ValueError("exact approved plan digest is required before enqueue")
+            receipt = PostgresQueue(session, tenant, project).enqueue_run(
+                EnqueuedRun(
+                    investigation_id,
+                    body.plan_id,
+                    body.digest,
+                    Decimal(str(row["limit_amount"])),
+                    Decimal(body.execution_budget),
+                    body.digest,
+                    idempotency_key,
+                    principal.subject,
+                    {"kind": "investigation_run", "node_count": 4, "tool_budget": 0},
+                )
+            )
+            created = (
+                session.execute(
+                    text(
+                        "SELECT created_at,updated_at FROM research.compute_runs WHERE tenant_id=:tenant AND id=:id"
+                    ),
+                    {"tenant": tenant, "id": receipt.run_id},
+                )
+                .mappings()
+                .one()
+            )
+    except Exception as error:
+        raise_service_error(error)
+    return Operation(
+        id=receipt.job_id,
+        kind="research_run",
+        status="queued",
+        resource_ref=ResourceRef(
+            type="research_run", id=str(receipt.run_id), version="1", digest=body.digest
+        ),
+        created_at=created["created_at"],
+        updated_at=created["updated_at"],
+        progress=0,
+        links={"run": f"/v1/research/investigations/{investigation_id}/runs/{receipt.run_id}"},
+    )
+
+
+@router.get("/{investigation_id}/runs", response_model=Page[RunView])
+def list_runs(
+    investigation_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> Page[RunView]:
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        Investigations(session, tenant, project, principal)._authorize("project:read")
+        rows = session.execute(
+            text(
+                "SELECT id,investigation_id,plan_id,state,stage,execution_budget::text AS execution_budget,created_at,updated_at FROM research.compute_runs WHERE tenant_id=:tenant AND project_id=:project AND investigation_id=:investigation ORDER BY created_at DESC LIMIT :limit"
+            ),
+            {
+                "tenant": tenant,
+                "project": project,
+                "investigation": investigation_id,
+                "limit": limit,
+            },
+        ).mappings()
+        items = [RunView.model_validate(dict(row)) for row in rows]
+    return Page(items=items, page_size=limit, next_cursor=None)
+
+
+@router.post("/{investigation_id}/runs/{run_id}/cancel", response_model=Operation, status_code=202)
+def cancel_run(
+    investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> Operation:
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        Investigations(session, tenant, project, principal)._authorize("research:run")
+        row = (
+            session.execute(
+                text(
+                    "SELECT q.id,r.created_at,r.updated_at FROM research.compute_runs r JOIN research.job_queue q ON q.tenant_id=r.tenant_id AND q.run_id=r.id WHERE r.tenant_id=:tenant AND r.project_id=:project AND r.investigation_id=:investigation AND r.id=:run"
+                ),
+                {
+                    "tenant": tenant,
+                    "project": project,
+                    "investigation": investigation_id,
+                    "run": run_id,
+                },
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            raise HTTPException(404, "Run not found")
+        changed = PostgresQueue(session, tenant, project).cancel(row["id"])
+    return Operation(
+        id=row["id"],
+        kind="research_run",
+        status="cancelled" if changed else "failed",
+        resource_ref=ResourceRef(type="research_run", id=str(run_id), version="1"),
+        created_at=row["created_at"],
+        updated_at=row["updated_at"],
+        progress=None,
+        links={},
+    )

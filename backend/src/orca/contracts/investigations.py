@@ -97,3 +97,29 @@ class ApprovedPlanView(Contract):
     approver_comment: str | None
     approved_by: str
     approved_at: UTCDateTime
+
+
+class StartRun(Contract):
+    plan_id: UUID
+    digest: Digest
+    execution_budget: str = Field(pattern=r"^(?:0|[1-9]\d*)(?:\.\d{1,8})?$")
+
+
+class RunView(Contract):
+    id: UUID
+    investigation_id: UUID
+    plan_id: UUID
+    state: Literal[
+        "QUEUED",
+        "RUNNING",
+        "CANCEL_REQUESTED",
+        "CANCELLED",
+        "FAILED",
+        "SUCCEEDED_SUPPORTED",
+        "SUCCEEDED_INSUFFICIENT",
+        "INCONCLUSIVE",
+    ]
+    stage: str
+    execution_budget: str
+    created_at: UTCDateTime
+    updated_at: UTCDateTime
