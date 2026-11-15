@@ -1,0 +1,62 @@
+{
+  "schema_version": "orca.plan-authority/1.0",
+  "effective_date": "2026-11-14",
+  "active_plan": "main_implementation plan.md",
+  "companion_contract": "api design.md",
+  "profile": "research-federated",
+  "phase_sequence": [
+    "P00",
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14"
+  ],
+  "current_phase": "P03 gate remains active; P04 early implementation authorized",
+  "current_gate": "G03",
+  "current_gate_status": "INCOMPLETE",
+  "early_work_authorization": {
+    "decision": "docs/decisions/P04-early-work-authorization.json",
+    "authorized_phase": "P04",
+    "authorization_date": "2026-11-15",
+    "scope": "Begin P04 implementation while continuing P03 work independent of fresh NOAA retrieval.",
+    "does_not_waive": [
+      "G03 remains INCOMPLETE until its full live source, baseline and named evidence requirements pass.",
+      "G04 cannot pass until its own required live science/reproduction evidence and all subphase gates pass."
+    ]
+  },
+  "passed_prerequisites": [
+    "G00",
+    "G01",
+    "G02"
+  ],
+  "later_phases": "User authorizes P05 onward local development while acceptance gates remain open. Oracle work is deferred. This supersedes the previous P04-only development exception; gates still require evidence before PASS.",
+  "supersedes": [
+    "docs/decisions/hackathon-prototype-profile.json",
+    "HACKATHON_IMPLEMENTATION_PLAN.md as active authority"
+  ],
+  "decision_basis": "Latest explicit user instruction on 2026-11-14: main_implementation plan.md is the authority and the full plan is to be completed.",
+  "source_preservation": "Registered source documents remain byte-for-byte preserved; only the locally ignored implementation plan status/authority header was revised.",
+  "previous_local_plan_sha256": "d5d86340e9e590622cfe64156f0e945855f5f2882732b95ed3726971e6e09567",
+  "previous_local_plan_archive": ".cache/reference-history/main_implementation_plan_pre_full_authority_20261114.md",
+  "references": [
+    "docs/adr/ADR-000-authority.md",
+    "docs/decisions/delivery-progress.json",
+    "docs/decisions/original-scope-recovery.json",
+    "docs/decisions/P03-research-scope.json",
+    "docs/gates/P00/manifest.json",
+    "docs/gates/P01/manifest.json",
+    "docs/gates/P02/manifest.json",
+    "docs/gates/P03/manifest.json"
+  ],
+  "development_sequencing_override": "docs/decisions/development-first-oracle-deferred.json"
+}

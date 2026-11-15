@@ -1,6 +1,6 @@
 {
-  "profile": "research-federated",
-  "source": "Research-only scope guide section 8 overrides historical optional federation and old P12",
+  "profile": "full-platform research-federated",
+  "source": "main_implementation plan.md is active authority for full P00-P14; api design.md is the companion API contract; reconcile through current ADRs, decisions and phase gates",
   "historically_passed_gate_reports": [
     "P00",
     "P01",
@@ -11,10 +11,9 @@
     "P01",
     "P02"
   ],
-  "completion_note": "Current G00/G01 prerequisites and full G02 pass. P02 registers 31/31 operations and passes 136 tests. Supabase is upgraded through 0012; API and validator run; actual stored MUR bytes passed signed upload/validation/download. Browser, science, AI and federation acceptance remain separate.",
+  "completion_note": "Fresh P03 NOAA and local database/recovery checks passed. P03/P04 gates remain open. User authorizes continued P05-P14 development with focused verification and defers Oracle deployment until building is complete.",
   "current_audit": "docs/decisions/platform-implementation-audit.json",
-  "current_phase": "P03 scientific input and baseline gate",
-  "unfinished_core_phases": 6,
+  "current_phase": "P05 implementation authorized; P03/P04 acceptance remains open",
   "unfinished_full_product_phases": 12,
   "phases": [
     {
@@ -25,16 +24,16 @@
     {
       "id": "P03",
       "status": "IN_PROGRESS",
-      "scope": "Catalog/acquisition, probes, grants and live scientific inputs"
+      "scope": "Full P03 catalog, source acquisition, immutable snapshots, scientific source/baseline evidence and cache/API contracts per main_implementation plan.md"
     },
     {
       "id": "P04",
-      "status": "SELECTED_SCOPE_NOT_IMPLEMENTED_DEMO_COMPONENT_ONLY",
-      "scope": "Pinned scientific methods and deterministic SST evidence; descriptive demo is not the anomaly engine"
+      "status": "EARLY_IMPLEMENTATION_AUTHORIZED_G03_OPEN",
+      "scope": "Calculation and evidence-lineage modules implemented; preserved-real numerical replay and local database checks passed. Science APIs and scientific method review remain pending."
     },
     {
       "id": "P05",
-      "status": "NOT_STARTED",
+      "status": "AUTHORIZED_NEXT_IMPLEMENTATION",
       "scope": "Durable research planning and run orchestration"
     },
     {
@@ -54,7 +53,7 @@
     },
     {
       "id": "P09",
-      "status": "H04_A2A_PROTOTYPE_DELIVERED_FULL_GATE_DEFERRED",
+      "status": "PROTOTYPE_ONLY_FULL_P09_GATE_NOT_PASSED",
       "scope": "Provider onboarding and A2A federation"
     },
     {
@@ -64,13 +63,13 @@
     },
     {
       "id": "P11",
-      "status": "H04_COORDINATION_PROTOTYPE_DELIVERED_FULL_GATE_DEFERRED",
+      "status": "PROTOTYPE_ONLY_FULL_P11_GATE_NOT_PASSED",
       "scope": "Arkiv task/claim/assignment/review coordination; current CLI publishes and reads only a demo result reference"
     },
     {
       "id": "P12",
       "status": "NOT_STARTED",
-      "scope": "Research-only cross-feature integration and scope regression; historical Marine scope excluded"
+      "scope": "Full-platform cross-feature integration and scope regression defined by main_implementation plan.md P12"
     },
     {
       "id": "P13",
@@ -90,5 +89,10 @@
     "evidence": "docs/gates/HACKATHON/H04.json",
     "full_phase_gates_claimed": false,
     "frontend_acceptance": "pending with teammate"
-  }
+  },
+  "active_plan": "main_implementation plan.md",
+  "active_plan_decision": "docs/decisions/full-platform-plan-authority.json",
+  "hackathon_profile_status": "HISTORICAL_ONLY",
+  "current_gate_status": "G03_INCOMPLETE",
+  "sequencing_authority": "docs/decisions/development-first-oracle-deferred.json"
 }
