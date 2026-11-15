@@ -1,7 +1,7 @@
 {
-  "$comment": "Purpose: map P05.1 code to focused verification. Behavior: records local checks without claiming the live database gate. Refs: main_implementation plan.md §5.3 and P05.1; Phase: P05.",
+  "$comment": "Purpose: map P05 implementation code to focused verification. Behavior: records local checks without claiming the live database gate. Refs: main_implementation plan.md §5.3 and P05.1-P05.2; Phase: P05.",
   "phase": "P05",
-  "slice": "P05.1-C",
+  "slice": "P05.2",
   "mappings": [
     {
       "file": "backend/src/orca/contracts/research_plans.py",
@@ -32,6 +32,16 @@
       "file": "backend/migrations/versions/0022_plan_approvals.py",
       "tests": ["backend/tests/integration/test_investigations.py"],
       "failure_mode": "approval history can be changed or does not match its plan digest"
+    },
+    {
+      "file": "backend/src/orca/infrastructure/jobs/postgres_queue.py",
+      "tests": ["backend/tests/recovery/test_leases.py", "backend/tests/integration/test_job_queue.py"],
+      "failure_mode": "more than one worker owns a job, stale work completes, or an enqueue leaves partial durable state"
+    },
+    {
+      "file": "backend/migrations/versions/0023_jobs_outbox.py",
+      "tests": ["backend/tests/recovery/test_leases.py", "backend/tests/integration/test_job_queue.py"],
+      "failure_mode": "tenant-scoped durable run, reservation, queue or outbox schema cannot enforce the P05.2 boundary"
     }
   ],
   "live_prerequisite": "ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL"

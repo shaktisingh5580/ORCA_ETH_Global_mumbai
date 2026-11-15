@@ -2,8 +2,8 @@
   "phase": "P05",
   "updated_on": "2026-11-16",
   "acceptance_status": "in_progress",
-  "current_slice": "P05.1-C",
-  "slice_status": "implemented_local_checks_passed_live_database_check_skipped",
+  "current_slice": "P05.2",
+  "slice_status": "implemented_static_checks_passed_live_database_acceptance_pending",
   "changed_files": [
     "backend/src/orca/contracts/investigations.py",
     "backend/src/orca/application/investigations.py",
@@ -19,7 +19,13 @@
     "backend/migrations/versions/0022_plan_approvals.py",
     "backend/tests/contracts/test_investigation_http.py",
     "docs/decisions/P05-plan-api-approval.json",
-    "docs/gates/P05/file_test_map.json"
+    "docs/gates/P05/file_test_map.json",
+    "backend/src/orca/infrastructure/jobs/postgres_queue.py",
+    "backend/migrations/versions/0023_jobs_outbox.py",
+    "backend/tests/support/p05_queue.py",
+    "backend/tests/recovery/test_leases.py",
+    "backend/tests/integration/test_job_queue.py",
+    "docs/decisions/P05-durable-queue.json"
   ],
   "implemented": [
     "P05.1-A: strict typed plan request and allowlisted DAG node contracts",
@@ -31,16 +37,19 @@
     "P05.1-C: investigation draft and versioned-plan HTTP paths are registered with server-side tenant resolution, ETags and idempotency",
     "P05.1-C: fixed typed-plan compilation is deterministic and explicitly keeps source readiness/scientific status unverified/not_run",
     "P05.1-C: approval requires research:run, exact ETag/digest/assumptions, and is immutable with a database-level persisted-digest trigger",
-    "P05 development sequencing exception reconciled with a machine-readable decision record"
+    "P05 development sequencing exception reconciled with a machine-readable decision record",
+    "P05.2: atomic tenant-scoped enqueue creates run, reservation, queue record and outbox notification",
+    "P05.2: PostgreSQL SKIP LOCKED claim, database-time lease renewal, increasing generation and token fencing",
+    "P05.2: expired lease recovery, stale completion rejection, rollback and reservation-capacity tests"
   ],
   "checks": {
-    "focused_pytest": "14 contract tests passed; 3 P05 live database integration cases skipped because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are unset",
+    "focused_pytest": "14 P05 contract tests passed; 5 P05.2 PostgreSQL integration/recovery cases collected and skipped honestly because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are unset",
     "ruff_check": "passed for changed Python files",
     "ruff_format_check": "passed for changed Python files",
-    "mypy": "passed for changed P05 contract/application modules",
-    "file_headers": "passed",
-    "alembic_heads": "0021_investigations is the sole local head; P05 migration chains after local revision 0020_science_evidence",
-    "offline_migration_sql_render": "passed through 0022_plan_approvals with a placeholder PostgreSQL URL; no database connection or migration application",
+    "mypy": "passed for changed P05 queue module",
+    "file_headers": "passed after P05.2 changes",
+    "alembic_heads": "0023_jobs_outbox is the sole local head",
+    "offline_migration_sql_render": "passed through 0023_jobs_outbox with a placeholder PostgreSQL URL; no database connection or migration application",
     "openapi_contract": "passed in-memory route/schema registration check; root generated OpenAPI file remains uncommitted because it contains unrelated dirty P03 changes"
   },
   "not_claimed": [
@@ -48,12 +57,13 @@
     "Live Postgres/RLS/immutable-trigger integration verification",
     "Live Postgres/RLS/digest-trigger verification for P05 approval records",
     "Generated root OpenAPI artifact reconciliation with unrelated dirty P03 changes",
-    "Run queue, workers, events or result publication",
+    "Live Postgres/RLS lease, fencing, rollback and reservation acceptance for P05.2",
+    "Worker execution, events or result publication",
     "Scientific method approval or source readiness",
     "P03/P04 acceptance, live data acceptance or Oracle deployment"
   ],
-  "next_slice": "P05.2: transactional job queue, leased attempts, fencing and atomic budget reservations; first reconcile the P05.1 generated contract artifact after the unrelated P03 OpenAPI work is isolated",
-  "migration_revision": "0022_plan_approvals (parent 0021_investigations)",
+  "next_slice": "P05.3: bounded worker, durable stages, safe retry/cancellation and crash checkpoints; wire P05.2 queue only after source and method readiness are explicitly enforced",
+  "migration_revision": "0023_jobs_outbox (parent 0022_plan_approvals)",
   "git": {
     "commit": "56d58ab P05.1-C code, migration and focused-test development commit",
     "push": "56d58ab and 3e05a46 pushed normally to origin/main; unrelated P03 work remains uncommitted"

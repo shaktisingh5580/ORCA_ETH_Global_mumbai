@@ -1,0 +1,14 @@
+{
+  "$comment": "Purpose: record P05.2 static migration rendering evidence. Behavior: distinguish SQL rendering from applying migrations to a database. Refs: main_implementation plan.md P05.2; Phase: P05.",
+  "phase": "P05.2",
+  "status": "passed_static_render_only",
+  "command": "ORCA_DATABASE_URL=postgresql://orca_runtime:placeholder@localhost/orca alembic -c backend/alembic.ini upgrade head --sql",
+  "head": "0023_jobs_outbox",
+  "result": "Alembic rendered transactional PostgreSQL DDL through 0023_jobs_outbox without a database connection.",
+  "not_evidence_of": [
+    "a successful database migration",
+    "RLS enforcement",
+    "lease/fencing recovery",
+    "budget reservation concurrency"
+  ]
+}
