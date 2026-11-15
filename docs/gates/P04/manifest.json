@@ -1,0 +1,75 @@
+{
+  "phase": "P04",
+  "gate": "G04",
+  "status": "IN_PROGRESS_G03_OPEN",
+  "active_plan": "main_implementation plan.md",
+  "authorization": "docs/decisions/P04-early-work-authorization.json",
+  "prerequisite": {
+    "gate": "G03",
+    "status": "INCOMPLETE",
+    "note": "Early P04 implementation is user-authorized; no prerequisite gate is waived."
+  },
+  "subphases": {
+    "P04.1": {
+      "status": "IMPLEMENTED_LOCAL_CHECKS_PASS_REVIEW_AND_LIVE_EVIDENCE_PENDING",
+      "gate": "G04.1",
+      "required_live_science_evidence": "pending"
+    },
+    "P04.2": {
+      "status": "IMPLEMENTED_LOCAL_CHECKS_PASS_REVIEW_AND_LIVE_EVIDENCE_PENDING",
+      "gate": "G04.2",
+      "required_live_science_evidence": "pending"
+    },
+    "P04.3": {
+      "status": "IMPLEMENTED_LOCAL_CHECKS_PASS_POLICY_REVIEW_PENDING",
+      "gate": "G04.3"
+    },
+    "P04.4": {
+      "status": "IMPLEMENTED_REAL_REPLAY_AND_LOCAL_DATABASE_PASS_REVIEW_PENDING",
+      "gate": "G04.4",
+      "evidence": "docs/gates/P04/real-reference-replay.json"
+    }
+  },
+  "synthetic_runtime_data_used": false,
+  "live_source_or_baseline_evidence": "Preserved real numerical replay passed; fresh G03 NOAA retrieval now passed with JUnit hashes. G03 overall remains incomplete.",
+  "local_validation": {
+    "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/science backend/tests/integration/test_evidence_fk.py backend/tests/unit/test_snapshot_request_cache.py backend/tests/unit/test_scientific_inputs.py backend/tests/security/test_erddap_egress.py -q",
+    "result": "43 passed, 2 skipped; preserved real MUR numerical replay passed. The two skips are database integration checks because ORCA_TEST_DATABASE_URL is absent.",
+    "lint_type_format": "PASS: Ruff check and format on 18 files; mypy on 12 source files; import-boundary script passed.",
+    "limitations": "Historical run: two database checks skipped. Fresh NOAA retrieval has since passed; scientific approval and database verification remain pending."
+  },
+  "migration_validation": "PASS: applied 0019 -> 0020 to local isolated orca_test and passed database integration assertions; no production migration performed.",
+  "phase_exit": "NOT_MET",
+  "mandatory_case_ids": [
+    "test_missing_wrong_season_baseline_rejected",
+    "test_depth_and_skin_bulk_incompatibility",
+    "test_as_of_unknown_rejected",
+    "test_unapproved_method_version_fails",
+    "test_constant_field_zero_anomaly",
+    "test_hand_computed_weighted_grid",
+    "test_kelvin_conversion",
+    "test_leap_day_calendar",
+    "test_masked_and_zero_cells",
+    "test_antimeridian_region_handling",
+    "test_below_spatial_coverage_abstains",
+    "test_below_temporal_coverage_abstains",
+    "test_uncertainty_unknown_not_zero",
+    "test_sufficient_evidence_supported_only",
+    "test_correlation_not_causation",
+    "test_real_pinned_subset_recomputes_within_tolerance",
+    "test_input_hash_matches_original",
+    "test_dangling_support_fk_rejected",
+    "test_method_version_immutable"
+  ],
+  "open_evidence": [
+    "Scientific reviewer approval of the pinned method and independent numerical tolerances",
+    "P04 coverage/uncertainty scientific qualification and method/QC reviewer approval",
+    "G03 completion gate remains open",
+    "Eight planned P04 science API operations and their contract/auth tests remain unimplemented"
+  ],
+  "database_validation": {
+    "result": "PASS: both tests in backend/tests/integration/test_evidence_fk.py passed against isolated local orca_test after migration 0020",
+    "artifact": "docs/gates/P03/database-recheck.xml",
+    "remote_deployment_verified": false
+  }
+}

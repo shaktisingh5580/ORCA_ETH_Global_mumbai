@@ -1,0 +1,24 @@
+{
+  "id": "P05-DEV-SEQUENCE-001",
+  "date": "2026-11-16",
+  "authority": "Latest repository working agreement supplied by the user in AGENTS.md",
+  "active_plan": "main_implementation plan.md",
+  "status": "development_authorized_acceptance_unchanged",
+  "scope": "Continue P05 through later main-plan phases while earlier acceptance items remain open.",
+  "supersedes_for_development_only": [
+    "docs/decisions/P04-early-work-authorization.json constraint that prohibited starting P05 before G03/G04 completion"
+  ],
+  "constraints": [
+    "No gate is marked PASS by this sequencing authorization.",
+    "P03/G03 and P04/G04 evidence and scientific reviews remain independently required.",
+    "Do not approve a scientific method or enable production execution without its required authority.",
+    "Oracle deployment, remote worker setup, production migrations and cloud recovery acceptance remain deferred until explicitly resumed.",
+    "Keep open requirements visible in phase progress records and development commits."
+  ],
+  "references": [
+    "AGENTS.md repository working agreement",
+    "main_implementation plan.md P05-P14",
+    "api design.md §3.6",
+    "ORCA_P05_IMPLEMENTATION_GUIDE.md"
+  ]
+}

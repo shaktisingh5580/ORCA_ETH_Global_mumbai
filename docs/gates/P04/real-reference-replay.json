@@ -1,0 +1,98 @@
+{
+  "phase": "P04.4",
+  "gate": "G04.4",
+  "status": "NUMERICAL_REPLAY_PASS_REVIEW_PENDING",
+  "recorded_at": "2026-11-15T06:23:34.4252657Z",
+  "source": {
+    "mode": "preserved_real",
+    "dataset": "jplMURSST41",
+    "host": "coastwatch.pfeg.noaa.gov",
+    "retrieval_evidence": "Per-input retrieved_at values are preserved in capture.json; the January 2025 current subset was retrieved at 2026-11-06T16:51:51.940703Z.",
+    "inputs_directory": ".cache/science-inputs/mur-native-batch (local ignored cache)",
+    "capture_manifest": ".cache/science-inputs/mur-native-batch/capture.json (local ignored cache)",
+    "authoritative_digest_and_byte_manifest": "docs/gates/P03/native-inputs-cloud.json",
+    "bundle_digest": "sha256:6172c78998318102e76257c3e89d855fc26a917a6ed3027bc9105d13b2436232",
+    "current_snapshot_id": "793fb2e1-5a2c-587c-872a-faec82efc093",
+    "baseline_snapshot_ids": [
+      "50c7a721-b14f-5edf-bfde-b6039a139dd5",
+      "7b8fbd55-ffc7-5d6f-8c35-6836da698d34",
+      "b3b40230-da10-5701-bf89-cac1d28d6859",
+      "53c2f93a-9600-56d0-9921-d8c9d47327b7",
+      "1619f6ca-9db1-575e-bb38-318ae4cc8f1a",
+      "b7bc5c75-5917-5efd-b53f-cab8816c8490",
+      "440949de-e3d8-5026-a4fc-ea8678d44f14",
+      "a9b1d57d-9c17-55ea-9e1e-1d9671b66e17",
+      "7ce35940-f6cc-5831-a4a3-a2f0e1e3806c",
+      "8f0aa7d5-a091-5500-bc35-cb99e438d0ae",
+      "fc2fb2a3-b4de-5ae8-a1f2-3997058eba41",
+      "800d9682-8638-5d96-b071-28b5f06a4299",
+      "6f4d8d1a-d428-5dfd-ac2b-af6df11ea5eb",
+      "d541b030-e3a6-5284-907a-020269011045",
+      "b73bf37a-5d37-59fd-848c-531201e0a66a",
+      "25579bbe-4217-5d57-aa6c-cfb2e46feded",
+      "b90824e4-b313-5df2-ba32-75bf6512a678",
+      "75d4bdca-f907-58b1-808e-672f2e04e367",
+      "6d5a80be-8da0-54d5-920a-73223e5cfc5c",
+      "2b29d21d-7a2d-5081-ab95-8b9000af6974"
+    ],
+    "integrity_result": "Every source file digest and byte count matched both the local capture and P03 evidence manifest."
+  },
+  "calculation": {
+    "method_id": "orca.sst-area-time-anomaly",
+    "method_version": "0.1.0-reference",
+    "method_approval_status": "draft",
+    "method_code_sha256": "87f6b35fd742a09cc4938404692dec4adf18d2db9c0d797b4e4d22735bdfd6a9",
+    "spatial_scope": {
+      "latitude_minimum": 20.45,
+      "latitude_maximum": 20.55,
+      "longitude_minimum": 68.45,
+      "longitude_maximum": 68.55,
+      "grid_spacing_degrees": 0.01,
+      "cell_edges_clipped_to_scope": true,
+      "area_method": "spherical cell area",
+      "earth_mean_radius_m": 6371008.8
+    },
+    "time_scope": {
+      "current": "January 2025",
+      "baseline": "matching January day and grid cell averaged across 2003-2022",
+      "nominal_duration_seconds_per_daily_observation": 86400
+    },
+    "quality_control": {
+      "policy_id": "mur-open-ocean-valid-error-v1",
+      "policy_sha256": "295ff6a6480cf6beac186b615371a37a8b88e112ec6c6a23ee98d5ef947b30cb",
+      "approval_status": "proposed_not_approved",
+      "requirements": "finite SST; mask=1 (open sea); finite analysis_error in [0,327.67] degree_C"
+    },
+    "units": "degree_C",
+    "numerical_reproduction_tolerance_celsius": 1e-9
+  },
+  "result": {
+    "included_observations": 3751,
+    "excluded_observations": 0,
+    "current_area_time_weighted_mean_celsius": 26.24750604815608,
+    "baseline_area_time_weighted_mean_celsius": 25.624008769016,
+    "difference_celsius": 0.6234972791400754,
+    "independently_calculated_difference_celsius": 0.6234972791400754,
+    "reproduction_assertion": "Absolute difference from the independently implemented calculation is no greater than 1e-9 degree_C.",
+    "uncertainty": "unknown; aggregate covariance is unavailable",
+    "scientific_status": "reference_only_not_approved",
+    "claim": "Numerical replay only; this is not an approved scientific finding or evidence of a regional climate anomaly."
+  },
+  "validation": {
+    "test": "backend/tests/science/test_real_reference_replay.py::test_real_pinned_subset_recomputes_within_tolerance",
+    "result": "PASS",
+    "test_command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/science/test_real_reference_replay.py -q",
+    "method_reviewer_approval": "PENDING",
+    "database_lineage_persistence": "NOT_EXECUTED; ORCA_TEST_DATABASE_URL is absent; no database was modified",
+    "migration_sql_render": "PASS; Alembic generated the full upgrade SQL offline through revision 0020_science_evidence; no database connection was opened",
+    "fresh_source_retrieval": "NOT_PASSED; see docs/gates/P03/live-recheck.json",
+    "historical_as_of_replay": "NOT_SUPPORTED; preserved source retrieval occurred in November 2026, after the January 2025 observation period"
+  },
+  "limitations": [
+    "The preserved real bytes support reproducible execution but do not close G03 fresh NOAA retrieval requirements.",
+    "The numerical tolerance is a software reproduction tolerance, not a scientific uncertainty interval.",
+    "The method and QC policy remain unapproved, so the result cannot be labeled scientifically supported.",
+    "Database foreign-key and durable persistence assertions remain unverified without an isolated test database.",
+    "The baseline consists of matching January observations from 2003 through 2022 and cannot establish broader spatial or causal claims."
+  ]
+}

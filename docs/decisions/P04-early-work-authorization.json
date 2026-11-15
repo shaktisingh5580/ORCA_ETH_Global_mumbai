@@ -1,0 +1,23 @@
+{
+  "id": "P04-EARLY-WORK-001",
+  "date": "2026-11-15",
+  "authority": "User explicitly authorized continuing P03 work independent of NOAA retrieval while beginning P04.",
+  "active_plan": "main_implementation plan.md",
+  "scope": "Permit implementation work in P04 while G03 remains incomplete.",
+  "status_effect": {
+    "G03": "INCOMPLETE",
+    "P04": "EARLY_IMPLEMENTATION_AUTHORIZED",
+    "G04": "NOT_PASSED"
+  },
+  "constraints": [
+    "Do not represent synthetic or offline fixtures as live scientific source evidence.",
+    "Do not declare G03 or G04 passed based on this sequencing exception.",
+    "Do not start P05 or other dependent phases until required predecessor gates pass.",
+    "Continue P03 work that does not depend on fresh NOAA retrieval; do not repeat the known failing NOAA TLS retrieval as evidence."
+  ],
+  "references": [
+    "main_implementation plan.md P03 and P04",
+    "docs/decisions/full-platform-plan-authority.json",
+    "docs/gates/P03/manifest.json"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "phase": "P04",
+  "gate_status": "IN_PROGRESS",
+  "recorded_on": "2026-11-16",
+  "purpose": "Focused local recheck before publishing P04 revision 0020 as the parent of P05 database work.",
+  "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/science backend/tests/integration/test_evidence_fk.py backend/tests/unit/test_snapshot_request_cache.py backend/tests/unit/test_scientific_inputs.py backend/tests/security/test_erddap_egress.py -q",
+  "result": "44 passed, 2 skipped",
+  "skips": "Database-dependent checks skipped because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are not configured in this workstation session.",
+  "static_checks": {
+    "ruff_check": "passed for the 18 P04 source, migration and test files",
+    "ruff_format": "passed for the 18 P04 source, migration and test files"
+  },
+  "not_claimed": [
+    "P04/G04 acceptance",
+    "Current workstation database migration application or database integration",
+    "Scientific reviewer approval",
+    "P03/G03 acceptance",
+    "Oracle deployment"
+  ],
+  "dependency_note": "Migration 0020_science_evidence is the parent of P05 migration 0021_investigations. It must be present in repository history before P05 migration 0021 is pushed."
+}
