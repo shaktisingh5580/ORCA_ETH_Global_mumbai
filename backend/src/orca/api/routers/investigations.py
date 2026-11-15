@@ -3,11 +3,14 @@ Behavior: resolve the tenant server-side, enforce project scopes and return expl
 Refs: main_implementation plan.md P05.1; api design.md §§3.6, 5.1; Phase: P05.
 """
 
+import json
+from collections.abc import Iterator
 from decimal import Decimal
 from typing import Annotated, Literal, NoReturn, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
+from fastapi.responses import StreamingResponse
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import IntegrityError
 
@@ -30,6 +33,7 @@ from orca.contracts.investigations import (
 from orca.contracts.research_plans import PlanRequest
 from orca.domain.identity import Principal
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.events.postgres_outbox import PostgresRunEvents
 from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
 
 router = APIRouter(prefix="/v1/research/investigations", tags=["investigations"])
@@ -401,4 +405,81 @@ def cancel_run(
         updated_at=row["updated_at"],
         progress=None,
         links={},
+    )
+
+
+@router.get("/{investigation_id}/runs/{run_id}", response_model=RunView)
+def get_run(
+    investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> RunView:
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        Investigations(session, tenant, project, principal)._authorize("project:read")
+        row = (
+            session.execute(
+                text(
+                    "SELECT id,investigation_id,plan_id,state,stage,execution_budget::text AS execution_budget,created_at,updated_at FROM research.compute_runs WHERE tenant_id=:tenant AND project_id=:project AND investigation_id=:investigation AND id=:run"
+                ),
+                {
+                    "tenant": tenant,
+                    "project": project,
+                    "investigation": investigation_id,
+                    "run": run_id,
+                },
+            )
+            .mappings()
+            .one_or_none()
+        )
+    if row is None:
+        raise HTTPException(404, "Run not found")
+    return RunView.model_validate(dict(row))
+
+
+@router.get("/{investigation_id}/runs/{run_id}/events")
+def run_events(
+    investigation_id: UUID,
+    run_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    after: Annotated[int, Query(ge=0)] = 0,
+) -> dict[str, object]:
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        Investigations(session, tenant, project, principal)._authorize("project:read")
+        events = PostgresRunEvents(session, tenant, project).replay(run_id, after)
+    return {
+        "events": [
+            {
+                "id": str(event.id),
+                "sequence": event.sequence,
+                "type": event.event_type,
+                "data": event.payload,
+            }
+            for event in events
+        ]
+    }
+
+
+@router.get("/{investigation_id}/runs/{run_id}/events/stream")
+def stream_run_events(
+    investigation_id: UUID,
+    run_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    last_event_id: Annotated[int | None, Header()] = None,
+) -> StreamingResponse:
+    payload = run_events(investigation_id, run_id, request, principal, last_event_id or 0)
+
+    def body() -> Iterator[str]:
+        for event in cast(list[dict[str, object]], payload["events"]):
+            value = event
+            yield f"id: {value['sequence']}\nevent: {value['type']}\ndata: {json.dumps(value['data'], sort_keys=True)}\n\n"
+        yield ": heartbeat\n\n"
+
+    return StreamingResponse(
+        body(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
     )
