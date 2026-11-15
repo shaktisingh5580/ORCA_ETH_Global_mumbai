@@ -123,3 +123,10 @@ class RunView(Contract):
     execution_budget: str
     created_at: UTCDateTime
     updated_at: UTCDateTime
+
+
+class RunOutcome(Contract):
+    status: Literal["supported", "insufficient_evidence", "inconclusive", "invalid"]
+    artifact_ids: list[UUID]
+    limitations: list[str]
+    evidence_manifest_id: UUID | None = None

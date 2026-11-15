@@ -27,6 +27,7 @@ from orca.contracts.investigations import (
     InvestigationPlanView,
     InvestigationView,
     PatchInvestigation,
+    RunOutcome,
     RunView,
     StartRun,
 )
@@ -483,3 +484,50 @@ def stream_run_events(
         media_type="text/event-stream",
         headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
     )
+
+
+@router.get("/{investigation_id}/runs/{run_id}/outcome", response_model=RunOutcome)
+def run_outcome(
+    investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> RunOutcome:
+    run = get_run(investigation_id, run_id, request, principal)
+    if run.state == "SUCCEEDED_SUPPORTED":
+        raise HTTPException(409, "supported outcome requires committed evidence artifact")
+    return RunOutcome(
+        status="insufficient_evidence" if run.state == "SUCCEEDED_INSUFFICIENT" else "inconclusive",
+        artifact_ids=[],
+        limitations=[
+            f"Run ended at durable stage: {run.stage}. No immutable evidence artifact is attached."
+        ],
+        evidence_manifest_id=None,
+    )
+
+
+@router.get("/{investigation_id}/runs/{run_id}/task-graph")
+def run_task_graph(
+    investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> dict[str, object]:
+    run = get_run(investigation_id, run_id, request, principal)
+    return {
+        "run_id": str(run.id),
+        "nodes": [
+            {"id": "source-metadata", "state": run.stage},
+            {"id": "compatibility", "depends_on": ["source-metadata"]},
+            {"id": "scientific-method", "depends_on": ["compatibility"]},
+            {"id": "evidence-manifest", "depends_on": ["scientific-method"]},
+        ],
+    }
+
+
+@router.get("/{investigation_id}/runs/{run_id}/costs")
+def run_costs(
+    investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> dict[str, object]:
+    run = get_run(investigation_id, run_id, request, principal)
+    return {
+        "run_id": str(run.id),
+        "reserved_usd": run.execution_budget,
+        "measured_usd": None,
+        "status": "unknown",
+        "reason": "P05 does not fabricate compute/source costs before metering is committed.",
+    }
