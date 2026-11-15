@@ -323,6 +323,18 @@ class PostgresQueue:
         )
         return True
 
+    def finish_inconclusive(self, claimed: ClaimedJob, reason: str) -> bool:
+        """Fence an unavailable prerequisite into a durable non-success terminal state."""
+        if not 1 <= len(reason) <= 160:
+            raise ValueError("bounded terminal reason is required")
+        changed = self.session.execute(
+            text("""UPDATE research.compute_runs SET state='INCONCLUSIVE',stage=:stage,
+              updated_at=clock_timestamp() WHERE tenant_id=:tenant AND id=:run
+              AND state IN ('QUEUED','RUNNING','CANCEL_REQUESTED') RETURNING id"""),
+            {"tenant": self.tenant, "run": claimed.run_id, "stage": f"blocked:{reason}"},
+        ).scalar_one_or_none()
+        return changed is not None and self.complete(claimed)
+
     def cancel(self, job_id: UUID) -> bool:
         """Fence a current worker before marking the queue record cancelled."""
         changed = self.session.execute(
