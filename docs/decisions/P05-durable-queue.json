@@ -1,0 +1,26 @@
+{
+  "$comment": "Purpose: record the P05.2 durable queue boundary. Behavior: define transactional enqueue, lease ownership and truthful non-claims. Refs: main_implementation plan.md P05.2; api design.md §§5.1, 18.1; Phase: P05.",
+  "id": "P05-DURABLE-QUEUE-001",
+  "date": "2026-11-16",
+  "status": "implemented_locally_live_database_acceptance_pending",
+  "decisions": [
+    {
+      "decision": "Create the compute run, budget reservation, job queue record and queued outbox event in one tenant-scoped transaction.",
+      "reason": "A rollback cannot leave a spend reservation, run or published work notification without the other durable records."
+    },
+    {
+      "decision": "Use PostgreSQL row locking, database clock timestamps, UUID attempt identities and a monotonically increasing job generation as the lease fence.",
+      "reason": "A delayed worker cannot renew or complete after expiry, cancellation or a later claim."
+    },
+    {
+      "decision": "Keep queue completion separate from scientific outcome publication.",
+      "reason": "P05.2 provides work ownership only; P05.3 and later stages must still validate approved method/source inputs and commit actual evidence before any result is reported."
+    }
+  ],
+  "not_claimed": [
+    "live PostgreSQL/RLS recovery acceptance",
+    "worker execution, retry policy or artifact publication",
+    "source or scientific-method readiness",
+    "P05 phase or upstream gate acceptance"
+  ]
+}

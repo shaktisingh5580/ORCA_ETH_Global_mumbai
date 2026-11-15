@@ -1,0 +1,73 @@
+"""Purpose: prove P05 PostgreSQL leases and fencing reject stale worker ownership.
+Behavior: exercise real disposable database claims rather than an in-memory queue substitute.
+Refs: main_implementation plan.md P05.2; api design.md §18.1; Phase: P05.
+"""
+
+import pytest
+from p05_queue import approved_queue
+from sqlalchemy import text
+
+from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.jobs.postgres_queue import PostgresQueue
+
+
+@pytest.mark.live
+def test_two_workers_same_attempt_only_one_leader() -> None:
+    db, tenant, project, _, queued = approved_queue()
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            receipt = PostgresQueue(session, tenant, project).enqueue_run(queued)
+        with TenantUnitOfWork(db, tenant) as session:
+            first = PostgresQueue(session, tenant, project).claim()
+            assert first is not None and first.job_id == receipt.job_id
+        with TenantUnitOfWork(db, tenant) as session:
+            assert PostgresQueue(session, tenant, project).claim() is None
+    finally:
+        db.dispose()
+
+
+@pytest.mark.live
+def test_expired_lease_recovered() -> None:
+    db, tenant, project, _, queued = approved_queue()
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            PostgresQueue(session, tenant, project).enqueue_run(queued)
+            first = PostgresQueue(session, tenant, project).claim()
+            assert first is not None
+            session.execute(
+                text(
+                    "UPDATE research.job_queue SET lease_until=clock_timestamp()-interval '1 second' WHERE id=:id"
+                ),
+                {"id": first.job_id},
+            )
+        with TenantUnitOfWork(db, tenant) as session:
+            recovered = PostgresQueue(session, tenant, project).claim()
+            assert recovered is not None
+            assert recovered.generation == first.generation + 1
+            assert recovered.attempt_id != first.attempt_id
+    finally:
+        db.dispose()
+
+
+@pytest.mark.live
+def test_stale_generation_completion_rejected() -> None:
+    db, tenant, project, _, queued = approved_queue()
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            PostgresQueue(session, tenant, project).enqueue_run(queued)
+            first = PostgresQueue(session, tenant, project).claim()
+            assert first is not None
+            session.execute(
+                text(
+                    "UPDATE research.job_queue SET lease_until=clock_timestamp()-interval '1 second' WHERE id=:id"
+                ),
+                {"id": first.job_id},
+            )
+        with TenantUnitOfWork(db, tenant) as session:
+            queue = PostgresQueue(session, tenant, project)
+            second = queue.claim()
+            assert second is not None
+            assert queue.complete(first) is False
+            assert queue.complete(second) is True
+    finally:
+        db.dispose()

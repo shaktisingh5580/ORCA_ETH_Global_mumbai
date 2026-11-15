@@ -46,7 +46,9 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
             "TRUNCATE federation.registration_jobs,federation.registration_events,federation.agent_qualifications,federation.registration_challenges,federation.registration_versions,federation.registrations"
         )
         connection.execute(
-            "TRUNCATE research.plan_approvals,research.investigation_plans,research.investigations,"
+            "TRUNCATE research.job_outbox,research.job_attempts,research.job_queue,"
+            "research.run_budget_reservations,research.plan_budget_ledgers,research.compute_runs,"
+            "research.plan_approvals,research.investigation_plans,research.investigations,"
             "research.evidence_anchors,research.evidence_reviews,research.reasoning_events,research.reasoning_runs"
         )
         connection.execute("TRUNCATE research.tabular_normalizations,research.tabular_datasets")
