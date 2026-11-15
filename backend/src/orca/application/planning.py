@@ -10,6 +10,8 @@ import rfc8785
 
 from orca.contracts.research_plans import TypedPlan, validate_plan
 
+__all__ = ["plan_digest", "validate_plan"]
+
 
 def plan_digest(plan: TypedPlan, *, maximum_budget: Decimal) -> str:
     """Return a stable digest over the validated plan's complete JSON representation."""

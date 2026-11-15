@@ -67,3 +67,17 @@ def test_execution_relevant_edit_changes_digest() -> None:
 def test_unknown_plan_operation_is_rejected() -> None:
     with pytest.raises(ValidationError):
         PlanNode(node_id="custom", operation="run_shell", depends_on=[])  # type: ignore[arg-type]
+
+
+def test_plan_constraints_are_bounded() -> None:
+    payload = make_plan().model_dump()
+    payload["data_constraints"] = {"source": "x" * 501}
+    with pytest.raises(ValidationError, match="500 characters"):
+        TypedPlan.model_validate(payload)
+
+
+def test_plan_integer_constraints_fit_canonical_json_range() -> None:
+    payload = make_plan().model_dump()
+    payload["data_constraints"] = {"window": 9_007_199_254_740_992}
+    with pytest.raises(ValidationError, match="exact JSON range"):
+        TypedPlan.model_validate(payload)

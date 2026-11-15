@@ -4,10 +4,10 @@ Refs: main_implementation plan.md P05.1; api design.md §§3.6, 5.1; Phase: P05.
 """
 
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from orca.contracts.common import Contract, MoneyBudget
 
@@ -17,6 +17,8 @@ PlanOperation = Literal[
     "scientific_method",
     "evidence_manifest",
 ]
+PlanNodeID = Annotated[str, Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]*$")]
+PlanAssumption = Annotated[str, Field(min_length=1, max_length=500)]
 
 
 class PlanRequest(Contract):
@@ -27,13 +29,28 @@ class PlanRequest(Contract):
     data_constraints: dict[str, str | bool | int | None] = Field(max_length=24)
     budget: MoneyBudget
 
+    @field_validator("data_constraints")
+    @classmethod
+    def bound_constraint_values(
+        cls, values: dict[str, str | bool | int | None]
+    ) -> dict[str, str | bool | int | None]:
+        if any(not key or len(key) > 100 for key in values):
+            raise ValueError("data constraint keys must contain 1 to 100 characters")
+        if any(isinstance(value, str) and len(value) > 500 for value in values.values()):
+            raise ValueError("data constraint text must not exceed 500 characters")
+        if any(
+            type(value) is int and abs(value) > 9_007_199_254_740_991 for value in values.values()
+        ):
+            raise ValueError("data constraint integers must be within the exact JSON range")
+        return values
+
 
 class PlanNode(Contract):
     """One allowlisted operation in a plan DAG; no user-supplied executable text."""
 
-    node_id: str = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]*$")
+    node_id: PlanNodeID
     operation: PlanOperation
-    depends_on: list[str] = Field(max_length=16)
+    depends_on: list[PlanNodeID] = Field(max_length=16)
     source_ids: list[UUID] = Field(default_factory=list, max_length=8)
 
 
@@ -41,13 +58,28 @@ class TypedPlan(Contract):
     """A versioned DAG whose digest binds every execution-relevant input."""
 
     schema_version: Literal["orca.research_plan/1"] = "orca.research_plan/1"
-    revision: int = Field(ge=1)
+    revision: int = Field(ge=1, le=2_147_483_647)
     method_hint: str | None = Field(default=None, min_length=1, max_length=160)
     data_constraints: dict[str, str | bool | int | None] = Field(max_length=24)
     budget: MoneyBudget
     nodes: list[PlanNode] = Field(min_length=1, max_length=16)
-    assumptions: list[str] = Field(max_length=24)
+    assumptions: list[PlanAssumption] = Field(max_length=24)
     source_ids: list[UUID] = Field(max_length=8)
+
+    @field_validator("data_constraints")
+    @classmethod
+    def bound_constraint_values(
+        cls, values: dict[str, str | bool | int | None]
+    ) -> dict[str, str | bool | int | None]:
+        if any(not key or len(key) > 100 for key in values):
+            raise ValueError("data constraint keys must contain 1 to 100 characters")
+        if any(isinstance(value, str) and len(value) > 500 for value in values.values()):
+            raise ValueError("data constraint text must not exceed 500 characters")
+        if any(
+            type(value) is int and abs(value) > 9_007_199_254_740_991 for value in values.values()
+        ):
+            raise ValueError("data constraint integers must be within the exact JSON range")
+        return values
 
 
 def validate_plan(plan: TypedPlan, *, maximum_budget: Decimal) -> TypedPlan:
