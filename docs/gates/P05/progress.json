@@ -1,0 +1,38 @@
+{
+  "phase": "P05",
+  "updated_on": "2026-11-16",
+  "acceptance_status": "in_progress",
+  "current_slice": "P05.1-A",
+  "slice_status": "development_complete_focused_checks_passed",
+  "changed_files": [
+    "backend/src/orca/contracts/research_plans.py",
+    "backend/src/orca/application/planning.py",
+    "backend/tests/contracts/test_investigation_plan.py"
+  ],
+  "implemented": [
+    "Strict typed plan request and allowlisted DAG node contracts",
+    "Pure graph validation for duplicate/unknown dependencies, undeclared sources and cycles",
+    "Explicit injected USD budget ceiling; no invented organization-wide spend cap",
+    "Canonical RFC 8785 SHA-256 digest with an ORCA plan domain separator"
+  ],
+  "checks": {
+    "focused_pytest": "5 passed: backend/tests/contracts/test_investigation_plan.py",
+    "ruff_check": "passed for changed Python files",
+    "ruff_format_check": "passed for changed Python files",
+    "mypy": "passed for research_plans.py and planning.py",
+    "file_headers": "passed"
+  },
+  "not_claimed": [
+    "P05.1 gate acceptance",
+    "Plan persistence, revision history, approval authorization or HTTP operations",
+    "Run queue, workers, events or result publication",
+    "Scientific method approval or source readiness",
+    "P03/P04 acceptance, live data acceptance or Oracle deployment"
+  ],
+  "next_slice": "P05.1-B: inspect existing project authorization and DB transaction patterns; design plan/investigation persistence and immutable revisions before adding migration or routes",
+  "migration_revision": null,
+  "git": {
+    "commit": null,
+    "push": "not attempted"
+  }
+}
