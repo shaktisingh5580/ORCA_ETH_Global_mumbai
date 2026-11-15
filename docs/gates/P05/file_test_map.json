@@ -1,0 +1,38 @@
+{
+  "$comment": "Purpose: map P05.1 code to focused verification. Behavior: records local checks without claiming the live database gate. Refs: main_implementation plan.md §5.3 and P05.1; Phase: P05.",
+  "phase": "P05",
+  "slice": "P05.1-C",
+  "mappings": [
+    {
+      "file": "backend/src/orca/contracts/research_plans.py",
+      "tests": ["backend/tests/contracts/test_investigation_plan.py"],
+      "failure_mode": "unbounded or cyclic/executable plan graph accepted"
+    },
+    {
+      "file": "backend/src/orca/application/planning.py",
+      "tests": ["backend/tests/contracts/test_investigation_plan.py", "backend/tests/contracts/test_investigation_http.py"],
+      "failure_mode": "planner output changes or implies approved scientific inputs"
+    },
+    {
+      "file": "backend/src/orca/contracts/investigations.py",
+      "tests": ["backend/tests/contracts/test_investigation_contracts.py", "backend/tests/contracts/test_investigation_http.py"],
+      "failure_mode": "invalid draft or acknowledgement payload accepted"
+    },
+    {
+      "file": "backend/src/orca/application/investigations.py",
+      "tests": ["backend/tests/integration/test_investigations.py"],
+      "failure_mode": "approval is not bound to the persisted digest or a plan mutates after approval"
+    },
+    {
+      "file": "backend/src/orca/api/routers/investigations.py",
+      "tests": ["backend/tests/contracts/test_investigation_http.py", "backend/tests/integration/test_investigations.py"],
+      "failure_mode": "route lacks required approval headers or role authorization"
+    },
+    {
+      "file": "backend/migrations/versions/0022_plan_approvals.py",
+      "tests": ["backend/tests/integration/test_investigations.py"],
+      "failure_mode": "approval history can be changed or does not match its plan digest"
+    }
+  ],
+  "live_prerequisite": "ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL"
+}

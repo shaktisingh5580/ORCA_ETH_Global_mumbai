@@ -1,0 +1,34 @@
+{
+  "$comment": "Purpose: record P05.1-C bounded plan API and approval decisions. Behavior: distinguish planning from source/science approval. Refs: main_implementation plan.md P05.1; api design.md §§3.6, 5.1; Phase: P05.",
+  "id": "P05-PLAN-API-APPROVAL-001",
+  "status": "implemented_development_slice",
+  "date": "2026-11-16",
+  "decisions": [
+    {
+      "subject": "Typed planning",
+      "decision": "Compile a fixed allowlisted four-node DAG with no executable user input and no selected source IDs.",
+      "reason": "P05.1 can preserve a reviewable recipe without falsely claiming source readiness, method approval, or a scientific result."
+    },
+    {
+      "subject": "Plan operation response",
+      "decision": "Return the documented 202 Operation contract with status succeeded only after the immutable plan record has been written.",
+      "reason": "The bounded compiler completes inline in P05.1; later P05.2 introduces durable queued execution for runs, not a pretend worker for planning."
+    },
+    {
+      "subject": "Approval binding",
+      "decision": "Require a strong ETag, body digest, exact acknowledgement of plan assumptions, idempotency key, immutable approval record, and a database trigger that rechecks the persisted digest.",
+      "reason": "A run authorization must refer to one exact recipe version and must not survive silent recipe modification."
+    },
+    {
+      "subject": "Budget ceiling",
+      "decision": "Use a P05.1 application ceiling of USD 100 for plan requests only.",
+      "reason": "It bounds input before P05.2 implements organization policy and atomic budget reservation; it does not reserve or spend funds."
+    }
+  ],
+  "not_claimed": [
+    "Source snapshot readiness",
+    "Scientific method approval or outcome",
+    "Run queueing or budget reservation",
+    "Live database migration and RLS acceptance"
+  ]
+}

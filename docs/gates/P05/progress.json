@@ -2,7 +2,7 @@
   "phase": "P05",
   "updated_on": "2026-11-16",
   "acceptance_status": "in_progress",
-  "current_slice": "P05.1-B",
+  "current_slice": "P05.1-C",
   "slice_status": "implemented_local_checks_passed_live_database_check_skipped",
   "changed_files": [
     "backend/src/orca/contracts/investigations.py",
@@ -14,7 +14,12 @@
     "backend/tests/contracts/test_investigation_plan.py",
     "backend/tests/integration/test_investigations.py",
     "backend/tests/support/live_database.py",
-    "docs/decisions/P05-development-sequencing.json"
+    "docs/decisions/P05-development-sequencing.json",
+    "backend/src/orca/api/routers/investigations.py",
+    "backend/migrations/versions/0022_plan_approvals.py",
+    "backend/tests/contracts/test_investigation_http.py",
+    "docs/decisions/P05-plan-api-approval.json",
+    "docs/gates/P05/file_test_map.json"
   ],
   "implemented": [
     "P05.1-A: strict typed plan request and allowlisted DAG node contracts",
@@ -23,29 +28,34 @@
     "P05.1-B: tenant/project-scoped draft create, read, page, and ETag-guarded draft edits",
     "P05.1-B: append-only plan revision storage, request idempotency, digest and immutable DB trigger",
     "P05.1-B: project authorization is rechecked; source snapshot references require an unexpired project grant",
+    "P05.1-C: investigation draft and versioned-plan HTTP paths are registered with server-side tenant resolution, ETags and idempotency",
+    "P05.1-C: fixed typed-plan compilation is deterministic and explicitly keeps source readiness/scientific status unverified/not_run",
+    "P05.1-C: approval requires research:run, exact ETag/digest/assumptions, and is immutable with a database-level persisted-digest trigger",
     "P05 development sequencing exception reconciled with a machine-readable decision record"
   ],
   "checks": {
-    "focused_pytest": "10 passed; 1 live database integration case skipped because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are unset",
+    "focused_pytest": "14 contract tests passed; 3 P05 live database integration cases skipped because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are unset",
     "ruff_check": "passed for changed Python files",
     "ruff_format_check": "passed for changed Python files",
     "mypy": "passed for changed P05 contract/application modules",
     "file_headers": "passed",
     "alembic_heads": "0021_investigations is the sole local head; P05 migration chains after local revision 0020_science_evidence",
-    "offline_migration_sql_render": "passed through local Alembic head; no database connection or migration application"
+    "offline_migration_sql_render": "passed through 0022_plan_approvals with a placeholder PostgreSQL URL; no database connection or migration application",
+    "openapi_contract": "passed in-memory route/schema registration check; root generated OpenAPI file remains uncommitted because it contains unrelated dirty P03 changes"
   },
   "not_claimed": [
     "P05.1 gate acceptance",
     "Live Postgres/RLS/immutable-trigger integration verification",
-    "Plan approval authorization or P05 HTTP operations",
+    "Live Postgres/RLS/digest-trigger verification for P05 approval records",
+    "Generated root OpenAPI artifact reconciliation with unrelated dirty P03 changes",
     "Run queue, workers, events or result publication",
     "Scientific method approval or source readiness",
     "P03/P04 acceptance, live data acceptance or Oracle deployment"
   ],
-  "next_slice": "P05.1-C: expose the draft/plan read-write contracts over the P05 API paths, add exact-digest append-only approval records and stale-If-Match conflicts, then verify OpenAPI and auth behavior",
-  "migration_revision": "0021_investigations (parent 0020_science_evidence is available at origin/main commit 027f5fd)",
+  "next_slice": "P05.2: transactional job queue, leased attempts, fencing and atomic budget reservations; first reconcile the P05.1 generated contract artifact after the unrelated P03 OpenAPI work is isolated",
+  "migration_revision": "0022_plan_approvals (parent 0021_investigations)",
   "git": {
-    "commit": "55716df",
-    "push": "P05.1-B development commit pushed normally to origin/main"
+    "commit": "56d58ab P05.1-C code, migration and focused-test development commit",
+    "push": "pending P05.1-C development push"
   }
 }
