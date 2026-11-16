@@ -409,11 +409,11 @@ class PostgresQueue:
         if not set(node.depends_on) <= completed:
             raise ValueError("checkpoint dependencies have not completed")
         identifier = uuid4()
-        self.session.execute(
+        inserted = self.session.execute(
             text("""INSERT INTO research.run_stage_checkpoints
               (id,tenant_id,project_id,run_id,stage,generation,input_digest,output_digest)
               VALUES(:id,:tenant,:project,:run,:stage,:generation,:input,:output)
-              ON CONFLICT(tenant_id,project_id,run_id,stage) DO NOTHING"""),
+              ON CONFLICT(tenant_id,project_id,run_id,stage) DO NOTHING RETURNING id"""),
             {
                 "id": identifier,
                 "tenant": self.tenant,
@@ -424,7 +424,7 @@ class PostgresQueue:
                 "input": input_digest,
                 "output": output_digest,
             },
-        )
+        ).scalar_one_or_none()
         existing = (
             self.session.execute(
                 text("""SELECT id,input_digest,output_digest FROM research.run_stage_checkpoints
@@ -446,6 +446,10 @@ class PostgresQueue:
               WHERE tenant_id=:tenant AND project_id=:project AND id=:run AND state='RUNNING'"""),
             {"tenant": self.tenant, "project": self.project, "run": claimed.run_id, "stage": stage},
         )
+        if inserted is not None:
+            PostgresRunEvents(self.session, self.tenant, self.project).append(
+                claimed.run_id, "run.stage.completed", {"stage": stage}
+            )
         return existing["id"]
 
     def publish_evidence(self, claimed: ClaimedJob, manifest_id: UUID) -> UUID | None:
@@ -569,6 +573,9 @@ class PostgresQueue:
         if not self.complete(claimed):
             raise RuntimeError("lease changed during fenced completion")
         self._release_reservation(claimed.run_id)
+        PostgresRunEvents(self.session, self.tenant, self.project).append(
+            claimed.run_id, "run.inconclusive", {"reason": reason, "status": "inconclusive"}
+        )
         return True
 
     def cancel(self, job_id: UUID) -> bool:
@@ -592,6 +599,9 @@ class PostgresQueue:
             {"tenant": self.tenant, "run": changed},
         )
         self._release_reservation(changed)
+        PostgresRunEvents(self.session, self.tenant, self.project).append(
+            changed, "run.cancelled", {"status": "cancelled"}
+        )
         return True
 
     def retry(self, job_id: UUID) -> bool:
@@ -640,5 +650,8 @@ class PostgresQueue:
             text("""UPDATE research.job_queue SET state='queued',available_at=clock_timestamp(),
               updated_at=clock_timestamp() WHERE tenant_id=:tenant AND id=:job"""),
             {"tenant": self.tenant, "job": job_id},
+        )
+        PostgresRunEvents(self.session, self.tenant, self.project).append(
+            row["run_id"], "run.retry.queued", {"status": "queued"}
         )
         return True

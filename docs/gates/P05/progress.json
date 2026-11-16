@@ -41,7 +41,8 @@
     "P05.2: atomic tenant-scoped enqueue creates run, reservation, queue record and outbox notification",
     "P05.2: PostgreSQL SKIP LOCKED claim, database-time lease renewal, increasing generation and token fencing",
     "P05.2: expired lease recovery, stale completion rejection, rollback and reservation-capacity tests",
-    "P05.3: worker handler boundary executes outside database transactions, checkpoints each approved stage and publishes evidence only under a renewed lease"
+    "P05.3: worker handler boundary executes outside database transactions, checkpoints each approved stage and publishes evidence only under a renewed lease",
+    "P05.4: stage, cancellation, retry and inconclusive transitions append redacted durable events; task graph and budget reads derive from stored plan/checkpoints/reservation"
   ],
   "checks": {
     "focused_pytest": "14 P05 contract tests passed; 5 P05.2 PostgreSQL integration/recovery cases collected and skipped honestly because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are unset",

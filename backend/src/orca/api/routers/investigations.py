@@ -34,7 +34,7 @@ from orca.contracts.investigations import (
     RunView,
     StartRun,
 )
-from orca.contracts.research_plans import PlanRequest
+from orca.contracts.research_plans import PlanRequest, TypedPlan
 from orca.contracts.science_evidence import ScienceEvidenceManifest
 from orca.domain.identity import Principal
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
@@ -622,13 +622,42 @@ def run_task_graph(
     investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
 ) -> dict[str, object]:
     run = get_run(investigation_id, run_id, request, principal)
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        Investigations(session, tenant, project, principal)._authorize("project:read")
+        plan_row = session.execute(
+            text("""SELECT p.plan FROM research.investigation_plans p
+              WHERE p.tenant_id=:tenant AND p.project_id=:project AND p.id=:plan"""),
+            {"tenant": tenant, "project": project, "plan": run.plan_id},
+        ).scalar_one_or_none()
+        if plan_row is None:
+            raise HTTPException(409, "Approved plan is missing from run history")
+        completed = {
+            row["stage"]: row["output_digest"]
+            for row in session.execute(
+                text("""SELECT stage,output_digest FROM research.run_stage_checkpoints
+                  WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run"""),
+                {"tenant": tenant, "project": project, "run": run_id},
+            ).mappings()
+        }
+    plan = TypedPlan.model_validate(plan_row)
+    terminal = run.state not in {"QUEUED", "RUNNING", "CANCEL_REQUESTED"}
     return {
         "run_id": str(run.id),
         "nodes": [
-            {"id": "source-metadata", "state": run.stage},
-            {"id": "compatibility", "depends_on": ["source-metadata"]},
-            {"id": "scientific-method", "depends_on": ["compatibility"]},
-            {"id": "evidence-manifest", "depends_on": ["scientific-method"]},
+            {
+                "id": node.node_id,
+                "operation": node.operation,
+                "depends_on": node.depends_on,
+                "state": "completed"
+                if node.node_id in completed
+                else "blocked"
+                if terminal
+                else "pending",
+                "output_digest": completed.get(node.node_id),
+            }
+            for node in plan.nodes
         ],
     }
 
@@ -638,9 +667,25 @@ def run_costs(
     investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
 ) -> dict[str, object]:
     run = get_run(investigation_id, run_id, request, principal)
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        Investigations(session, tenant, project, principal)._authorize("project:read")
+        reservation = (
+            session.execute(
+                text("""SELECT state,amount FROM research.run_budget_reservations
+              WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run"""),
+                {"tenant": tenant, "project": project, "run": run_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if reservation is None:
+            raise HTTPException(409, "Run budget reservation is missing")
     return {
         "run_id": str(run.id),
-        "reserved_usd": run.execution_budget,
+        "budget_cap_usd": run.execution_budget,
+        "reserved_usd": str(reservation["amount"]) if reservation["state"] == "reserved" else "0",
         "measured_usd": None,
         "status": "unknown",
         "reason": "P05 does not fabricate compute/source costs before metering is committed.",
