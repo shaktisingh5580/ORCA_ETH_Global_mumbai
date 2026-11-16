@@ -68,7 +68,9 @@ def approved_queue() -> tuple[object, UUID, UUID, UUID, EnqueuedRun]:
                 method_hint="sst.seasonal_anomaly",
                 data_constraints={"source_ready": False},
                 budget={"max_amount": "5.00"},
-                nodes=[PlanNode(node_id="metadata", operation="source_metadata", depends_on=[])],
+                nodes=[
+                    PlanNode(node_id="source-metadata", operation="source_metadata", depends_on=[])
+                ],
                 assumptions=[],
                 source_ids=[],
             ),

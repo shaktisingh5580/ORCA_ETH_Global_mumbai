@@ -49,7 +49,7 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
             "TRUNCATE research.job_outbox,research.job_attempts,research.job_queue,"
             "research.run_budget_reservations,research.plan_budget_ledgers,research.compute_runs,"
             "research.plan_approvals,research.investigation_plans,research.investigations,"
-            "research.evidence_anchors,research.evidence_reviews,research.reasoning_events,research.reasoning_runs"
+            "research.evidence_anchors,research.evidence_reviews,research.reasoning_events,research.reasoning_runs CASCADE"
         )
         connection.execute("TRUNCATE research.tabular_normalizations,research.tabular_datasets")
         connection.execute(
@@ -61,9 +61,10 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
         # Reset the catalog dependency group together. Row-level immutability
         # triggers remain in effect for application operations.
         connection.execute(
-            "TRUNCATE research.demo_results, research.snapshot_project_grants, "
+            "TRUNCATE research.science_evidence_inputs, research.science_evidence_manifests, "
+            "research.demo_results, research.snapshot_project_grants, "
             "research.snapshot_requests, research.source_probes, research.dataset_snapshots, "
-            "research.catalog_versions, research.catalog_products"
+            "research.catalog_versions, research.catalog_products CASCADE"
         )
         connection.execute("DELETE FROM iam.organization_creation_keys")
         connection.execute("DELETE FROM iam.invitations")

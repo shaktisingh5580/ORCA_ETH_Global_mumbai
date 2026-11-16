@@ -51,7 +51,11 @@ class Investigations:
 
     @staticmethod
     def _investigation(row: Any) -> InvestigationView:
-        values = {key: row[key] for key in InvestigationView.model_fields if key != "etag"}
+        values = {
+            key: row[key]
+            for key in InvestigationView.model_fields
+            if key not in {"etag", "source_readiness", "scientific_status"}
+        }
         values["etag"] = f'"{row["version"]}"'
         values["source_readiness"] = (
             "not_assessed" if row["current_plan_revision"] == 0 else "unverified"
@@ -334,7 +338,7 @@ class Investigations:
             self.session.execute(
                 text("""SELECT * FROM research.investigation_plans
                   WHERE tenant_id=:tenant AND project_id=:project
-                    AND investigation_id=:investigation AND id=:id FOR UPDATE"""),
+                    AND investigation_id=:investigation AND id=:id"""),
                 {**params, "investigation": identifier, "id": plan_id},
             )
             .mappings()

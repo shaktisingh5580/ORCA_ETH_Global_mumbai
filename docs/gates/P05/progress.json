@@ -6,7 +6,7 @@
   "slice_status": "preserved_source_insufficiency_handler_locally_checked_live_database_and_approved_method_pending",
   "latest_increment": {
     "implemented": "Tenant/project-granted preserved snapshots are checked against configured source version and exact HTTPS origin, retrieved before run creation, verified against immutable bytes, and emitted as an explicitly insufficient evidence artifact with fenced stage checkpoints. A single-project worker process can poll durable jobs using one database engine and graceful stop signals.",
-    "focused_checks": "Seven worker and preserved-source tests passed; Ruff and mypy passed for changed production files.",
+    "focused_checks": "Seven worker and preserved-source tests, 16 affected contract/unit tests, and eight local PostGIS queue/recovery tests passed; Ruff and mypy passed for changed production files. JUnit: docs/gates/P05/local-database-recheck.xml.",
     "not_claimed": "No approved scientific method, supported SST result, live database publication, P03/P04 gate acceptance, or Oracle deployment."
   },
   "changed_files": [
@@ -50,7 +50,7 @@
     "P05.4: stage, cancellation, retry and inconclusive transitions append redacted durable events; task graph and budget reads derive from stored plan/checkpoints/reservation"
   ],
   "checks": {
-    "focused_pytest": "14 P05 contract tests passed; 5 P05.2 PostgreSQL integration/recovery cases collected and skipped honestly because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are unset",
+    "focused_pytest": "Eight P05 queue/recovery cases passed on disposable local orca_test PostGIS; 16 affected contract/unit tests passed. JUnit: docs/gates/P05/local-database-recheck.xml",
     "ruff_check": "passed for changed Python files",
     "ruff_format_check": "passed for changed Python files",
     "mypy": "passed for changed P05 queue module",
@@ -61,10 +61,10 @@
   },
   "not_claimed": [
     "P05.1 gate acceptance",
-    "Live Postgres/RLS/immutable-trigger integration verification",
-    "Live Postgres/RLS/digest-trigger verification for P05 approval records",
+    "Complete P05 database/RLS/immutable-trigger acceptance beyond the eight focused local queue/recovery cases",
+    "Full digest-trigger and authorization verification for P05 approval records",
     "Generated root OpenAPI artifact reconciliation with unrelated dirty P03 changes",
-    "Live Postgres/RLS lease, fencing, rollback and reservation acceptance for P05.2",
+    "Remote deployment and recovery acceptance for P05.2",
     "Production scientific handler composition, a live completed worker run and event replay acceptance",
     "Scientific method approval or source readiness",
     "P03/P04 acceptance, live data acceptance or Oracle deployment"
