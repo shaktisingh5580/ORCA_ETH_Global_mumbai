@@ -14,7 +14,7 @@ import pytest
 from orca.application.exports import ExportInput, build_evidence_export
 from orca.contracts.science_evidence import ScienceEvidenceManifest, ScienceSnapshotInput
 from orca.science.manifests import source_bytes_digest
-from orca.workers.handlers.report import render_report_html, report_view
+from orca.workers.handlers.report import render_report_html, render_report_pdf, report_view
 
 
 def evidence() -> tuple[ScienceEvidenceManifest, bytes, bytes]:
@@ -124,3 +124,8 @@ def test_report_supported_vs_insufficient_and_html_escaped() -> None:
     assert "&lt;script&gt;" in html and "<script>" not in html
     assert "Source &lt; uncertain" in html
     assert "not an official advisory" in html
+    pdf = render_report_pdf(view)
+    assert pdf.startswith(b"%PDF-1.4\n") and pdf.rstrip().endswith(b"%%EOF")
+    assert b"Scientific status: insufficient_evidence" in pdf
+    assert b"alert\\(1\\)" in pdf
+    assert b"/JavaScript" not in pdf
