@@ -26,7 +26,12 @@ def compile_typed_plan(request: PlanRequest, *, revision: int) -> TypedPlan:
         data_constraints=request.data_constraints,
         budget=request.budget,
         nodes=[
-            PlanNode(node_id="source-metadata", operation="source_metadata", depends_on=[]),
+            PlanNode(
+                node_id="source-metadata",
+                operation="source_metadata",
+                depends_on=[],
+                source_ids=request.source_ids,
+            ),
             PlanNode(
                 node_id="compatibility",
                 operation="compatibility_check",
@@ -46,7 +51,7 @@ def compile_typed_plan(request: PlanRequest, *, revision: int) -> TypedPlan:
         assumptions=[
             "No source snapshot, compatibility decision, or scientific method is approved by planning alone."
         ],
-        source_ids=[],
+        source_ids=request.source_ids,
     )
 
 

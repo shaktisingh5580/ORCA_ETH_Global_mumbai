@@ -27,6 +27,7 @@ class PlanRequest(Contract):
     strategy: Literal["typed"]
     method_hint: str | None = Field(default=None, min_length=1, max_length=160)
     data_constraints: dict[str, str | bool | int | None] = Field(max_length=24)
+    source_ids: list[UUID] = Field(default_factory=list, max_length=8)
     budget: MoneyBudget
 
     @field_validator("data_constraints")
@@ -42,6 +43,13 @@ class PlanRequest(Contract):
             type(value) is int and abs(value) > 9_007_199_254_740_991 for value in values.values()
         ):
             raise ValueError("data constraint integers must be within the exact JSON range")
+        return values
+
+    @field_validator("source_ids")
+    @classmethod
+    def unique_sources(cls, values: list[UUID]) -> list[UUID]:
+        if len(set(values)) != len(values):
+            raise ValueError("plan source identifiers must be unique")
         return values
 
 

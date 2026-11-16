@@ -8,15 +8,17 @@
     "P05.3 safe retry eligibility constrained to recorded transient failures, with atomic budget re-reservation",
     "P05.4 durable redacted per-run event log, polling and bounded continuous SSE with token and membership rechecks",
     "P05.4 unavailable replay cursor returns a resync conflict",
-    "P05 run HTTP start/list/get/cancel/retry and outcome/task-graph/cost read paths"
+    "P05 run HTTP start/list/get/cancel/retry and outcome/task-graph/cost read paths",
+    "P05 immutable stage checkpoints with lease fencing and approved DAG dependency checks",
+    "P05 atomic run-to-evidence publication with exact source/method plan binding and cancellation fence"
   ],
   "verified": [
     "P05/P06 changed source passed ruff and mypy",
-    "11 focused P05/P06 contract/integration tests passed",
+    "15 focused P05/P06 contract and scope tests passed in this increment",
     "PostgreSQL recovery tests collected but skipped without disposable database URLs"
   ],
   "remaining": [
-    "P05.3 durable scientific stage checkpoints and worker crash reconciliation",
+    "P05.3 concrete source/method worker executor and crash reconciliation",
     "P05.4 live database replay, token expiry and revocation acceptance",
     "P05.5 real-source to approved-method to immutable evidence execution",
     "P05 mandatory database, security, recovery and end-to-end gate checks"

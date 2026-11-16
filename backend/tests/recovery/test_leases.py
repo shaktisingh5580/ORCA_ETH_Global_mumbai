@@ -132,3 +132,38 @@ def test_retry_only_safe_errors() -> None:
             assert reserved == queued.execution_budget
     finally:
         db.dispose()
+
+
+@pytest.mark.live
+def test_worker_kill_each_durable_stage() -> None:
+    db, tenant, project, _, queued = approved_queue()
+    digest = "sha256:" + "1" * 64
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            queue = PostgresQueue(session, tenant, project)
+            receipt = queue.enqueue_run(queued)
+            first = queue.claim()
+            assert first is not None
+            checkpoint = queue.checkpoint(first, "source-metadata", digest, digest)
+            assert checkpoint is not None
+            session.execute(
+                text(
+                    "UPDATE research.job_queue SET lease_until=clock_timestamp()-interval '1 second' WHERE id=:job"
+                ),
+                {"job": receipt.job_id},
+            )
+        with TenantUnitOfWork(db, tenant) as session:
+            queue = PostgresQueue(session, tenant, project)
+            recovered = queue.claim()
+            assert recovered is not None and recovered.generation > first.generation
+            assert queue.checkpoint(first, "source-metadata", digest, digest) is None
+            assert queue.checkpoint(recovered, "source-metadata", digest, digest) == checkpoint
+            with pytest.raises(ValueError, match="differs"):
+                queue.checkpoint(recovered, "source-metadata", digest, "sha256:" + "2" * 64)
+            count = session.execute(
+                text("SELECT count(*) FROM research.run_stage_checkpoints WHERE run_id=:run"),
+                {"run": receipt.run_id},
+            ).scalar_one()
+            assert count == 1
+    finally:
+        db.dispose()

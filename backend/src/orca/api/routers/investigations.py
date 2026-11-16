@@ -35,10 +35,12 @@ from orca.contracts.investigations import (
     StartRun,
 )
 from orca.contracts.research_plans import PlanRequest
+from orca.contracts.science_evidence import ScienceEvidenceManifest
 from orca.domain.identity import Principal
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.infrastructure.events.postgres_outbox import PostgresRunEvents
 from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
+from orca.science.manifests import verify_manifest
 
 router = APIRouter(prefix="/v1/research/investigations", tags=["investigations"])
 
@@ -566,8 +568,45 @@ def run_outcome(
     investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
 ) -> RunOutcome:
     run = get_run(investigation_id, run_id, request, principal)
-    if run.state == "SUCCEEDED_SUPPORTED":
-        raise HTTPException(409, "supported outcome requires committed evidence artifact")
+    if run.state in {"QUEUED", "RUNNING", "CANCEL_REQUESTED"}:
+        raise HTTPException(409, "Run has not completed")
+    if run.state in {"SUCCEEDED_SUPPORTED", "SUCCEEDED_INSUFFICIENT"}:
+        db = engine(request)
+        tenant, project = investigation_context(db, principal, investigation_id)
+        with TenantUnitOfWork(db, tenant) as session:
+            Investigations(session, tenant, project, principal)._authorize("evidence:read")
+            row = (
+                session.execute(
+                    text("""SELECT a.id,a.evidence_manifest_id,a.scientific_status,
+                  m.manifest,m.manifest_digest FROM research.run_artifacts a
+                  JOIN research.science_evidence_manifests m ON m.tenant_id=a.tenant_id
+                    AND m.project_id=a.project_id AND m.id=a.evidence_manifest_id
+                  WHERE a.tenant_id=:tenant AND a.project_id=:project AND a.run_id=:run"""),
+                    {"tenant": tenant, "project": project, "run": run_id},
+                )
+                .mappings()
+                .one_or_none()
+            )
+        if row is None:
+            raise HTTPException(409, "Completed run has no immutable evidence artifact")
+        manifest = ScienceEvidenceManifest.model_validate(row["manifest"])
+        verify_manifest(manifest)
+        if (
+            manifest.id != row["evidence_manifest_id"]
+            or manifest.manifest_digest != row["manifest_digest"]
+        ):
+            raise HTTPException(409, "Run evidence manifest is inconsistent")
+        expected = "supported" if run.state == "SUCCEEDED_SUPPORTED" else "insufficient_evidence"
+        if manifest.result_status != expected or row["scientific_status"] != expected:
+            raise HTTPException(409, "Run outcome differs from immutable evidence")
+        return RunOutcome(
+            status=expected,
+            artifact_ids=[row["id"]],
+            limitations=[]
+            if expected == "supported"
+            else ["The immutable evidence manifest records insufficient scientific support."],
+            evidence_manifest_id=manifest.id,
+        )
     return RunOutcome(
         status="insufficient_evidence" if run.state == "SUCCEEDED_INSUFFICIENT" else "inconclusive",
         artifact_ids=[],

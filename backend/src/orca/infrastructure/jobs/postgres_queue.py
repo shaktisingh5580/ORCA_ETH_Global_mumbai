@@ -4,6 +4,7 @@ Refs: main_implementation plan.md P05.2; api design.md §§5.1, 18.1; Phase: P05
 """
 
 import json
+import re
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
@@ -13,6 +14,13 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orca.application.projects import IdempotencyConflict
+from orca.contracts.research_plans import TypedPlan
+from orca.contracts.science_evidence import ScienceEvidenceManifest
+from orca.infrastructure.events.postgres_outbox import PostgresRunEvents
+from orca.science.manifests import verify_manifest
+from orca.science.registry import METHOD_REGISTRY
+
+_SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -348,13 +356,9 @@ class PostgresQueue:
         )
         return True
 
-    def finish_inconclusive(self, claimed: ClaimedJob, reason: str) -> bool:
-        """Fence an unavailable prerequisite into a durable non-success terminal state."""
-        if not 1 <= len(reason) <= 160:
-            raise ValueError("bounded terminal reason is required")
-        # Lock the queue row before touching the run. A stale worker must never
-        # commit a terminal result after cancellation or a newer lease.
-        current = self.session.execute(
+    def _fenced_run(self, claimed: ClaimedJob) -> UUID | None:
+        """Lock the active lease before any checkpoint or publication mutation."""
+        return self.session.execute(
             text("""SELECT run_id FROM research.job_queue WHERE tenant_id=:tenant
               AND project_id=:project AND id=:job AND state='leased'
               AND attempt_id=:attempt AND lease_token=:token AND generation=:generation
@@ -368,6 +372,190 @@ class PostgresQueue:
                 "generation": claimed.generation,
             },
         ).scalar_one_or_none()
+
+    def checkpoint(
+        self, claimed: ClaimedJob, stage: str, input_digest: str, output_digest: str
+    ) -> UUID | None:
+        """Persist one immutable, idempotent completed stage under the current lease."""
+        if (
+            not 1 <= len(stage) <= 64
+            or not _SHA256.fullmatch(input_digest)
+            or not _SHA256.fullmatch(output_digest)
+        ):
+            raise ValueError("checkpoint requires a bounded stage and SHA-256 digests")
+        if self._fenced_run(claimed) != claimed.run_id:
+            return None
+        active = self.session.execute(
+            text("""SELECT p.plan FROM research.compute_runs r
+              JOIN research.investigation_plans p ON p.tenant_id=r.tenant_id
+                AND p.project_id=r.project_id AND p.id=r.plan_id
+              WHERE r.tenant_id=:tenant AND r.project_id=:project
+                AND r.id=:run AND r.state='RUNNING' FOR UPDATE OF r"""),
+            {"tenant": self.tenant, "project": self.project, "run": claimed.run_id},
+        ).scalar_one_or_none()
+        if active is None:
+            return None
+        plan = TypedPlan.model_validate(active)
+        node = next((item for item in plan.nodes if item.node_id == stage), None)
+        if node is None:
+            raise ValueError("checkpoint stage is not in the approved plan")
+        completed = set(
+            self.session.execute(
+                text("""SELECT stage FROM research.run_stage_checkpoints
+              WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run"""),
+                {"tenant": self.tenant, "project": self.project, "run": claimed.run_id},
+            ).scalars()
+        )
+        if not set(node.depends_on) <= completed:
+            raise ValueError("checkpoint dependencies have not completed")
+        identifier = uuid4()
+        self.session.execute(
+            text("""INSERT INTO research.run_stage_checkpoints
+              (id,tenant_id,project_id,run_id,stage,generation,input_digest,output_digest)
+              VALUES(:id,:tenant,:project,:run,:stage,:generation,:input,:output)
+              ON CONFLICT(tenant_id,project_id,run_id,stage) DO NOTHING"""),
+            {
+                "id": identifier,
+                "tenant": self.tenant,
+                "project": self.project,
+                "run": claimed.run_id,
+                "stage": stage,
+                "generation": claimed.generation,
+                "input": input_digest,
+                "output": output_digest,
+            },
+        )
+        existing = (
+            self.session.execute(
+                text("""SELECT id,input_digest,output_digest FROM research.run_stage_checkpoints
+              WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run AND stage=:stage"""),
+                {
+                    "tenant": self.tenant,
+                    "project": self.project,
+                    "run": claimed.run_id,
+                    "stage": stage,
+                },
+            )
+            .mappings()
+            .one()
+        )
+        if existing["input_digest"] != input_digest or existing["output_digest"] != output_digest:
+            raise ValueError("checkpoint replay differs from immutable stage output")
+        self.session.execute(
+            text("""UPDATE research.compute_runs SET stage=:stage,updated_at=clock_timestamp()
+              WHERE tenant_id=:tenant AND project_id=:project AND id=:run AND state='RUNNING'"""),
+            {"tenant": self.tenant, "project": self.project, "run": claimed.run_id, "stage": stage},
+        )
+        return existing["id"]
+
+    def publish_evidence(self, claimed: ClaimedJob, manifest_id: UUID) -> UUID | None:
+        """Atomically attach verified immutable evidence and close the fenced attempt."""
+        if self._fenced_run(claimed) != claimed.run_id:
+            return None
+        run = (
+            self.session.execute(
+                text("""SELECT r.investigation_id,r.state,p.plan FROM research.compute_runs r
+              JOIN research.investigation_plans p ON p.tenant_id=r.tenant_id
+                AND p.project_id=r.project_id AND p.id=r.plan_id
+              WHERE r.tenant_id=:tenant AND r.project_id=:project AND r.id=:run FOR UPDATE OF r"""),
+                {"tenant": self.tenant, "project": self.project, "run": claimed.run_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if run is None or run["state"] != "RUNNING":
+            return None
+        evidence_row = (
+            self.session.execute(
+                text("""SELECT manifest,manifest_digest FROM research.science_evidence_manifests
+              WHERE tenant_id=:tenant AND project_id=:project AND id=:manifest"""),
+                {"tenant": self.tenant, "project": self.project, "manifest": manifest_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if evidence_row is None:
+            raise LookupError("immutable evidence manifest not found")
+        manifest = ScienceEvidenceManifest.model_validate(evidence_row["manifest"])
+        verify_manifest(manifest)
+        if (
+            manifest.id != manifest_id
+            or manifest.manifest_digest != evidence_row["manifest_digest"]
+        ):
+            raise ValueError("stored evidence manifest identity differs")
+        if manifest.result_status not in {"supported", "insufficient_evidence"}:
+            raise ValueError("only completed scientific evidence may be published")
+        plan = TypedPlan.model_validate(run["plan"])
+        completed_stages: set[str] = set(
+            self.session.execute(
+                text("""SELECT stage FROM research.run_stage_checkpoints
+              WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run"""),
+                {"tenant": self.tenant, "project": self.project, "run": claimed.run_id},
+            ).scalars()
+        )
+        if {node.node_id for node in plan.nodes} != completed_stages:
+            raise ValueError(
+                "all approved plan stages require durable checkpoints before publication"
+            )
+        if set(plan.source_ids) != {item.snapshot_id for item in manifest.inputs}:
+            raise ValueError("evidence snapshots differ from the exact approved plan")
+        if plan.method_hint != manifest.method_id:
+            raise ValueError("evidence method differs from the exact approved plan")
+        if manifest.result_status == "supported":
+            if (
+                plan.data_constraints.get("method_version") != manifest.method_version
+                or plan.data_constraints.get("method_code_digest") != manifest.method_code_digest
+            ):
+                raise ValueError(
+                    "supported evidence method version is not pinned by the approved plan"
+                )
+            METHOD_REGISTRY.resolve(
+                manifest.method_id, manifest.method_version, manifest.method_code_digest
+            )
+        artifact_id = uuid4()
+        self.session.execute(
+            text("""INSERT INTO research.run_artifacts
+              (id,tenant_id,project_id,investigation_id,run_id,evidence_manifest_id,scientific_status)
+              VALUES(:id,:tenant,:project,:investigation,:run,:manifest,:status)"""),
+            {
+                "id": artifact_id,
+                "tenant": self.tenant,
+                "project": self.project,
+                "investigation": run["investigation_id"],
+                "run": claimed.run_id,
+                "manifest": manifest_id,
+                "status": manifest.result_status,
+            },
+        )
+        self.session.execute(
+            text("""UPDATE research.compute_runs SET state=:state,stage='evidence_published',
+              updated_at=clock_timestamp() WHERE tenant_id=:tenant AND project_id=:project AND id=:run"""),
+            {
+                "tenant": self.tenant,
+                "project": self.project,
+                "run": claimed.run_id,
+                "state": "SUCCEEDED_SUPPORTED"
+                if manifest.result_status == "supported"
+                else "SUCCEEDED_INSUFFICIENT",
+            },
+        )
+        if not self.complete(claimed):
+            raise RuntimeError("lease changed during evidence publication")
+        self._release_reservation(claimed.run_id)
+        PostgresRunEvents(self.session, self.tenant, self.project).append(
+            claimed.run_id,
+            "evidence.published",
+            {"artifact_id": str(artifact_id), "status": manifest.result_status},
+        )
+        return artifact_id
+
+    def finish_inconclusive(self, claimed: ClaimedJob, reason: str) -> bool:
+        """Fence an unavailable prerequisite into a durable non-success terminal state."""
+        if not 1 <= len(reason) <= 160:
+            raise ValueError("bounded terminal reason is required")
+        # Lock the queue row before touching the run. A stale worker must never
+        # commit a terminal result after cancellation or a newer lease.
+        current = self._fenced_run(claimed)
         if current != claimed.run_id:
             return False
         changed = self.session.execute(

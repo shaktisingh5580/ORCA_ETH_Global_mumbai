@@ -44,6 +44,25 @@ def test_typed_plan_compilation_is_deterministic_and_declares_unverified_readine
     )
 
 
+def test_typed_plan_binds_explicit_source_ids() -> None:
+    from uuid import uuid4
+
+    source = uuid4()
+    candidate = compile_typed_plan(
+        PlanRequest(
+            strategy="typed",
+            method_hint="orca.sst-area-time-anomaly",
+            data_constraints={"method_version": "1", "method_code_digest": "a" * 64},
+            budget={"max_amount": "2.00"},
+            source_ids=[source],
+        ),
+        revision=1,
+    )
+    assert candidate.source_ids == [source]
+    assert candidate.nodes[0].source_ids == [source]
+    assert candidate.data_constraints["method_code_digest"] == "a" * 64
+
+
 def test_approval_contract_rejects_duplicate_assumptions() -> None:
     digest = "sha256:" + "0" * 64
     try:
