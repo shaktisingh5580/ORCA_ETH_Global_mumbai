@@ -3,6 +3,7 @@ Behavior: use synthetic test evidence only inside tests; reject missing or alter
 Refs: main_implementation plan.md P06.2-P06.3; Phase: P06.
 """
 
+import hashlib
 import io
 import json
 import zipfile
@@ -111,6 +112,21 @@ def test_missing_snapshot_export_blocked() -> None:
             manifest,
             (ExportInput(manifest.inputs[0].snapshot_id, "public", True, current, "version-1"),),
         )
+
+
+def test_archive_checksum_and_download() -> None:
+    manifest, current, baseline = evidence()
+    inputs = (
+        ExportInput(manifest.inputs[0].snapshot_id, "public", True, current, "version-1"),
+        ExportInput(manifest.inputs[1].snapshot_id, "public", True, baseline, "version-2"),
+    )
+    first = build_evidence_export(manifest, inputs)
+    second = build_evidence_export(manifest, tuple(reversed(inputs)))
+    assert first.archive == second.archive
+    assert first.archive_digest == second.archive_digest
+    assert first.archive_digest == "sha256:" + hashlib.sha256(first.archive).hexdigest()
+    with zipfile.ZipFile(io.BytesIO(first.archive)) as archive:
+        assert all(item.date_time == (1980, 1, 1, 0, 0, 0) for item in archive.infolist())
 
 
 def test_report_supported_vs_insufficient_and_html_escaped() -> None:

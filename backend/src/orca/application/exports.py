@@ -93,9 +93,15 @@ def build_evidence_export(
     digest = "sha256:" + hashlib.sha256(encoded).hexdigest()
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("manifest.json", json.dumps(manifest, sort_keys=True, indent=2))
-        for path, content in included.items():
-            archive.writestr(path, content)
+        files: dict[str, bytes] = {
+            "manifest.json": json.dumps(manifest, sort_keys=True, indent=2).encode("utf-8"),
+            **included,
+        }
+        for path, content in sorted(files.items()):
+            member = zipfile.ZipInfo(path, date_time=(1980, 1, 1, 0, 0, 0))
+            member.compress_type = zipfile.ZIP_DEFLATED
+            member.external_attr = 0o100644 << 16
+            archive.writestr(member, content)
     archive_bytes = buffer.getvalue()
     return ExportPackage(
         manifest, digest, archive_bytes, "sha256:" + hashlib.sha256(archive_bytes).hexdigest()

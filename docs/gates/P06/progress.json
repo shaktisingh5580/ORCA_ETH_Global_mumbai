@@ -8,7 +8,8 @@
     "P06.2 JSON and escaped HTML report views with explicit scientific status and limitations",
     "P06.3 portable manifest and ZIP assembler with exact input-byte, object-version and redistribution-rights checks",
     "P06 read-only published artifact list/detail/manifest/lineage routes with project authorization",
-    "P06 revisioned evidence-bound reports with guarded JSON/HTML/PDF downloads, byte ranges, and source-rights publication gate"
+    "P06 revisioned evidence-bound reports with guarded JSON/HTML/PDF downloads, byte ranges, and source-rights publication gate",
+    "P06 export ZIP assembly now uses fixed metadata and sorted entries for byte-identical archives across equivalent requests"
   ],
   "verified": [
     "11 focused contract/integration tests passed",
