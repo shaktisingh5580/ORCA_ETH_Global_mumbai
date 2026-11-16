@@ -3,9 +3,11 @@ Behavior: verifies only timeout failures are retryable and payload limits become
 Refs: main_implementation plan.md P05.3; Phase: P05.
 """
 
+from threading import Event
 from uuid import uuid4
 
 from orca.infrastructure.jobs.postgres_queue import ClaimedJob
+from orca.workers.main import poll_project
 from orca.workers.runner import ExecutionPolicy, RunWorker, classify_failure
 
 
@@ -25,3 +27,19 @@ def test_max_depth_and_tool_budget() -> None:
         RunWorker._blocked_reason(claim({"node_count": 2, "tool_budget": 2}), policy)
         == "tool_budget_limit"
     )
+
+
+def test_worker_polling_stops_after_completed_attempt() -> None:
+    stop = Event()
+    outcomes = iter(("published", "inconclusive"))
+    seen: list[str] = []
+
+    def run_once() -> str:
+        outcome = next(outcomes)
+        seen.append(outcome)
+        if len(seen) == 2:
+            stop.set()
+        return outcome
+
+    poll_project(run_once, stop)
+    assert seen == ["published", "inconclusive"]

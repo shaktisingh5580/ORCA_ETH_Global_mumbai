@@ -5,8 +5,8 @@
   "current_slice": "P05.5",
   "slice_status": "preserved_source_insufficiency_handler_locally_checked_live_database_and_approved_method_pending",
   "latest_increment": {
-    "implemented": "Tenant/project-granted preserved snapshots are checked against configured source version and exact HTTPS origin, retrieved before run creation, verified against immutable bytes, and emitted as an explicitly insufficient evidence artifact with fenced stage checkpoints.",
-    "focused_checks": "Six worker and preserved-source tests passed; Ruff and mypy passed for changed production files.",
+    "implemented": "Tenant/project-granted preserved snapshots are checked against configured source version and exact HTTPS origin, retrieved before run creation, verified against immutable bytes, and emitted as an explicitly insufficient evidence artifact with fenced stage checkpoints. A single-project worker process can poll durable jobs using one database engine and graceful stop signals.",
+    "focused_checks": "Seven worker and preserved-source tests passed; Ruff and mypy passed for changed production files.",
     "not_claimed": "No approved scientific method, supported SST result, live database publication, P03/P04 gate acceptance, or Oracle deployment."
   },
   "changed_files": [
