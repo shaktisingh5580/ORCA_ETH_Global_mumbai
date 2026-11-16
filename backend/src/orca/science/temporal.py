@@ -48,7 +48,7 @@ def select_historical_snapshot(
             continue
         if not item.archived_original or item.supersedes_id is not None:
             continue
-        if published > cutoff or (issued is not None and issued > cutoff):
+        if published > cutoff or retrieved > cutoff or (issued is not None and issued > cutoff):
             continue
         eligible.append(item)
     if not eligible:

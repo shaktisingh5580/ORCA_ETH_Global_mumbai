@@ -63,6 +63,11 @@ def test_no_archived_original_returns_inconclusive() -> None:
     )
 
 
+def test_later_retrieval_cannot_be_backdated_as_archived_evidence() -> None:
+    late = snapshot(retrieved_at=CUTOFF + timedelta(days=1))
+    assert select_historical_snapshot((late,), source_id=SOURCE, as_of=CUTOFF) is None
+
+
 def test_calendar_timezones() -> None:
     same_in_india = CUTOFF.astimezone(timezone(timedelta(hours=5, minutes=30)))
     item = snapshot()
