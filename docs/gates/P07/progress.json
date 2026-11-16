@@ -6,7 +6,8 @@
     "P07.3 pure historical snapshot selector requiring an archived original, pinned object version and publication, retrieval and issuance before the as-of cutoff",
     "P07.4 finite aligned MAE, RMSE and bias calculations with explicit not-evaluable result when held-out truth is absent",
     "P07.1 numerical reproduction validates exact raw input bytes, origin result digest and registered approved method without claiming institutional independence",
-    "P07.2 scoped reviewer grants, append-only challenges and review opinions, revocation, and response links to a separate immutable artifact"
+    "P07.2 scoped reviewer grants, append-only challenges and review opinions, revocation, and response links to a separate immutable artifact",
+    "P07 artifact detail/manifest/lineage reads permit a named external reviewer only while an exact artifact grant and evidence:read token scope remain active"
   ],
   "verified": [
     "13 focused P07 and affected P04 science tests passed",

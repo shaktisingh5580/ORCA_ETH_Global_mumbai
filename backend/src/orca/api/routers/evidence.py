@@ -32,6 +32,32 @@ def _authorize(session: Any, tenant: UUID, project: UUID, principal: Principal) 
         raise HTTPException(403, "Evidence access not permitted") from error
 
 
+def _authorize_artifact_read(
+    session: Any, tenant: UUID, project: UUID, artifact_id: UUID, principal: Principal
+) -> None:
+    """Allow a named external reviewer only while their exact artifact grant remains active."""
+    try:
+        authorize_project(session, tenant, project, principal, "evidence:read")
+        return
+    except (LookupError, PermissionError):
+        pass
+    if "evidence:read" not in principal.token_scopes:
+        raise HTTPException(403, "Evidence read scope is required")
+    active = session.execute(
+        text("""SELECT 1 FROM research.artifact_review_grants WHERE tenant_id=:tenant
+          AND project_id=:project AND artifact_id=:artifact AND reviewer_subject=:subject
+          AND revoked_at IS NULL AND expires_at>clock_timestamp() FOR SHARE"""),
+        {
+            "tenant": tenant,
+            "project": project,
+            "artifact": artifact_id,
+            "subject": principal.subject,
+        },
+    ).scalar_one_or_none()
+    if active is None:
+        raise HTTPException(404, "Artifact not found")
+
+
 def _artifact_row(session: Any, tenant: UUID, artifact_id: UUID) -> Any:
     row = (
         session.execute(
@@ -130,10 +156,17 @@ def _read_artifact(
     request: Request, principal: Principal, artifact_id: UUID
 ) -> tuple[ScienceEvidenceManifest, ArtifactView]:
     db = engine(request)
-    tenant = _artifact_context(request, principal, artifact_id)
+    with db.connect() as connection:
+        resolved = connection.execute(
+            text("SELECT iam.resolve_review_artifact_tenant(:subject,:artifact)"),
+            {"subject": principal.subject, "artifact": artifact_id},
+        ).scalar_one_or_none()
+    if resolved is None:
+        raise HTTPException(404, "Artifact not found")
+    tenant = cast(UUID, resolved)
     with TenantUnitOfWork(db, tenant) as session:
         row = _artifact_row(session, tenant, artifact_id)
-        _authorize(session, tenant, row["project_id"], principal)
+        _authorize_artifact_read(session, tenant, row["project_id"], artifact_id, principal)
         return _verified(row)
 
 

@@ -13,7 +13,7 @@ from fastapi import HTTPException
 from pydantic import SecretStr, ValidationError
 
 from orca.api.app import create_app
-from orca.api.routers import reviews
+from orca.api.routers import evidence, reviews
 from orca.config import Settings
 from orca.contracts.scientific_reviews import ChallengeRequest
 from orca.domain.identity import Principal
@@ -75,3 +75,30 @@ def test_challenge_references_are_unique() -> None:
             source_refs=[source, source],
             statement="Wrong baseline year",
         )
+
+
+def test_external_reviewer_artifact_read_requires_scope_and_active_grant(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        evidence, "authorize_project", lambda *_args: (_ for _ in ()).throw(LookupError())
+    )
+
+    class ReadSession:
+        def __init__(self, grant: int | None) -> None:
+            self.grant = grant
+
+        def execute(self, _statement: object, _params: object) -> SimpleNamespace:
+            return SimpleNamespace(scalar_one_or_none=lambda: self.grant)
+
+    identifiers = (uuid4(), uuid4(), uuid4())
+    reader = Principal("reviewer", "test", frozenset({"evidence:read"}))
+    evidence._authorize_artifact_read(ReadSession(1), *identifiers, reader)
+    with pytest.raises(HTTPException) as missing:
+        evidence._authorize_artifact_read(ReadSession(None), *identifiers, reader)
+    assert missing.value.status_code == 404
+    with pytest.raises(HTTPException) as no_scope:
+        evidence._authorize_artifact_read(
+            ReadSession(1), *identifiers, Principal("reviewer", "test", frozenset())
+        )
+    assert no_scope.value.status_code == 403
