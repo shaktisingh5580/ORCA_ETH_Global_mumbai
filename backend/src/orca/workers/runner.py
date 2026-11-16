@@ -6,6 +6,7 @@ Refs: main_implementation plan.md P05.3-P05.5; api design.md §§5.1, 6.2; Phase
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal, Protocol
 from uuid import UUID
 
@@ -40,8 +41,17 @@ class ScientificExecution:
     manifest: ScienceEvidenceManifest
 
 
+@dataclass(frozen=True, slots=True)
+class RunContext:
+    actor: str
+    created_at: datetime
+    approved_digest: str
+
+
 class ScientificHandler(Protocol):
-    def prepare(self, claimed: ClaimedJob, plan: TypedPlan) -> ScientificExecution: ...
+    def prepare(
+        self, claimed: ClaimedJob, plan: TypedPlan, context: RunContext
+    ) -> ScientificExecution: ...
 
 
 def classify_failure(error: Exception) -> Literal["retry", "inconclusive"]:
@@ -81,11 +91,11 @@ class RunWorker:
             queue = PostgresQueue(session, self.tenant, self.project)
             return "inconclusive" if queue.finish_inconclusive(claimed, reason) else "lease_lost"
 
-    def _plan(self, claimed: ClaimedJob) -> tuple[TypedPlan, str] | None:
+    def _plan(self, claimed: ClaimedJob) -> tuple[TypedPlan, RunContext] | None:
         with self.transaction() as session:
             row = (
                 session.execute(
-                    text("""SELECT p.plan,r.created_by FROM research.compute_runs r
+                    text("""SELECT p.plan,r.created_by,r.created_at,r.plan_digest FROM research.compute_runs r
                       JOIN research.investigation_plans p ON p.tenant_id=r.tenant_id
                         AND p.project_id=r.project_id AND p.id=r.plan_id
                       WHERE r.tenant_id=:tenant AND r.project_id=:project AND r.id=:run
@@ -97,7 +107,9 @@ class RunWorker:
             )
             if row is None:
                 return None
-            return TypedPlan.model_validate(row["plan"]), str(row["created_by"])
+            return TypedPlan.model_validate(row["plan"]), RunContext(
+                str(row["created_by"]), row["created_at"], str(row["plan_digest"])
+            )
 
     def run_once(
         self, policy: ExecutionPolicy = ExecutionPolicy()
@@ -113,13 +125,13 @@ class RunWorker:
         context = self._plan(claimed)
         if context is None:
             return "lease_lost"
-        plan, actor = context
+        plan, run_context = context
         if len(plan.nodes) > policy.max_plan_nodes or len(plan.nodes) != claimed.payload.get(
             "node_count"
         ):
             return self._close_blocked(claimed, "plan_node_limit")
         try:
-            execution = self.handler.prepare(claimed, plan)
+            execution = self.handler.prepare(claimed, plan, run_context)
         except TimeoutError:
             return self._close_blocked(claimed, "source_timeout")
         except (ValueError, LookupError, PermissionError):
@@ -129,7 +141,7 @@ class RunWorker:
         if (
             execution.manifest.tenant_id != self.tenant
             or execution.manifest.project_id != self.project
-            or execution.manifest.created_by != actor
+            or execution.manifest.created_by != run_context.actor
         ):
             return self._close_blocked(claimed, "evidence_authority_mismatch")
         for stage in execution.stages:
@@ -148,7 +160,7 @@ class RunWorker:
             queue = PostgresQueue(session, self.tenant, self.project)
             if not queue.renew(claimed):
                 return "lease_lost"
-            manifest_id = ScientificEvidence(session, self.tenant, actor).persist(
+            manifest_id = ScientificEvidence(session, self.tenant, run_context.actor).persist(
                 execution.manifest
             )
             artifact = queue.publish_evidence(claimed, manifest_id)

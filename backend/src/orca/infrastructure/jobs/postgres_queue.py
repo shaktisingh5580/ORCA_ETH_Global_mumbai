@@ -503,8 +503,23 @@ class PostgresQueue:
             )
         if set(plan.source_ids) != {item.snapshot_id for item in manifest.inputs}:
             raise ValueError("evidence snapshots differ from the exact approved plan")
-        if plan.method_hint != manifest.method_id:
+        if manifest.result_status == "supported" and plan.method_hint != manifest.method_id:
             raise ValueError("evidence method differs from the exact approved plan")
+        if manifest.result_status == "insufficient_evidence" and manifest.method_id not in {
+            plan.method_hint,
+            "method_unavailable",
+        }:
+            raise ValueError("insufficient evidence method identity is not explained by the plan")
+        granted: int = self.session.execute(
+            text("""SELECT count(*) FROM research.snapshot_project_grants
+              WHERE tenant_id=:tenant AND project_id=:project
+              AND snapshot_id IN (SELECT snapshot_id FROM research.science_evidence_inputs
+                WHERE tenant_id=:tenant AND project_id=:project AND manifest_id=:manifest)
+              AND (expires_at IS NULL OR expires_at>clock_timestamp())"""),
+            {"tenant": self.tenant, "project": self.project, "manifest": manifest_id},
+        ).scalar_one()
+        if granted != len(manifest.inputs):
+            raise PermissionError("source grant expired or was revoked before publication")
         if manifest.result_status == "supported":
             if (
                 plan.data_constraints.get("method_version") != manifest.method_version
