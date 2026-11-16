@@ -65,6 +65,22 @@ class PostgresRunEvents:
     def replay(self, run_id: UUID, after: int = 0, limit: int = 100) -> list[RunEvent]:
         if after < 0 or not 1 <= limit <= 100:
             raise ValueError("invalid event cursor")
+        bounds = (
+            self.session.execute(
+                text("""SELECT min(sequence) AS first,max(sequence) AS latest
+              FROM research.run_events WHERE tenant_id=:tenant AND project_id=:project
+              AND run_id=:run"""),
+                {"tenant": self.tenant, "project": self.project, "run": run_id},
+            )
+            .mappings()
+            .one()
+        )
+        if after > 0 and (
+            bounds["latest"] is None
+            or after > bounds["latest"]
+            or (bounds["first"] is not None and after < bounds["first"] - 1)
+        ):
+            raise ValueError("event cursor is unavailable; resync from run state")
         rows = self.session.execute(
             text("""SELECT id,sequence,event_type,payload FROM research.run_events WHERE tenant_id=:tenant
               AND project_id=:project AND run_id=:run AND sequence>:after ORDER BY sequence LIMIT :limit"""),

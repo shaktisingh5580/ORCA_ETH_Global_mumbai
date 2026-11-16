@@ -71,3 +71,64 @@ def test_stale_generation_completion_rejected() -> None:
             assert queue.complete(second) is True
     finally:
         db.dispose()
+
+
+@pytest.mark.live
+def test_output_not_published_after_cancel() -> None:
+    db, tenant, project, _, queued = approved_queue()
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            queue = PostgresQueue(session, tenant, project)
+            receipt = queue.enqueue_run(queued)
+            claimed = queue.claim()
+            assert claimed is not None
+        with TenantUnitOfWork(db, tenant) as session:
+            assert PostgresQueue(session, tenant, project).cancel(receipt.job_id)
+        with TenantUnitOfWork(db, tenant) as session:
+            queue = PostgresQueue(session, tenant, project)
+            assert not queue.finish_inconclusive(claimed, "late_worker")
+            state = session.execute(
+                text("SELECT state FROM research.compute_runs WHERE id=:run"),
+                {"run": receipt.run_id},
+            ).scalar_one()
+            assert state == "CANCELLED"
+            reserved = session.execute(
+                text(
+                    "SELECT reserved_amount FROM research.plan_budget_ledgers WHERE plan_id=:plan"
+                ),
+                {"plan": queued.plan_id},
+            ).scalar_one()
+            assert reserved == 0
+    finally:
+        db.dispose()
+
+
+@pytest.mark.live
+def test_retry_only_safe_errors() -> None:
+    db, tenant, project, _, queued = approved_queue()
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            queue = PostgresQueue(session, tenant, project)
+            receipt = queue.enqueue_run(queued)
+            claimed = queue.claim()
+            assert claimed is not None
+            assert queue.finish_inconclusive(claimed, "source_or_approved_method_unavailable")
+        with TenantUnitOfWork(db, tenant) as session:
+            queue = PostgresQueue(session, tenant, project)
+            assert not queue.retry(receipt.job_id)
+            session.execute(
+                text(
+                    "UPDATE research.compute_runs SET stage='blocked:source_timeout' WHERE id=:run"
+                ),
+                {"run": receipt.run_id},
+            )
+            assert queue.retry(receipt.job_id)
+            reserved = session.execute(
+                text(
+                    "SELECT reserved_amount FROM research.plan_budget_ledgers WHERE plan_id=:plan"
+                ),
+                {"plan": queued.plan_id},
+            ).scalar_one()
+            assert reserved == queued.execution_budget
+    finally:
+        db.dispose()

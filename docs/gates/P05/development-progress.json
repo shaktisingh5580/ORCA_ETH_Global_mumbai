@@ -1,0 +1,26 @@
+{
+  "phase": "P05",
+  "status": "development_in_progress",
+  "acceptance": "not_passed",
+  "implemented_after_p05_2": [
+    "P05.3 bounded worker and explicit inconclusive terminal state when science prerequisites are unavailable",
+    "P05.3 lease-fenced completion and cancellation; released budget reservation on terminal cancellation/inconclusive state",
+    "P05.3 safe retry eligibility constrained to recorded transient failures, with atomic budget re-reservation",
+    "P05.4 durable redacted per-run event log, polling and bounded continuous SSE with token and membership rechecks",
+    "P05.4 unavailable replay cursor returns a resync conflict",
+    "P05 run HTTP start/list/get/cancel/retry and outcome/task-graph/cost read paths"
+  ],
+  "verified": [
+    "P05/P06 changed source passed ruff and mypy",
+    "11 focused P05/P06 contract/integration tests passed",
+    "PostgreSQL recovery tests collected but skipped without disposable database URLs"
+  ],
+  "remaining": [
+    "P05.3 durable scientific stage checkpoints and worker crash reconciliation",
+    "P05.4 live database replay, token expiry and revocation acceptance",
+    "P05.5 real-source to approved-method to immutable evidence execution",
+    "P05 mandatory database, security, recovery and end-to-end gate checks"
+  ],
+  "oracle_deployment": "deferred_by_user",
+  "scientific_method_registry": "empty_pending_approval"
+}

@@ -54,6 +54,31 @@ class PostgresQueue:
     def __init__(self, session: Session, tenant: UUID, project: UUID):
         self.session, self.tenant, self.project = session, tenant, project
 
+    def _release_reservation(self, run_id: UUID) -> None:
+        """Return reserved budget exactly once in the enclosing transaction."""
+        released = (
+            self.session.execute(
+                text("""UPDATE research.run_budget_reservations SET state='released',
+              updated_at=clock_timestamp() WHERE tenant_id=:tenant AND project_id=:project
+              AND run_id=:run AND state='reserved' RETURNING plan_id,amount"""),
+                {"tenant": self.tenant, "project": self.project, "run": run_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if released is not None:
+            self.session.execute(
+                text("""UPDATE research.plan_budget_ledgers
+                  SET reserved_amount=reserved_amount-:amount,updated_at=clock_timestamp()
+                  WHERE tenant_id=:tenant AND project_id=:project AND plan_id=:plan"""),
+                {
+                    "tenant": self.tenant,
+                    "project": self.project,
+                    "plan": released["plan_id"],
+                    "amount": released["amount"],
+                },
+            )
+
     def enqueue_run(self, command: EnqueuedRun) -> QueueReceipt:
         """Insert run, reservation, queue record and outbox notification atomically."""
         if not 1 <= len(command.idempotency_key) <= 128:
@@ -327,13 +352,36 @@ class PostgresQueue:
         """Fence an unavailable prerequisite into a durable non-success terminal state."""
         if not 1 <= len(reason) <= 160:
             raise ValueError("bounded terminal reason is required")
+        # Lock the queue row before touching the run. A stale worker must never
+        # commit a terminal result after cancellation or a newer lease.
+        current = self.session.execute(
+            text("""SELECT run_id FROM research.job_queue WHERE tenant_id=:tenant
+              AND project_id=:project AND id=:job AND state='leased'
+              AND attempt_id=:attempt AND lease_token=:token AND generation=:generation
+              AND lease_until>clock_timestamp() FOR UPDATE"""),
+            {
+                "tenant": self.tenant,
+                "project": self.project,
+                "job": claimed.job_id,
+                "attempt": claimed.attempt_id,
+                "token": claimed.lease_token,
+                "generation": claimed.generation,
+            },
+        ).scalar_one_or_none()
+        if current != claimed.run_id:
+            return False
         changed = self.session.execute(
             text("""UPDATE research.compute_runs SET state='INCONCLUSIVE',stage=:stage,
               updated_at=clock_timestamp() WHERE tenant_id=:tenant AND id=:run
-              AND state IN ('QUEUED','RUNNING','CANCEL_REQUESTED') RETURNING id"""),
+              AND state='RUNNING' RETURNING id"""),
             {"tenant": self.tenant, "run": claimed.run_id, "stage": f"blocked:{reason}"},
         ).scalar_one_or_none()
-        return changed is not None and self.complete(claimed)
+        if changed is None:
+            return False
+        if not self.complete(claimed):
+            raise RuntimeError("lease changed during fenced completion")
+        self._release_reservation(claimed.run_id)
+        return True
 
     def cancel(self, job_id: UUID) -> bool:
         """Fence a current worker before marking the queue record cancelled."""
@@ -351,8 +399,58 @@ class PostgresQueue:
             {"tenant": self.tenant, "job": job_id},
         )
         self.session.execute(
-            text("""UPDATE research.compute_runs SET state='CANCEL_REQUESTED',stage='cancel_requested',
+            text("""UPDATE research.compute_runs SET state='CANCELLED',stage='cancelled',
               updated_at=clock_timestamp() WHERE tenant_id=:tenant AND id=:run AND state IN ('QUEUED','RUNNING')"""),
             {"tenant": self.tenant, "run": changed},
+        )
+        self._release_reservation(changed)
+        return True
+
+    def retry(self, job_id: UUID) -> bool:
+        """Atomically requeue only a safe terminal run with no published result."""
+        row = (
+            self.session.execute(
+                text("""SELECT q.run_id,r.plan_id,r.execution_budget FROM research.job_queue q
+              JOIN research.compute_runs r ON r.tenant_id=q.tenant_id AND r.id=q.run_id
+              WHERE q.tenant_id=:tenant AND q.project_id=:project AND q.id=:job
+              AND q.state='completed' AND r.state IN ('INCONCLUSIVE','FAILED')
+              AND r.stage IN ('blocked:source_timeout','blocked:provider_timeout','failed:transient')
+              FOR UPDATE OF q,r"""),
+                {"tenant": self.tenant, "project": self.project, "job": job_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return False
+        reserved = self.session.execute(
+            text("""UPDATE research.plan_budget_ledgers
+              SET reserved_amount=reserved_amount+:amount,updated_at=clock_timestamp()
+              WHERE tenant_id=:tenant AND project_id=:project AND plan_id=:plan
+              AND reserved_amount+:amount<=limit_amount RETURNING plan_id"""),
+            {
+                "tenant": self.tenant,
+                "project": self.project,
+                "plan": row["plan_id"],
+                "amount": row["execution_budget"],
+            },
+        ).scalar_one_or_none()
+        if reserved is None:
+            return False
+        self.session.execute(
+            text("""UPDATE research.run_budget_reservations SET state='reserved',
+              updated_at=clock_timestamp() WHERE tenant_id=:tenant AND project_id=:project
+              AND run_id=:run AND state='released'"""),
+            {"tenant": self.tenant, "project": self.project, "run": row["run_id"]},
+        )
+        self.session.execute(
+            text("""UPDATE research.compute_runs SET state='QUEUED',stage='retry_queued',updated_at=clock_timestamp()
+              WHERE tenant_id=:tenant AND id=:run"""),
+            {"tenant": self.tenant, "run": row["run_id"]},
+        )
+        self.session.execute(
+            text("""UPDATE research.job_queue SET state='queued',available_at=clock_timestamp(),
+              updated_at=clock_timestamp() WHERE tenant_id=:tenant AND id=:job"""),
+            {"tenant": self.tenant, "job": job_id},
         )
         return True

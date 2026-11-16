@@ -3,7 +3,9 @@ Behavior: resolve the tenant server-side, enforce project scopes and return expl
 Refs: main_implementation plan.md P05.1; api design.md §§3.6, 5.1; Phase: P05.
 """
 
+import hashlib
 import json
+import time
 from collections.abc import Iterator
 from decimal import Decimal
 from typing import Annotated, Literal, NoReturn, cast
@@ -11,6 +13,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
+from jwt import InvalidTokenError
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import IntegrityError
 
@@ -313,7 +316,7 @@ def start_run(
                     body.digest,
                     Decimal(str(row["limit_amount"])),
                     Decimal(body.execution_budget),
-                    body.digest,
+                    "sha256:" + hashlib.sha256(body.model_dump_json().encode("utf-8")).hexdigest(),
                     idempotency_key,
                     principal.subject,
                     {"kind": "investigation_run", "node_count": 4, "tool_budget": 0},
@@ -409,6 +412,45 @@ def cancel_run(
     )
 
 
+@router.post("/{investigation_id}/runs/{run_id}/retry", response_model=Operation, status_code=202)
+def retry_run(
+    investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
+) -> Operation:
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        Investigations(session, tenant, project, principal)._authorize("research:run")
+        row = (
+            session.execute(
+                text(
+                    "SELECT q.id,r.created_at,r.updated_at FROM research.compute_runs r JOIN research.job_queue q ON q.tenant_id=r.tenant_id AND q.run_id=r.id WHERE r.tenant_id=:tenant AND r.project_id=:project AND r.investigation_id=:investigation AND r.id=:run"
+                ),
+                {
+                    "tenant": tenant,
+                    "project": project,
+                    "investigation": investigation_id,
+                    "run": run_id,
+                },
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            raise HTTPException(404, "Run not found")
+        if not PostgresQueue(session, tenant, project).retry(row["id"]):
+            raise HTTPException(409, "Only completed inconclusive or failed runs can be retried")
+    return Operation(
+        id=row["id"],
+        kind="research_run",
+        status="queued",
+        resource_ref=ResourceRef(type="research_run", id=str(run_id), version="1"),
+        created_at=row["created_at"],
+        updated_at=row["updated_at"],
+        progress=0,
+        links={},
+    )
+
+
 @router.get("/{investigation_id}/runs/{run_id}", response_model=RunView)
 def get_run(
     investigation_id: UUID, run_id: UUID, request: Request, principal: CurrentPrincipal
@@ -449,7 +491,22 @@ def run_events(
     tenant, project = investigation_context(db, principal, investigation_id)
     with TenantUnitOfWork(db, tenant) as session:
         Investigations(session, tenant, project, principal)._authorize("project:read")
-        events = PostgresRunEvents(session, tenant, project).replay(run_id, after)
+        exists = session.execute(
+            text("""SELECT 1 FROM research.compute_runs WHERE tenant_id=:tenant
+              AND project_id=:project AND investigation_id=:investigation AND id=:run"""),
+            {
+                "tenant": tenant,
+                "project": project,
+                "investigation": investigation_id,
+                "run": run_id,
+            },
+        ).scalar_one_or_none()
+        if exists is None:
+            raise HTTPException(404, "Run not found")
+        try:
+            events = PostgresRunEvents(session, tenant, project).replay(run_id, after)
+        except ValueError as error:
+            raise HTTPException(409, str(error)) from error
     return {
         "events": [
             {
@@ -469,15 +526,33 @@ def stream_run_events(
     run_id: UUID,
     request: Request,
     principal: CurrentPrincipal,
-    last_event_id: Annotated[int | None, Header()] = None,
+    last_event_id: Annotated[int | None, Header(ge=0)] = None,
 ) -> StreamingResponse:
-    payload = run_events(investigation_id, run_id, request, principal, last_event_id or 0)
+    # Authenticate and authorize before sending response headers. Rechecking
+    # inside the stream closes it if the token expires or membership is revoked.
+    run_events(investigation_id, run_id, request, principal, last_event_id or 0)
+    bearer = request.headers.get("authorization", "")
+    token = bearer[7:] if bearer.lower().startswith("bearer ") else ""
 
     def body() -> Iterator[str]:
-        for event in cast(list[dict[str, object]], payload["events"]):
-            value = event
-            yield f"id: {value['sequence']}\nevent: {value['type']}\ndata: {json.dumps(value['data'], sort_keys=True)}\n\n"
-        yield ": heartbeat\n\n"
+        cursor = last_event_id or 0
+        deadline = time.monotonic() + 55
+        while time.monotonic() < deadline:
+            verifier = getattr(request.app.state, "oidc_verifier", None)
+            try:
+                if verifier is None or not token:
+                    return
+                refreshed = verifier.verify(token)
+                if refreshed.subject != principal.subject:
+                    return
+                payload = run_events(investigation_id, run_id, request, refreshed, cursor)
+            except (HTTPException, InvalidTokenError, PermissionError, ValueError):
+                return
+            for event in cast(list[dict[str, object]], payload["events"]):
+                cursor = int(cast(int, event["sequence"]))
+                yield f"id: {cursor}\nevent: {event['type']}\ndata: {json.dumps(event['data'], sort_keys=True)}\n\n"
+            yield ": heartbeat\n\n"
+            time.sleep(2)
 
     return StreamingResponse(
         body(),
