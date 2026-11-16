@@ -37,5 +37,11 @@
     "contracts/openapi/orca-v1.json"
   ],
   "interpretation": "The P02 recorded source-hash prerequisite is stale against current development. This audit does not establish a P02, P03 or later gate PASS. Re-run affected predecessor tests and publish current evidence before gate acceptance.",
-  "cloud_acceptance": "deferred_by_user"
+  "cloud_acceptance": "deferred_by_user",
+  "focused_current_checks": {
+    "scope": "snapshot request contracts, HTTP snapshot reads, acquisition adapters, snapshot cache, ERDDAP egress security",
+    "result": "26 passed, 1 external library deprecation warning",
+    "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/contracts/test_snapshot_requests.py backend/tests/contracts/test_snapshot_http.py backend/tests/unit/test_acquisition_adapters.py backend/tests/unit/test_snapshot_request_cache.py backend/tests/security/test_erddap_egress.py -q",
+    "environment_note": "TestClient local loopback requires execution outside the restricted socket sandbox; the initial sandbox run was interrupted before completion."
+  }
 }

@@ -1,0 +1,11 @@
+{
+  "phase": "P04",
+  "gate": "G04",
+  "status": "LOCAL_TESTS_PASS_HUMAN_REVIEW_PENDING",
+  "result": "23 passed",
+  "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/science/test_method_policy.py backend/tests/science/test_sst_reference.py backend/tests/science/test_coverage_uncertainty.py backend/tests/science/test_real_reference_replay.py -q",
+  "review_request": "docs/gates/P04/scientific-review-request.md",
+  "method_approval": "PENDING",
+  "prerequisite_G03": "INCOMPLETE",
+  "gate_pass_claimed": false
+}
