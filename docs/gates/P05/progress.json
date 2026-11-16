@@ -2,8 +2,8 @@
   "phase": "P05",
   "updated_on": "2026-11-16",
   "acceptance_status": "in_progress",
-  "current_slice": "P05.2",
-  "slice_status": "implemented_static_checks_passed_live_database_acceptance_pending",
+  "current_slice": "P05.3",
+  "slice_status": "development_worker_handler_boundary_checked_live_database_acceptance_pending",
   "changed_files": [
     "backend/src/orca/contracts/investigations.py",
     "backend/src/orca/application/investigations.py",
@@ -40,7 +40,8 @@
     "P05 development sequencing exception reconciled with a machine-readable decision record",
     "P05.2: atomic tenant-scoped enqueue creates run, reservation, queue record and outbox notification",
     "P05.2: PostgreSQL SKIP LOCKED claim, database-time lease renewal, increasing generation and token fencing",
-    "P05.2: expired lease recovery, stale completion rejection, rollback and reservation-capacity tests"
+    "P05.2: expired lease recovery, stale completion rejection, rollback and reservation-capacity tests",
+    "P05.3: worker handler boundary executes outside database transactions, checkpoints each approved stage and publishes evidence only under a renewed lease"
   ],
   "checks": {
     "focused_pytest": "14 P05 contract tests passed; 5 P05.2 PostgreSQL integration/recovery cases collected and skipped honestly because ORCA_TEST_DATABASE_URL and ORCA_TEST_RUNTIME_DATABASE_URL are unset",
@@ -58,11 +59,11 @@
     "Live Postgres/RLS/digest-trigger verification for P05 approval records",
     "Generated root OpenAPI artifact reconciliation with unrelated dirty P03 changes",
     "Live Postgres/RLS lease, fencing, rollback and reservation acceptance for P05.2",
-    "Worker execution, events or result publication",
+    "Production scientific handler composition, a live completed worker run and event replay acceptance",
     "Scientific method approval or source readiness",
     "P03/P04 acceptance, live data acceptance or Oracle deployment"
   ],
-  "next_slice": "P05.3: bounded worker, durable stages, safe retry/cancellation and crash checkpoints; wire P05.2 queue only after source and method readiness are explicitly enforced",
+  "next_slice": "P05.5: concrete snapshot-to-approved-method handler and live worker/database acceptance; source and scientific-method approval remain prerequisites",
   "migration_revision": "0023_jobs_outbox (parent 0022_plan_approvals)",
   "git": {
     "commit": "56d58ab P05.1-C code, migration and focused-test development commit",
