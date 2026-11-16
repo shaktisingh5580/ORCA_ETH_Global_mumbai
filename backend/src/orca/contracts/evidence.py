@@ -3,6 +3,7 @@ Behavior: require geographic bounds, CRS, units, legend and immutable manifest r
 Refs: main_implementation plan.md P06.1; api design.md §§3.7, 6.6; Phase: P06.
 """
 
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
@@ -42,6 +43,19 @@ class EvidenceClaim(Contract):
     manifest_digest: Digest
     statement: str = Field(min_length=1, max_length=2000)
     support: Literal["supported", "insufficient_evidence", "inconclusive", "invalid"]
+
+
+class ArtifactView(Contract):
+    id: UUID
+    investigation_id: UUID
+    run_id: UUID
+    evidence_manifest_id: UUID
+    manifest_digest: Digest
+    scientific_status: Literal["supported", "insufficient_evidence"]
+    source_mode: Literal["live_real", "preserved_real", "synthetic_test"]
+    method_id: str
+    method_version: str
+    created_at: datetime
 
 
 def validate_claim_support(

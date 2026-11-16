@@ -127,7 +127,11 @@ class S3ObjectStore:
 
     def download_url(self, object_key: str, authorized_tenant: str, expires_in: int = 300) -> str:
         prefix = f"final/{self._segment(authorized_tenant)}/"
-        if not object_key.startswith(prefix):
+        if (
+            not object_key.startswith(prefix)
+            or "\\" in object_key
+            or any(part in {"", ".", ".."} for part in object_key.split("/"))
+        ):
             raise PermissionError("only finalized objects may be downloaded")
         return str(
             self.client.generate_presigned_url(

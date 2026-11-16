@@ -21,11 +21,12 @@ from orca.api.routers.agents import directory_router
 from orca.api.routers.agents import router as agents_router
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
+from orca.api.routers.evidence import router as evidence_router
 from orca.api.routers.files import router as files_router
 from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.identity import router as identity_router
-from orca.api.routers.invitations import router as invitations_router
 from orca.api.routers.investigations import router as investigations_router
+from orca.api.routers.invitations import router as invitations_router
 from orca.api.routers.network import router as network_router
 from orca.api.routers.normalization import router as normalization_router
 from orca.api.routers.organizations import router as organizations_router
@@ -118,6 +119,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(snapshot_requests_router)
     app.include_router(source_probes_router)
     app.include_router(investigations_router)
+    app.include_router(evidence_router)
     if settings.research_demo_enabled:
         app.include_router(demo_router)
     if settings.prototype_enabled:

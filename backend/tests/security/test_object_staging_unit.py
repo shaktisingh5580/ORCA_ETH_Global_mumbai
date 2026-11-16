@@ -103,6 +103,18 @@ def test_unauthorized_download_unit_concealed(store):
         adapter.download_url("final/other-tenant/private", "tenant")
 
 
+def test_object_key_path_traversal(store):
+    adapter, _ = store
+    for key in (
+        "final/tenant/../other",
+        "final/tenant//secret",
+        "final/tenant/./secret",
+        "final/tenant\\secret",
+    ):
+        with pytest.raises(PermissionError):
+            adapter.download_url(key, "tenant")
+
+
 def test_supabase_compatible_bucket_skips_native_versioning(store):
     adapter, fake = store
     adapter.ensure_bucket()

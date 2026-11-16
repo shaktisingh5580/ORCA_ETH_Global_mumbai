@@ -6,7 +6,8 @@
     "P06.1 map descriptor contract with bounds, CRS, units, legend and manifest digest",
     "P06.1 claim-to-immutable-manifest validation and refusal of unsupported claims",
     "P06.2 JSON and escaped HTML report views with explicit scientific status and limitations",
-    "P06.3 portable manifest and ZIP assembler with exact input-byte, object-version and redistribution-rights checks"
+    "P06.3 portable manifest and ZIP assembler with exact input-byte, object-version and redistribution-rights checks",
+    "P06 read-only published artifact list/detail/manifest/lineage routes with project authorization"
   ],
   "verified": [
     "11 focused contract/integration tests passed",
@@ -14,7 +15,7 @@
   ],
   "remaining": [
     "P05 real-source to approved-method to immutable run evidence pipeline",
-    "P06 evidence/map/report/export HTTP persistence and authorization",
+    "P06 map/report/export HTTP persistence and authorization",
     "P06 PDF report generation job and revisioned publication",
     "P06 protected download, range requests, expiry, revocation and cleanup",
     "P06 required database, security, recovery and end-to-end acceptance"
