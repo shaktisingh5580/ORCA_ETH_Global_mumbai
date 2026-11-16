@@ -69,8 +69,8 @@ $env:ORCA_RUNTIME_PASSWORD = (uv run python -c "import secrets; print(secrets.to
 $env:ORCA_S3_ACCESS_KEY = 'orca-local-test'
 $env:ORCA_S3_SECRET_KEY = (uv run python -c "import secrets; print(secrets.token_urlsafe(32))")
 docker compose -f ../infra/compose.yaml up -d --wait
-$env:ORCA_TEST_DATABASE_URL = "postgresql+psycopg://orca_migrator:$($env:ORCA_DB_PASSWORD)@127.0.0.1:55432/orca_test"
-$env:ORCA_TEST_RUNTIME_DATABASE_URL = "postgresql+psycopg://orca_runtime:$($env:ORCA_RUNTIME_PASSWORD)@127.0.0.1:55432/orca_test"
+$env:ORCA_TEST_DATABASE_URL = "postgresql://orca_migrator:$($env:ORCA_DB_PASSWORD)@127.0.0.1:55432/orca_test"
+$env:ORCA_TEST_RUNTIME_DATABASE_URL = "postgresql://orca_runtime:$($env:ORCA_RUNTIME_PASSWORD)@127.0.0.1:55432/orca_test"
 $env:ORCA_TEST_S3_ENDPOINT = 'http://127.0.0.1:59000'
 $env:ORCA_TEST_S3_ACCESS_KEY = $env:ORCA_S3_ACCESS_KEY
 $env:ORCA_TEST_S3_SECRET_KEY = $env:ORCA_S3_SECRET_KEY

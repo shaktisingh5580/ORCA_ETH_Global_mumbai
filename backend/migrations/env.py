@@ -9,6 +9,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from orca.infrastructure.db.engine import sqlalchemy_psycopg_url
 from orca.infrastructure.db.models import Base
 
 config = context.config
@@ -17,6 +18,7 @@ if config.config_file_name:
 database_url = os.environ.get("ORCA_DATABASE_URL")
 if not database_url:
     raise RuntimeError("ORCA_DATABASE_URL is required for migrations")
+database_url = sqlalchemy_psycopg_url(database_url)
 config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 target_metadata = Base.metadata
 
