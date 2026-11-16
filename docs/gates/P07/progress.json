@@ -5,15 +5,17 @@
   "implemented": [
     "P07.3 pure historical snapshot selector requiring an archived original, pinned object version and publication/issuance before the as-of cutoff",
     "P07.4 finite aligned MAE, RMSE and bias calculations with explicit not-evaluable result when held-out truth is absent",
-    "P07.1 numerical reproduction validates exact raw input bytes, origin result digest and registered approved method without claiming institutional independence"
+    "P07.1 numerical reproduction validates exact raw input bytes, origin result digest and registered approved method without claiming institutional independence",
+    "P07.2 scoped reviewer grants, append-only challenges and review opinions, revocation, and response links to a separate immutable artifact"
   ],
   "verified": [
     "13 focused P07 and affected P04 science tests passed",
-    "ruff and mypy passed for new P07 source files"
+    "ruff and mypy passed for new P07 source files",
+    "9 focused P07 review and reproduction tests passed; 0026 migration rendered offline but was not applied to a live database"
   ],
   "remaining": [
     "P07.1 isolated execution environment, actual source retrieval and independent-operator proof",
-    "P07.2 durable challenge and review permissions, taxonomy and correction linkage",
+    "P07.2 live database/RLS validation, challenge adjudication and proof of independent reviewer operation",
     "P07.3 database-backed archival availability proof and historical replay workflow",
     "P07.4 benchmark registry, signed portable review evidence and end-to-end evaluation",
     "P05/P06 prerequisites and P07 gate acceptance"

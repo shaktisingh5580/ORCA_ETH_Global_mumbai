@@ -22,6 +22,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "evidence:read",
             "evidence:write",
             "report:publish",
+            "review:write",
         }
     ),
     "org_admin": frozenset(
@@ -38,6 +39,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "evidence:read",
             "evidence:write",
             "report:publish",
+            "review:write",
         }
     ),
     "principal_investigator": frozenset(
@@ -52,6 +54,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "evidence:read",
             "evidence:write",
             "report:publish",
+            "review:write",
         }
     ),
     "researcher": frozenset(
