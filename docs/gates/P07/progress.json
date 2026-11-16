@@ -1,0 +1,21 @@
+{
+  "phase": "P07",
+  "status": "development_in_progress",
+  "acceptance": "not_passed",
+  "implemented": [
+    "P07.3 pure historical snapshot selector requiring an archived original, pinned object version and publication/issuance before the as-of cutoff",
+    "P07.4 finite aligned MAE, RMSE and bias calculations with explicit not-evaluable result when held-out truth is absent"
+  ],
+  "verified": [
+    "13 focused P07 and affected P04 science tests passed",
+    "ruff and mypy passed for new P07 source files"
+  ],
+  "remaining": [
+    "P07.1 isolated independent reproduction from real pinned inputs and approved method",
+    "P07.2 durable challenge and review permissions, taxonomy and correction linkage",
+    "P07.3 database-backed archival availability proof and historical replay workflow",
+    "P07.4 benchmark registry, signed portable review evidence and end-to-end evaluation",
+    "P05/P06 prerequisites and P07 gate acceptance"
+  ],
+  "oracle_deployment": "deferred_by_user"
+}
