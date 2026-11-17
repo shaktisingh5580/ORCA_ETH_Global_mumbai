@@ -1,6 +1,6 @@
 {
   "phase": "P07.3",
-  "status": "DESIGN_DEPENDENCY_RECORDED",
+  "status": "PARTIALLY_IMPLEMENTED",
   "authority": "main_implementation plan.md P07.3; api design.md sections 3.8 and 4.5",
   "finding": "The current dataset snapshot manifest pins exact content bytes and a retrieval time, but does not record a native object version, forecast issue/valid clocks, or evidence that the archived original was accessible at a past decision cutoff. The pure temporal selector requires these fields. Mapping absent fields to defaults would create false historical availability.",
   "required_next_increment": [
@@ -9,6 +9,7 @@
     "Return inconclusive when the original archival proof is absent; never substitute a later reanalysis or future-issued forecast",
     "Exercise local database, RLS, exact-byte retrieval, and historical negative cases before claiming P07.3 acceptance"
   ],
+  "implemented_increment": "Newly acquired validated observations get an append-only server-stamped archive entry with pinned SHA-256 bytes. The project-scoped selector re-reads and verifies those bytes and rejects cutoff dates before publication, availability, retrieval or archival. This is application-level integrity and timing, not native object lock or independent provider availability proof.",
   "historical_replay_claimed": false,
   "oracle_deployment": "deferred_by_user"
 }
