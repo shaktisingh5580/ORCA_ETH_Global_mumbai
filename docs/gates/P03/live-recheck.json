@@ -196,6 +196,20 @@
     "interpretation": "The fresh metadata and bounded subset/QC read succeeded and the JUnit file preserves its response hashes. The preceding bounded timeout shows source latency remains variable; the retryable connector must continue to surface a clear SOURCE_TIMEOUT if future attempts exhaust their deadline.",
     "gate_effect": "Closes the durable fresh-live-response-digest evidence item for P03.4; G03 remains INCOMPLETE pending consolidated suite and operational/scientific acceptance."
   },
+  "live_transport_resolution_2026_11_17": {
+    "previous_success": "The saved 2026-11-15 ORCA connector run passed metadata in 4.589s and subset/QC in 15.908s; workstation-live-noaa.xml preserves response digests.",
+    "failed_rechecks": "The 2026-11-17 attempts in local-live-increment.xml, local-live-retry.xml and workstation-live-2026-11-17.xml timed out during TLS setup before HTTP response; the last report has SHA-256 e818a5de24186473c17981da238cbdc039adbf8a994129af685d8f36271e6f89.",
+    "diagnostic": "Unrestricted DNS returned public IPv6 before public IPv4. A standard HTTPS metadata read returned HTTP 200 after 40.17s; a direct certificate-validated, host-pinned IPv4 read returned HTTP 200 after 22.31s. The old connector allowed 15s per address and 30s total, making success sensitive to DNS order and TLS latency.",
+    "change": "Validate every DNS result, prefer public IPv4, retain public IPv6 fallback, allow 30s per connection/TLS attempt within a 60s total request and keep response byte limits and redirect rejection.",
+    "regression": "18 acquisition-adapter and egress tests passed; Ruff check and format checks passed.",
+    "live_result": "PASS: both metadata and bounded subset/QC tests passed in 21.58s; workstation-live-ipv4-first.xml has SHA-256 2a616a3f9517b121de70e0d0170e9ee94337b9333a79eea7c7935ac7a7711b50.",
+    "response_digests": {
+      "metadata_sha256": "744fa9fba554057b25cb2433b23d43a295a05a39e61d177b7f84884dcd5a48b8",
+      "subset_sha256": "b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+      "subset_bytes": 176308
+    },
+    "limits": "The metadata response hash differs from the earlier live pass. The test validates scientific metadata shape but does not authorize silent replacement of a pinned catalog version. G03 remains INCOMPLETE for prerequisite and remote acceptance."
+  },
   "local_full_suite_resolution": {
     "result": "212 passed, 60 live tests deselected, 12 warnings in 48.53s",
     "artifact": "docs/gates/P03/backend-regression-recheck.xml",

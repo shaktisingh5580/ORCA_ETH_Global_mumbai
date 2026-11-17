@@ -38,6 +38,14 @@
     "warnings": "Two non-fatal pytest warnings because record_property is paired with configured junit_family=xunit2; all three response properties are present in the saved report.",
     "prior_attempt": "The screenshot records an earlier attempt with one passing case and one SOURCE_TIMEOUT failure after 90.92 seconds; the follow-up JUnit run passed both cases."
   },
+  "current_live_recheck": {
+    "report": "docs/gates/P03/workstation-live-ipv4-first.xml",
+    "report_sha256": "sha256:2a616a3f9517b121de70e0d0170e9ee94337b9333a79eea7c7935ac7a7711b50",
+    "passed": 2,
+    "metadata_sha256": "744fa9fba554057b25cb2433b23d43a295a05a39e61d177b7f84884dcd5a48b8",
+    "subset_sha256": "b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+    "interpretation": "The revised connector succeeded after validated IPv4-first ordering and a bounded 60-second deadline. Different metadata bytes require a separately pinned source version before production acquisition; no silent substitution is permitted."
+  },
   "preserved_baseline": {
     "evidence": "docs/gates/P03/baseline-qualification.json",
     "test_report": "docs/gates/P03/preserved-baseline-qualification.xml",

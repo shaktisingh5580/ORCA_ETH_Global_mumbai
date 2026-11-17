@@ -11,7 +11,7 @@
     "postgres_snapshot_persistence": "PASS: 6 current P03 acquisition worker and snapshot persistence tests on isolated localhost orca_test. See local-database-increment.xml. Earlier post-migration verification is in database-recheck.xml.",
     "fresh_noaa_retrieval": "PASS: user's workstation JUnit run reports 2 passed in 20.65s and preserves metadata SHA-256 6429d8b08900bf214b4211529e891a7d43b211a7dfb593da6e1188537f1933b3, subset SHA-256 b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63 (176308 bytes). The preceding attempt had a bounded SOURCE_TIMEOUT, so latency is variable. See live-recheck.json and workstation-live-noaa.xml.",
     "phase_gate": "not passed",
-    "erddap_address_failover_regression": "PASS: 17 acquisition-adapter and egress tests, including bounded failover across validated public IPv6/IPv4 addresses; Ruff check and format checks passed.",
+    "erddap_address_failover_regression": "PASS: 18 acquisition-adapter and egress tests, including public IPv4-first ordering and bounded public IPv6 fallback; Ruff check and format checks passed.",
     "baseline_input_qualification": "PASS: preserved real January 2025 and 2003-2022 MUR subsets re-parsed and SHA-256/byte checked; 20 same-product January years, 11x11 native grid and 3,751 current / 75,020 baseline valid cells. This verifies input compatibility only, not method validity or a climate normal. See baseline-qualification.json and preserved-baseline-qualification.xml.",
     "local_consolidated_suite": "PASS: 212 passed, 60 live cases deselected, 12 deprecation warnings in 48.53s outside restricted sandbox. JUnit: docs/gates/P03/backend-regression-recheck.xml. Live and database gate requirements remain separate.",
     "fresh_noaa_prior_attempt": "The earlier attempt in the same screenshot showed 1 failed and 1 passed in 90.92 seconds; the subset request ended in SOURCE_TIMEOUT. The subsequent JUnit-backed rerun passed both tests.",
@@ -19,7 +19,7 @@
     "local_recovery_storage": "PASS: 11 tests in local PostGIS/MinIO; see local-recovery-storage.xml. Remote cloud acceptance is separate.",
     "required_named_cases": "25/25 have passing JUnit evidence across recorded runs; see database-recovery-acceptance.json. This does not itself pass the phase gate.",
     "prerequisite_validation": "STALE: P02 source hash evidence predates current P03 and later-phase development; predecessor evidence needs revalidation before G03 acceptance.",
-    "current_live_retry": "FAIL: opt-in NOAA connector metadata and subset cases timed out during TLS setup before HTTP response on 2026-11-17; see local-live-retry.xml. Saved workstation-live-noaa.xml still records a genuine passing retrieval with response digests. Current availability is intermittent.",
+    "current_live_retry": "PASS after transport adjustment: 2 opt-in NOAA connector cases passed in 21.58 seconds on 2026-11-17; see workstation-live-ipv4-first.xml. The earlier same-day TLS timeouts remain in local-live-retry.xml. A standard HTTPS metadata read took 40 seconds, while a direct pinned IPv4 read took 22 seconds; the old IPv6-first 15-second per-address budget was insufficient. The new connector prefers validated IPv4 and allows 30 seconds per address within 60 seconds total. Metadata response digest differs from the earlier passing run; the subset digest is identical.",
     "generated_contracts": "PASS: regenerated runtime OpenAPI and TypeScript contracts, then 2 deterministic export checks passed.",
     "current_evidence": "docs/gates/P03/local-implementation-evidence.json"
   },
@@ -42,7 +42,7 @@
     "P02 prerequisite source hashes are stale against current development; revalidate predecessor evidence before G03 acceptance.",
     "Oracle compose inspected is a historical prototype deployment; P03 acquisition-worker deployment and actual remote recovery acceptance remain unverified.",
     "Complete final consolidated gate/report reconciliation and scientific method/QC acceptance; current focused static checks pass and input qualification does not imply method approval.",
-    "Fresh NOAA retries intermittently time out during TLS setup; preserve passing source evidence and failed attempt history, and recheck availability for deployment acceptance."
+    "Preserve both passing and failed NOAA attempts; source metadata bytes changed between passing runs, so pinned source-version matching and availability must be rechecked at deployment acceptance."
   ],
   "baseline_decision": "docs/decisions/P03-baseline-deferral.json (historical deferral superseded by full-plan authority; see docs/gates/P03/baseline-qualification.json)",
   "live_source_evidence": "docs/gates/P03/live-evidence.json (consolidated fresh response digests; detailed attempt history in live-recheck.json)",

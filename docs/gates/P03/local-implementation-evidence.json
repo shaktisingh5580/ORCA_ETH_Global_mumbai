@@ -33,7 +33,15 @@
       "report": "docs/gates/P03/local-live-retry.xml",
       "sha256": "89f5af9000ace86f2f4fa6231195f145f9ea9ecd6fc9841da0dfd9555892d3b5"
     },
-    "interpretation": "The saved passing run establishes an actual bounded source retrieval; the current retry shows availability is intermittent and does not replace that evidence. Neither run establishes scientific method validity."
+    "ipv4_first_resolution": {
+      "result": "PASS: 2 live NOAA connector cases after preferring validated IPv4 and raising per-address TLS budget to 30 seconds within a 60 second request",
+      "report": "docs/gates/P03/workstation-live-ipv4-first.xml",
+      "sha256": "2a616a3f9517b121de70e0d0170e9ee94337b9333a79eea7c7935ac7a7711b50",
+      "metadata_sha256": "744fa9fba554057b25cb2433b23d43a295a05a39e61d177b7f84884dcd5a48b8",
+      "subset_sha256": "b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+      "subset_bytes": 176308
+    },
+    "interpretation": "The saved and current passing runs establish actual bounded source retrieval. The failing runs and a 40-second successful standard HTTPS read exposed the old 15-second per-address/30-second total budget and IPv6-first DNS order as the likely cause of the recent connector failures. Metadata response bytes changed between passing runs; pinned source versions must still reject unexpected metadata drift. Neither run establishes scientific method validity."
   },
   "gate_blockers": [
     "G02 source-hash prerequisite must be revalidated against current development inputs",
