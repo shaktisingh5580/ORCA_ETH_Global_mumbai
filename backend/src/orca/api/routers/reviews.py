@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException, Request
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
@@ -18,11 +18,13 @@ from orca.api.routers.projects import engine
 from orca.application.workspace_access import authorize_project
 from orca.contracts.scientific_reviews import (
     ChallengeRequest,
+    ChallengeResolutionView,
     ChallengeResponseRequest,
     ChallengeResponseView,
     ChallengeView,
     IndependentReviewRequest,
     IndependentReviewView,
+    ResolveChallengeRequest,
     ReviewGrantRequest,
     ReviewGrantView,
 )
@@ -87,6 +89,13 @@ def _original(session: Any, tenant: UUID, artifact_id: UUID) -> tuple[Any, Any]:
     row = _artifact_row(session, tenant, artifact_id)
     manifest, _ = _verified(row)
     return row, manifest
+
+
+def _require_separate_resolver(
+    subject: str, origin_author: str, challenger: str, responders: set[str]
+) -> None:
+    if subject in {origin_author, challenger} or subject in responders:
+        raise HTTPException(403, "A separate resolver is required")
 
 
 @router.post(
@@ -224,7 +233,16 @@ def list_challenges(
             session.execute(
                 text("""SELECT c.id,c.artifact_id,c.reviewer_subject,c.discrepancy_type,
                 c.source_refs,c.statement,c.created_at,
-                CASE WHEN EXISTS(SELECT 1 FROM research.challenge_responses r
+                (SELECT count(*) FROM research.challenge_responses r
+                  WHERE r.tenant_id=c.tenant_id AND r.project_id=c.project_id
+                    AND r.challenge_id=c.id) AS response_count,
+                CASE WHEN EXISTS(SELECT 1 FROM research.challenge_resolutions z
+                  WHERE z.tenant_id=c.tenant_id AND z.project_id=c.project_id
+                    AND z.challenge_id=c.id AND z.verdict='inconclusive') THEN 'inconclusive'
+                  WHEN EXISTS(SELECT 1 FROM research.challenge_resolutions z
+                  WHERE z.tenant_id=c.tenant_id AND z.project_id=c.project_id
+                    AND z.challenge_id=c.id) THEN 'resolved'
+                  WHEN EXISTS(SELECT 1 FROM research.challenge_responses r
                   WHERE r.tenant_id=c.tenant_id AND r.project_id=c.project_id
                     AND r.challenge_id=c.id) THEN 'responded' ELSE 'open' END AS status
               FROM research.scientific_challenges c
@@ -256,6 +274,10 @@ def respond_to_challenge(
         raise HTTPException(404, "Challenge not found")
     tenant = cast(UUID, resolved)
     with TenantUnitOfWork(engine(request), tenant) as session:
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(CAST(:id AS text),0))"),
+            {"id": challenge_id},
+        )
         challenge = (
             session.execute(
                 text("""SELECT project_id,artifact_id FROM research.scientific_challenges
@@ -267,6 +289,13 @@ def respond_to_challenge(
         )
         if challenge is None:
             raise HTTPException(404, "Challenge not found")
+        terminal = session.execute(
+            text("""SELECT 1 FROM research.challenge_resolutions
+              WHERE tenant_id=:tenant AND challenge_id=:challenge"""),
+            {"tenant": tenant, "challenge": challenge_id},
+        ).scalar_one_or_none()
+        if terminal is not None:
+            raise HTTPException(409, "Challenge has already been resolved")
         try:
             authorize_project(session, tenant, challenge["project_id"], principal, "evidence:write")
         except (LookupError, PermissionError) as error:
@@ -300,6 +329,99 @@ def respond_to_challenge(
             .one()
         )
         return ChallengeResponseView.model_validate(created)
+
+
+@router.post(
+    "/challenges/{challenge_id}/resolve", response_model=ChallengeResolutionView, status_code=201
+)
+def resolve_challenge(
+    challenge_id: UUID,
+    body: ResolveChallengeRequest,
+    request: Request,
+    principal: CurrentPrincipal,
+    if_match: str = Header(),
+) -> ChallengeResolutionView:
+    with engine(request).connect() as connection:
+        resolved = connection.execute(
+            text("SELECT iam.resolve_challenge_tenant(:subject,:challenge)"),
+            {"subject": principal.subject, "challenge": challenge_id},
+        ).scalar_one_or_none()
+    if resolved is None:
+        raise HTTPException(404, "Challenge not found")
+    tenant = cast(UUID, resolved)
+    with TenantUnitOfWork(engine(request), tenant) as session:
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(CAST(:id AS text),0))"),
+            {"id": challenge_id},
+        )
+        challenge = (
+            session.execute(
+                text("""SELECT project_id,artifact_id,reviewer_subject
+                  FROM research.scientific_challenges
+                  WHERE tenant_id=:tenant AND id=:challenge"""),
+                {"tenant": tenant, "challenge": challenge_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if challenge is None:
+            raise HTTPException(404, "Challenge not found")
+        response_count = session.execute(
+            text("""SELECT count(*) FROM research.challenge_responses
+              WHERE tenant_id=:tenant AND challenge_id=:challenge"""),
+            {"tenant": tenant, "challenge": challenge_id},
+        ).scalar_one()
+        if if_match != f'"{challenge_id}:{response_count}"':
+            raise HTTPException(412, "Challenge response state changed")
+        original, manifest = _original(session, tenant, challenge["artifact_id"])
+        _review_access(
+            session, tenant, original["project_id"], original["id"], principal, write=True
+        )
+        responders = session.execute(
+            text("""SELECT responder_subject FROM research.challenge_responses
+              WHERE tenant_id=:tenant AND challenge_id=:challenge"""),
+            {"tenant": tenant, "challenge": challenge_id},
+        ).scalars()
+        _require_separate_resolver(
+            principal.subject, manifest.created_by, challenge["reviewer_subject"], set(responders)
+        )
+        for artifact_id in body.arbitration_refs:
+            reference, _ = _original(session, tenant, artifact_id)
+            if (
+                artifact_id == original["id"]
+                or reference["project_id"] != original["project_id"]
+                or reference["investigation_id"] != original["investigation_id"]
+            ):
+                raise HTTPException(
+                    422, "Arbitration must reference separate investigation evidence"
+                )
+        try:
+            created = (
+                session.execute(
+                    text("""INSERT INTO research.challenge_resolutions
+                      (id,tenant_id,project_id,challenge_id,resolver_subject,verdict,
+                       arbitration_refs,limitations)
+                      VALUES(:id,:tenant,:project,:challenge,:actor,:verdict,
+                             CAST(:refs AS jsonb),:limitations)
+                      RETURNING id,challenge_id,resolver_subject,verdict,arbitration_refs,
+                        limitations,independence_verified,created_at"""),
+                    {
+                        "id": uuid4(),
+                        "tenant": tenant,
+                        "project": original["project_id"],
+                        "challenge": challenge_id,
+                        "actor": principal.subject,
+                        "verdict": body.verdict,
+                        "refs": json.dumps([str(item) for item in body.arbitration_refs]),
+                        "limitations": body.limitations,
+                    },
+                )
+                .mappings()
+                .one()
+            )
+        except IntegrityError as error:
+            raise HTTPException(409, "Challenge already has a resolution") from error
+        return ChallengeResolutionView.model_validate(created)
 
 
 @router.post(

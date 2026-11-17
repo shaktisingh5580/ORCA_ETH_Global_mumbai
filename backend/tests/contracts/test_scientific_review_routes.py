@@ -15,7 +15,11 @@ from pydantic import SecretStr, ValidationError
 from orca.api.app import create_app
 from orca.api.routers import evidence, reviews
 from orca.config import Settings
-from orca.contracts.scientific_reviews import ChallengeRequest
+from orca.contracts.scientific_reviews import (
+    ChallengeRequest,
+    ChallengeView,
+    ResolveChallengeRequest,
+)
 from orca.domain.identity import Principal
 
 
@@ -35,6 +39,7 @@ def test_p07_review_routes_are_registered() -> None:
     assert "post" in document["paths"]["/v1/research/artifacts/{artifact_id}/challenges"]
     assert "post" in document["paths"]["/v1/research/artifacts/{artifact_id}/reviews"]
     assert "post" in document["paths"]["/v1/research/artifacts/{artifact_id}/review-grants"]
+    assert "post" in document["paths"]["/v1/research/challenges/{challenge_id}/resolve"]
 
 
 @pytest.mark.parametrize("revoked,expired", [(True, False), (False, True)])
@@ -75,6 +80,49 @@ def test_challenge_references_are_unique() -> None:
             source_refs=[source, source],
             statement="Wrong baseline year",
         )
+
+
+def test_resolution_requires_distinct_evidence_for_conclusive_verdict() -> None:
+    source = uuid4()
+    with pytest.raises(ValidationError, match="immutable evidence reference"):
+        ResolveChallengeRequest(verdict="rejected", limitations="No verified reference")
+    with pytest.raises(ValidationError, match="unique"):
+        ResolveChallengeRequest(
+            verdict="upheld",
+            arbitration_refs=[source, source],
+            limitations="Duplicate evidence cannot establish the resolution",
+        )
+    assert (
+        ResolveChallengeRequest(
+            verdict="inconclusive", limitations="Evidence is insufficient to adjudicate"
+        ).arbitration_refs
+        == []
+    )
+
+
+def test_challenge_etag_binds_exact_immutable_record() -> None:
+    identifier = uuid4()
+    view = ChallengeView(
+        id=identifier,
+        artifact_id=uuid4(),
+        reviewer_subject="reviewer",
+        discrepancy_type="wrong_baseline",
+        source_refs=[uuid4()],
+        statement="The baseline does not match the claim",
+        created_at=datetime.now(timezone.utc),
+    )
+    assert view.model_dump()["etag"] == f'"{identifier}:0"'
+    assert view.model_copy(update={"response_count": 1}).etag == f'"{identifier}:1"'
+
+
+@pytest.mark.parametrize("actor", ["author", "challenger", "responder"])
+def test_resolution_rejects_self_adjudication(actor: str) -> None:
+    with pytest.raises(HTTPException) as caught:
+        reviews._require_separate_resolver(actor, "author", "challenger", {"responder"})
+    assert caught.value.status_code == 403
+    reviews._require_separate_resolver(
+        "independent-reviewer", "author", "challenger", {"responder"}
+    )
 
 
 def test_external_reviewer_artifact_read_requires_scope_and_active_grant(
