@@ -1,9 +1,10 @@
-"""Purpose: expose P08 organization-scoped job, source and operation reads.
+"""Purpose: expose P08 organization-scoped job, source, usage and operation reads.
 Behavior: intersect token and membership scope, read RLS-protected rows, and redact unknowns.
 Refs: main_implementation plan.md P08.1; api design.md §§3.9, 14; Phase: P08.
 """
 
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID
 
@@ -14,11 +15,13 @@ from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.projects import engine, resolve_tenant
 from orca.application.workspace_access import authorize_project
 from orca.contracts.common import Operation, Page, ResourceRef
-from orca.contracts.operations import JobHealthSummary, SourceHealthView
+from orca.contracts.operations import JobHealthSummary, SourceHealthView, UsageSummary
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 
 router = APIRouter(prefix="/v1/admin", tags=["operations"])
 operation_router = APIRouter(prefix="/v1/operations", tags=["operations"])
+usage_router = APIRouter(prefix="/v1/organizations", tags=["operations"])
+_BUDGET_UNIT = Decimal("0.00000001")
 
 _OPERATION_ROWS = """SELECT q.id,q.project_id,q.run_id,q.state AS queue_state,q.generation,
   q.created_at,q.updated_at,r.investigation_id,r.plan_digest,r.state AS run_state
@@ -272,4 +275,56 @@ def source_health(
         items=items,
         next_cursor=str(page[-1]["distribution_id"]) if len(rows) > limit else None,
         page_size=limit,
+    )
+
+
+@usage_router.get("/{org_id}/usage", response_model=UsageSummary)
+def organization_usage(
+    org_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    window: Literal["24h", "7d", "30d"],
+    group_by: Literal["organization"] = "organization",
+) -> UsageSummary:
+    """Return recorded run-budget ceilings without inventing actual spend."""
+    database = engine(request)
+    tenant, roles = resolve_tenant(database, principal, org_id)
+    try:
+        principal.require("org:read", roles)
+    except PermissionError as error:
+        raise HTTPException(403, "Organization read scope required") from error
+    observed_at = datetime.now(timezone.utc)
+    duration = {"24h": timedelta(days=1), "7d": timedelta(days=7), "30d": timedelta(days=30)}
+    window_start = observed_at - duration[window]
+    with TenantUnitOfWork(database, tenant) as session:
+        row = (
+            session.execute(
+                text("""SELECT count(*) AS run_reservations_created,
+                  count(*) FILTER (WHERE state='reserved') AS active_reservations_created,
+                  coalesce(sum(amount) FILTER (WHERE state='reserved'),0) AS reserved_ceiling,
+                  coalesce(sum(amount) FILTER (WHERE state='released'),0) AS released_ceiling,
+                  coalesce(sum(amount) FILTER (WHERE state='settled'),0) AS settled_ceiling
+                  FROM research.run_budget_reservations
+                  WHERE tenant_id=:tenant AND created_at>=:start AND created_at<:end"""),
+                {"tenant": tenant, "start": window_start, "end": observed_at},
+            )
+            .mappings()
+            .one()
+        )
+    return UsageSummary(
+        organization_id=org_id,
+        window=window,
+        window_start=window_start,
+        observed_at=observed_at,
+        run_reservations_created=int(row["run_reservations_created"]),
+        active_reservations_created=int(row["active_reservations_created"]),
+        reserved_budget_ceiling_usd=format(
+            Decimal(row["reserved_ceiling"]).quantize(_BUDGET_UNIT), "f"
+        ),
+        released_budget_ceiling_usd=format(
+            Decimal(row["released_ceiling"]).quantize(_BUDGET_UNIT), "f"
+        ),
+        settled_budget_ceiling_usd=format(
+            Decimal(row["settled_ceiling"]).quantize(_BUDGET_UNIT), "f"
+        ),
     )

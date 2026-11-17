@@ -1,0 +1,11 @@
+{
+  "phase": "P08.1",
+  "status": "LOCAL_DEVELOPMENT_VERIFIED",
+  "authority": "main_implementation plan.md P08.1; api design.md section 3.9; P05 atomic budget reservations",
+  "endpoint": "GET /v1/organizations/{org_id}/usage",
+  "decision": "Require org:read scope and server-resolved organization membership. Accept only 24h, 7d or 30d windows and organization grouping. Aggregate tenant-RLS run budget reservations created within the selected window.",
+  "meaning": "Amounts are eight-decimal USD budget ceilings, grouped by current reservation state. A released ceiling is capacity returned to the plan, not money spent or saved. Actual billing, model tokens and source bytes are null because durable accounting for them does not exist.",
+  "local_verification": "17 affected HTTP/contract tests and three disposable PostgreSQL tests passed, including real budget reservation and release plus P05 queue regressions.",
+  "remaining": "True usage metering, organization quotas by source/model/task, throughput rate limits and staging acceptance remain open. The mandatory P08 test_budget_accounting_and_rate_limit assertion cannot pass until rate limits exist.",
+  "oracle_deployment": "deferred_by_user"
+}

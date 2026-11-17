@@ -5873,6 +5873,87 @@
         "title": "UploadStatus",
         "type": "object"
       },
+      "UsageSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "accounting_status": {
+            "const": "budget_reservations_only",
+            "default": "budget_reservations_only",
+            "title": "Accounting Status",
+            "type": "string"
+          },
+          "active_reservations_created": {
+            "title": "Active Reservations Created",
+            "type": "integer"
+          },
+          "actual_spend_usd": {
+            "title": "Actual Spend Usd",
+            "type": "null"
+          },
+          "model_tokens": {
+            "title": "Model Tokens",
+            "type": "null"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "released_budget_ceiling_usd": {
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Released Budget Ceiling Usd",
+            "type": "string"
+          },
+          "reserved_budget_ceiling_usd": {
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Reserved Budget Ceiling Usd",
+            "type": "string"
+          },
+          "run_reservations_created": {
+            "title": "Run Reservations Created",
+            "type": "integer"
+          },
+          "settled_budget_ceiling_usd": {
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Settled Budget Ceiling Usd",
+            "type": "string"
+          },
+          "source_bytes": {
+            "title": "Source Bytes",
+            "type": "null"
+          },
+          "window": {
+            "enum": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "title": "Window",
+            "type": "string"
+          },
+          "window_start": {
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "window",
+          "window_start",
+          "observed_at",
+          "run_reservations_created",
+          "active_reservations_created",
+          "reserved_budget_ceiling_usd",
+          "released_budget_ceiling_usd",
+          "settled_budget_ceiling_usd"
+        ],
+        "title": "UsageSummary",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -8783,6 +8864,80 @@
         "summary": "Patch Policy",
         "tags": [
           "workspace access"
+        ]
+      }
+    },
+    "/v1/organizations/{org_id}/usage": {
+      "get": {
+        "description": "Return recorded run-budget ceilings without inventing actual spend.",
+        "operationId": "organization_usage_v1_organizations__org_id__usage_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Org Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": true,
+            "schema": {
+              "enum": [
+                "24h",
+                "7d",
+                "30d"
+              ],
+              "title": "Window",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "group_by",
+            "required": false,
+            "schema": {
+              "const": "organization",
+              "default": "organization",
+              "title": "Group By",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Organization Usage",
+        "tags": [
+          "operations"
         ]
       }
     },

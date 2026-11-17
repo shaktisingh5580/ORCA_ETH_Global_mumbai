@@ -33,7 +33,7 @@ from orca.api.routers.investigations import router as investigations_router
 from orca.api.routers.invitations import router as invitations_router
 from orca.api.routers.network import router as network_router
 from orca.api.routers.normalization import router as normalization_router
-from orca.api.routers.operations import operation_router
+from orca.api.routers.operations import operation_router, usage_router
 from orca.api.routers.operations import router as operations_router
 from orca.api.routers.organizations import router as organizations_router
 from orca.api.routers.projects import router as projects_router
@@ -150,6 +150,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(reports_router)
     app.include_router(operations_router)
     app.include_router(operation_router)
+    app.include_router(usage_router)
     if settings.research_demo_enabled:
         app.include_router(demo_router)
     if settings.prototype_enabled:

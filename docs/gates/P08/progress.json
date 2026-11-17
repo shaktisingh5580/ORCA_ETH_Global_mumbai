@@ -6,16 +6,18 @@
     "P08.1 readiness reports actual database probe status and approved science policy presence while remaining HTTP 503 until core release gates are accepted; liveness asserts only process health",
     "P08.1 tenant-scoped research job health exposes bounded queue and attempt counts under org owner/admin plus ops:read scope; unknown fencing failures and worker status are explicitly null/unknown",
     "P08.1 operation detail/list project P05 research_run queue jobs into bounded status reads; detail accepts the P05 run ID alias while lists use canonical job IDs; role/token and project access are checked",
-    "P08.1 source health reads the latest durable metadata-access probe per catalog distribution under source:manage and tenant RLS; redacts probe payloads and never claims scientific validation"
+    "P08.1 source health reads the latest durable metadata-access probe per catalog distribution under source:manage and tenant RLS; redacts probe payloads and never claims scientific validation",
+    "P08.1 organization usage reports durable run budget reservation ceilings for bounded windows; actual spend, model tokens and source bytes remain unknown"
   ],
   "verified": [
     "11 focused P08 and prior P01 metadata/health contract tests passed through HTTP TestClient; Ruff, mypy and purpose headers passed. Database success and failure paths used test doubles, not staging acceptance.",
     "14 focused P08/P01/role HTTP contract tests passed after generated OpenAPI refresh; three disposable local PostgreSQL tests passed, covering a real tenant-scoped queue summary and affected P05 queue regressions. Ruff, mypy, purpose headers and generated contract check passed. No staging acceptance is claimed.",
     "15 focused HTTP/contract tests passed for operation detail/list and existing health/role contracts; one disposable PostgreSQL integration test read a queued job by both identifiers, verified state filters and cursor behavior, and concealed detail without project read scope. Ruff, mypy, purpose headers and generated OpenAPI check passed.",
-    "16 focused P08/source-probe/OpenAPI HTTP contracts passed; one disposable PostgreSQL test verified source-health access labels, never-checked state and tenant isolation. External NOAA and staging health remain unverified."
+    "16 focused P08/source-probe/OpenAPI HTTP contracts passed; one disposable PostgreSQL test verified source-health access labels, never-checked state and tenant isolation. External NOAA and staging health remain unverified.",
+    "17 focused P08/P01/role HTTP contracts passed; three disposable PostgreSQL tests verified actual budget reservation/release and affected P05 queue behavior. Actual billing is not measured and rate limiting remains unimplemented."
   ],
   "remaining": [
-    "P08.1 additional operation families, budget, audit and telemetry APIs; structured retryable failures, worker/fencing observability, external source and staging status",
+    "P08.1 true usage metering, source/model/task quotas, throughput rate limits, audit and telemetry APIs; additional operation families, structured retryable failures, worker/fencing observability, external source and staging status",
     "P08.2 backup/restore, retention, schema rollout and seedless staging",
     "P08.3 live frontend integration with generated contracts",
     "P08.4 threat model, load baseline, live science regressions and prior gate acceptance"

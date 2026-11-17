@@ -1,10 +1,11 @@
 """Purpose: verify P08 readiness, liveness and operational HTTP reads.
-Behavior: check health probes, scopes, job/source status paths and secret redaction.
+Behavior: check health probes, scopes, job/source/usage paths and secret redaction.
 Refs: main_implementation plan.md P08.1; api design.md §§3.1, 14; Phase: P08.
 """
 
 import secrets
 from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import uuid4
 
 import pytest
@@ -264,3 +265,58 @@ def test_source_health_scope_and_redaction(monkeypatch: pytest.MonkeyPatch) -> N
         assert "private" not in response.text
         roles = {"viewer"}
         assert client.get(path).status_code == 403
+
+
+@pytest.mark.enable_socket
+def test_usage_reports_reservations_without_spend(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = create_app(
+        Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+    )
+    organization_id, tenant = uuid4(), uuid4()
+    principal = Principal("viewer", "test", frozenset())
+    app.dependency_overrides[current_principal] = lambda: principal
+    monkeypatch.setattr(operations, "engine", lambda *_args: object())
+    monkeypatch.setattr(operations, "resolve_tenant", lambda *_args: (tenant, {"viewer"}))
+
+    class Result:
+        def mappings(self):
+            return self
+
+        def one(self):
+            return dict(
+                run_reservations_created=2,
+                active_reservations_created=1,
+                reserved_ceiling=Decimal("2.00"),
+                released_ceiling=Decimal("1.50"),
+                settled_ceiling=Decimal("0"),
+            )
+
+    class Session:
+        def execute(self, statement: object, params: dict[str, object]) -> Result:
+            assert params["tenant"] == tenant
+            assert "run_budget_reservations" in str(statement)
+            return Result()
+
+    class UnitOfWork:
+        def __init__(self, *_args: object) -> None:
+            pass
+
+        def __enter__(self) -> Session:
+            return Session()
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+    monkeypatch.setattr(operations, "TenantUnitOfWork", UnitOfWork)
+    path = f"/v1/organizations/{organization_id}/usage?window=24h"
+    with TestClient(app) as client:
+        assert client.get(path).status_code == 403
+        principal = Principal("viewer", "test", frozenset({"org:read"}))
+        response = client.get(path)
+        assert response.status_code == 200
+        assert response.json()["reserved_budget_ceiling_usd"] == "2.00000000"
+        assert response.json()["released_budget_ceiling_usd"] == "1.50000000"
+        assert response.json()["actual_spend_usd"] is None
+        assert response.json()["model_tokens"] is None
+        assert response.json()["accounting_status"] == "budget_reservations_only"
+        assert client.get(path.replace("24h", "1h")).status_code == 422

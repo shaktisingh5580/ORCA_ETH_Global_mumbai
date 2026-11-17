@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from orca.contracts.common import Contract, UTCDateTime
+from orca.contracts.common import Contract, Money, UTCDateTime
 
 
 class JobHealthSummary(Contract):
@@ -60,3 +60,19 @@ class SourceHealthView(Contract):
     error_code: Literal["SOURCE_PROBE_REJECTED", "SOURCE_UNAVAILABLE"] | None
     metadata_access_passed: bool
     science_validated: Literal[False] = False
+
+
+class UsageSummary(Contract):
+    organization_id: UUID
+    window: Literal["24h", "7d", "30d"]
+    window_start: UTCDateTime
+    observed_at: UTCDateTime
+    run_reservations_created: int
+    active_reservations_created: int
+    reserved_budget_ceiling_usd: Money
+    released_budget_ceiling_usd: Money
+    settled_budget_ceiling_usd: Money
+    actual_spend_usd: None = None
+    model_tokens: None = None
+    source_bytes: None = None
+    accounting_status: Literal["budget_reservations_only"] = "budget_reservations_only"
