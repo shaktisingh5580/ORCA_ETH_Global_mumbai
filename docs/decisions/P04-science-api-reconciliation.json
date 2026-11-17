@@ -1,0 +1,21 @@
+{
+  "phase": "P04",
+  "status": "DEVELOPMENT_DECISION_PENDING_GATE_ACCEPTANCE",
+  "references": [
+    "main_implementation plan.md P04.1-P04.4",
+    "api design.md section 3.5",
+    "docs/gates/P04/scientific-review-request.md"
+  ],
+  "authorization": "All eight P04 science operations require an authenticated principal and active organization membership. Dataset-read is required for method and codebook reads; research-plan is required for templates, policies and validation. organization_id is an explicit query field for reads and a body field for validation so the server can resolve the tenant and intersect token and role scopes.",
+  "method_visibility": "Only exact approved method versions appear. No production approval bundle is configured by default, so lists are empty and detail lookups return 404 until human scientific review is recorded.",
+  "singular_policy_and_codebook": "The API design names singular response DTOs while marking method/version and source/variable filters optional. This implementation requires the exact identifying pair and returns 422 when omitted, avoiding an arbitrary default selection or cross-source policy ambiguity.",
+  "recipe_validation": "Static method and stored catalog-version metadata checks only. A source-compatible response remains requires_source_validation and scientific_finding=false; the result does not prove coverage, uncertainty, fresh acquisition or a supported SST claim.",
+  "approval_activation": "An operator explicitly configures ORCA_SCIENCE_APPROVAL_BUNDLE_FILE only after checking an identifiable human review attestation. The loader verifies its bytes, exact method and policy, and SHA-256 digests of all reviewed science modules. It cannot itself establish the reviewer's professional identity.",
+  "open_acceptance": [
+    "G03 prerequisite revalidation and acceptance",
+    "Written independent scientific approval of method, QC, thresholds, tolerances and claim language",
+    "Aggregate generated OpenAPI contract reconciliation with unrelated P03/P05-P07 development",
+    "Final G04 gate regression and report"
+  ],
+  "gate_pass_claimed": false
+}

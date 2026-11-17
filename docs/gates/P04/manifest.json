@@ -74,7 +74,8 @@
     "approval_loader": "Optional operator-pinned bundle verifies human review record and exact implementation byte digests at startup; no production approval bundle is present.",
     "focused_tests": "37 passed across P04 HTTP, approval-bundle and science regression tests; 2 local PostGIS evidence-integrity tests passed.",
     "static_checks": "Ruff, mypy, authored-file headers and import boundaries passed; in-memory OpenAPI schema validated.",
-    "gate_pass_claimed": false
+    "gate_pass_claimed": false,
+    "consolidated_junit": "PASS: 39 local tests, 0 fail, 0 skip; all 19 named G04 cases pass. docs/gates/P04/local-g04-recheck.xml and required-case-recheck.json."
   },
   "database_validation": {
     "result": "PASS: both tests in backend/tests/integration/test_evidence_fk.py passed against isolated local orca_test after migration 0020",

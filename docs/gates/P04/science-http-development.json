@@ -19,5 +19,6 @@
   "known_contract_drift": "The aggregate contracts/openapi/orca-v1.json predates P05-P07 committed routes and shares an unrelated uncommitted P03 generated-contract change. The existing deterministic export regression fails on this file. This is not counted as a pass.",
   "scientific_review": "PENDING",
   "prerequisite_G03": "INCOMPLETE",
-  "gate_pass_claimed": false
+  "gate_pass_claimed": false,
+  "consolidated_local_check": "39 passed, 0 failed, 0 skipped; all 19 mandatory G04 named cases passed across local PostGIS and science/API checks. JUnit: docs/gates/P04/local-g04-recheck.xml."
 }
