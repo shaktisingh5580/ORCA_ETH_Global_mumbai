@@ -13,7 +13,7 @@
     "P08.1 GET/PATCH quotas exposes and versions the enforced run-start ceiling under If-Match, persists the limit with tenant RLS and appends a redacted quota-change audit event; source/model/remote-task quotas remain explicitly not enforced",
     "P08.1 HTTP telemetry logs only registered route templates, method, status, bounded duration and server-generated request ID; raw paths, queries, headers and bodies are excluded",
     "P08.2 capture/verify tooling compares restored database reference rows and migration revision with a digest-pinned manifest, then streams exact S3 native versions or content-addressed object bytes through SHA-256 checks; staging restore acceptance is not claimed",
-    "P08.3 dashboard network view consumes the paginated P09 service directory contract and displays qualification, ENS and research-dispatch status without inferring trust"
+    "P08.3 dashboard network view consumes the paginated P09 service directory contract and displays qualification, ENS and research-dispatch status without inferring trust; directory stays readable when the separate coordination profile returns 503"
   ],
   "verified": [
     "11 focused P08 and prior P01 metadata/health contract tests passed through HTTP TestClient; Ruff, mypy and purpose headers passed. Database success and failure paths used test doubles, not staging acceptance.",

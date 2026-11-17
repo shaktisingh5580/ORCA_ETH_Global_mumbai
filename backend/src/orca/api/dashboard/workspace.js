@@ -128,13 +128,16 @@ async function loadNetwork() {
   $('network-refresh').disabled = true;
   empty('network-agents','Loading registered services…');
   try {
-    const [page, profile] = await Promise.all([api(`/v1/network/agents?organization_id=${encodeURIComponent(organization)}`),api('/v1/network/config')]);
+    const [directoryResult, profileResult] = await Promise.allSettled([api(`/v1/network/agents?organization_id=${encodeURIComponent(organization)}`),api('/v1/network/config')]);
     if (generation !== state.generation) return;
+    if (directoryResult.status === 'rejected') throw directoryResult.reason;
+    const page = directoryResult.value;
     const agents = page.items;
     if (!Array.isArray(agents)) throw new Error('The service directory returned an invalid page.');
     if (!agents.length) empty('network-agents','No services are registered for this organization.');
     else fill('network-agents',agents.map(a=>`<div class="review-card"><strong>${esc(a.name)}</strong><p>${esc(a.capability)}</p>${badge(a.provider_mode)}<p class="muted">${a.service_eligible ? 'Service qualified' : 'Service not currently qualified'} · ENS ${a.ens_verified ? 'verified' : 'not verified'} · Research dispatch ${a.research_dispatch_enabled ? 'enabled' : 'disabled'}</p></div>`).join(''));
-    fill('network-profile',`<p>A2A ${esc(profile.a2a_protocol)} · ${esc(profile.chain)} (${esc(profile.chain_id)})</p><p>ENS identity: ${profile.ens_verified === true ? 'verified by configured profile' : 'not verified'}</p><p>Institutional affiliation: ${profile.institution_verified === true ? 'verified by configured profile' : 'not verified'}</p><p class="muted">Network configuration describes execution services; it does not establish scientific correctness.</p>`);
+    if (profileResult.status === 'fulfilled') { const profile=profileResult.value; fill('network-profile',`<p>A2A ${esc(profile.a2a_protocol)} · ${esc(profile.chain)} (${esc(profile.chain_id)})</p><p>ENS identity: ${profile.ens_verified === true ? 'verified by configured profile' : 'not verified'}</p><p>Institutional affiliation: ${profile.institution_verified === true ? 'verified by configured profile' : 'not verified'}</p><p class="muted">Network configuration describes execution services; it does not establish scientific correctness.</p>`); }
+    else empty('network-profile','Coordination profile unavailable. The service directory above remains available.');
   } catch (error) {
     if (generation !== state.generation) return;
     empty('network-agents',`Network unavailable: ${error.message}`);

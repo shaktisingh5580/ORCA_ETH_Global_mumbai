@@ -93,13 +93,14 @@ test('all four tab handlers retain the signed-in account and selected project', 
   assert.ok(!page.storage.get(sessionKey).includes('test-only-password'));
 });
 
-test('network directory renders paginated service eligibility without implying ENS authority', async () => {
-  const page = await boot({override:url=>url.startsWith('/v1/network/agents?') && response({items:[{name:'Ocean provider',capability:'temperature_summary_v1',provider_mode:'self_declared_external',service_eligible:true,ens_verified:false,research_dispatch_enabled:false}]})});
+test('network directory renders paginated service eligibility when coordination is unavailable', async () => {
+  const page = await boot({override:url=>url === '/v1/network/config' ? response({detail:'Coordination is not configured'},503) : url.startsWith('/v1/network/agents?') && response({items:[{name:'Ocean provider',capability:'temperature_summary_v1',provider_mode:'self_declared_external',service_eligible:true,ens_verified:false,research_dispatch_enabled:false}]})});
   await login(page); await page.loadNetwork();
   const listing = page.elements.get('network-agents').innerHTML;
   assert.match(listing,/Ocean provider/);
   assert.match(listing,/Service qualified · ENS not verified · Research dispatch disabled/);
   assert.doesNotMatch(listing,/Network unavailable/);
+  assert.match(page.elements.get('network-profile').textContent,/Coordination profile unavailable/);
   const observation = page.renderEnsObservation({status:'NAME_OBSERVED_NOT_AUTHORIZED',hierarchy:[{owner:'0x123'}],block_number:'42',registration_matches:{endpoint:false,public_key:false,card_digest:false},authority_verified:false,research_dispatch_enabled:false});
   assert.match(observation,/Name active on finalized Sepolia state/);
   assert.match(observation,/Agent authority not verified/);
