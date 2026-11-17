@@ -1,0 +1,11 @@
+{
+  "phase": "P08.1",
+  "status": "LOCAL_DEVELOPMENT_VERIFIED",
+  "authority": "main_implementation plan.md P08.1; api design.md sections 2.2, 3.9 and 14",
+  "endpoint": "GET /v1/admin/job-health",
+  "context": "The API inventory names queue and since filters but does not give this cross-project operational read a tenant selector. An unscoped global query would bypass the current organization membership and RLS model.",
+  "decision": "Require an organization_id query parameter, resolve its tenant through server-side membership, and intersect the ops:read bearer scope with org_owner or org_admin. Counts run inside TenantUnitOfWork with RLS. Only the research_run queue is supported.",
+  "meaning": "Queued, leased, overdue, completed and cancelled are current queue-row counts. Expired and retry attempts cover the since window, limited to 30 days. Fencing-failure count and worker status remain unknown because no durable measurement exists.",
+  "limitations": "This is not a global operator dashboard, source-health proof, worker heartbeat or release readiness acceptance. Production/staging HTTP and alerting are pending.",
+  "oracle_deployment": "deferred_by_user"
+}

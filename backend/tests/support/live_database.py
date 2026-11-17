@@ -55,6 +55,9 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
         connection.execute(
             "TRUNCATE federation.operations,federation.events,federation.artifacts,federation.assignments,federation.claims,federation.tasks,federation.agents,research.prototype_publications,research.prototype_runs,research.prototype_investigations"
         )
+        connection.execute(
+            "TRUNCATE research.benchmark_evaluations,research.benchmark_definitions CASCADE"
+        )
         # The test administrator can truncate the disposable audit table; runtime
         # UPDATE/DELETE remains denied and the immutable-row trigger stays installed.
         connection.execute("TRUNCATE TABLE iam.membership_audit")

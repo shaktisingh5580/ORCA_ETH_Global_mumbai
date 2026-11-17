@@ -1891,6 +1891,82 @@
         "title": "Invitation",
         "type": "object"
       },
+      "JobHealthSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "completed": {
+            "title": "Completed",
+            "type": "integer"
+          },
+          "expired_attempts_since": {
+            "title": "Expired Attempts Since",
+            "type": "integer"
+          },
+          "fencing_failures": {
+            "title": "Fencing Failures",
+            "type": "null"
+          },
+          "leased": {
+            "title": "Leased",
+            "type": "integer"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "overdue_leases": {
+            "title": "Overdue Leases",
+            "type": "integer"
+          },
+          "queue": {
+            "const": "research_run",
+            "title": "Queue",
+            "type": "string"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          },
+          "retry_attempts_since": {
+            "title": "Retry Attempts Since",
+            "type": "integer"
+          },
+          "since": {
+            "title": "Since",
+            "type": "string"
+          },
+          "worker_status": {
+            "const": "unknown",
+            "default": "unknown",
+            "title": "Worker Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "queue",
+          "observed_at",
+          "since",
+          "queued",
+          "leased",
+          "overdue_leases",
+          "completed",
+          "cancelled",
+          "expired_attempts_since",
+          "retry_attempts_since"
+        ],
+        "title": "JobHealthSummary",
+        "type": "object"
+      },
       "LicenseProfile": {
         "additionalProperties": false,
         "properties": {
@@ -5926,6 +6002,83 @@
         "summary": "Ready",
         "x-orca-implementation-status": "IMPLEMENTED",
         "x-orca-phase": "P01"
+      }
+    },
+    "/v1/admin/job-health": {
+      "get": {
+        "description": "Report current tenant queue state and bounded recent attempt history.",
+        "operationId": "job_health_v1_admin_job_health_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "queue",
+            "required": false,
+            "schema": {
+              "const": "research_run",
+              "default": "research_run",
+              "title": "Queue",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobHealthSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Job Health",
+        "tags": [
+          "operations"
+        ]
       }
     },
     "/v1/catalog/compatibility-checks": {

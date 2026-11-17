@@ -3,13 +3,15 @@
   "status": "development_in_progress",
   "acceptance": "not_passed",
   "implemented": [
-    "P08.1 readiness reports actual database probe status and approved science policy presence while remaining HTTP 503 until core release gates are accepted; liveness asserts only process health"
+    "P08.1 readiness reports actual database probe status and approved science policy presence while remaining HTTP 503 until core release gates are accepted; liveness asserts only process health",
+    "P08.1 tenant-scoped research job health exposes bounded queue and attempt counts under org owner/admin plus ops:read scope; unknown fencing failures and worker status are explicitly null/unknown"
   ],
   "verified": [
-    "11 focused P08 and prior P01 metadata/health contract tests passed through HTTP TestClient; Ruff, mypy and purpose headers passed. Database success and failure paths used test doubles, not staging acceptance."
+    "11 focused P08 and prior P01 metadata/health contract tests passed through HTTP TestClient; Ruff, mypy and purpose headers passed. Database success and failure paths used test doubles, not staging acceptance.",
+    "14 focused P08/P01/role HTTP contract tests passed after generated OpenAPI refresh; three disposable local PostgreSQL tests passed, covering a real tenant-scoped queue summary and affected P05 queue regressions. Ruff, mypy, purpose headers and generated contract check passed. No staging acceptance is claimed."
   ],
   "remaining": [
-    "P08.1 operations, budget, audit and telemetry APIs, scoped authorization and real queue/source health",
+    "P08.1 operation reads, budget, audit, source health and telemetry APIs; worker/fencing observability and staging status",
     "P08.2 backup/restore, retention, schema rollout and seedless staging",
     "P08.3 live frontend integration with generated contracts",
     "P08.4 threat model, load baseline, live science regressions and prior gate acceptance"
