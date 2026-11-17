@@ -1,0 +1,11 @@
+{
+  "phase": "P08.1",
+  "status": "LOCAL_DEVELOPMENT_VERIFIED",
+  "authority": "main_implementation plan.md P08.1; api design.md section 3.9",
+  "endpoint": "GET /v1/admin/source-health",
+  "decision": "Require an organization_id query parameter, resolve tenant membership server-side and intersect source:manage token scope with the source_operator role. Read the latest durable source probe per catalog distribution inside tenant RLS, with bounded UUID pagination and optional provider filter.",
+  "response_boundary": "Return catalog and latest probe status, probe time and a safe error code. Never return probe payload, endpoint URL, credentials, raw error text or full evidence. A passed metadata access check is explicitly not a scientific validation claim.",
+  "meaning": "metadata_access_passed is true only when the latest succeeded probe evidence declares metadata_access_only, matches the pinned version and remains scientifically not_validated. science_validated is false until a separate scientific gate supplies proof.",
+  "local_verification": "16 affected HTTP/contract tests passed and one disposable PostgreSQL test verified successful and never-checked distributions plus tenant isolation. No external NOAA access or staging acceptance is claimed.",
+  "oracle_deployment": "deferred_by_user"
+}

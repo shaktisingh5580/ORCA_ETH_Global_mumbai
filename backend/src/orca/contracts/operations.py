@@ -47,3 +47,16 @@ class JobHealthSummary(Contract):
             expired_attempts_since=attempt_counts["expired_attempts_since"],
             retry_attempts_since=attempt_counts["retry_attempts_since"],
         )
+
+
+class SourceHealthView(Contract):
+    organization_id: UUID
+    provider_id: str
+    source_product_id: str
+    distribution_id: UUID
+    catalog_status: Literal["candidate", "probe_passed", "validated"]
+    probe_status: Literal["never_checked", "queued", "running", "succeeded", "failed"]
+    last_probe_at: UTCDateTime | None
+    error_code: Literal["SOURCE_PROBE_REJECTED", "SOURCE_UNAVAILABLE"] | None
+    metadata_access_passed: bool
+    science_validated: Literal[False] = False

@@ -2929,6 +2929,42 @@
         "title": "Page[ScientificProduct]",
         "type": "object"
       },
+      "Page_SourceHealthView_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SourceHealthView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[SourceHealthView]",
+        "type": "object"
+      },
       "Page_SourceProvider_": {
         "additionalProperties": false,
         "properties": {
@@ -5263,6 +5299,98 @@
         "title": "SnapshotRequestStatus",
         "type": "object"
       },
+      "SourceHealthView": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog_status": {
+            "enum": [
+              "candidate",
+              "probe_passed",
+              "validated"
+            ],
+            "title": "Catalog Status",
+            "type": "string"
+          },
+          "distribution_id": {
+            "format": "uuid",
+            "title": "Distribution Id",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "SOURCE_PROBE_REJECTED",
+                  "SOURCE_UNAVAILABLE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "last_probe_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Probe At"
+          },
+          "metadata_access_passed": {
+            "title": "Metadata Access Passed",
+            "type": "boolean"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "probe_status": {
+            "enum": [
+              "never_checked",
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Probe Status",
+            "type": "string"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "science_validated": {
+            "const": false,
+            "default": false,
+            "title": "Science Validated",
+            "type": "boolean"
+          },
+          "source_product_id": {
+            "title": "Source Product Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "provider_id",
+          "source_product_id",
+          "distribution_id",
+          "catalog_status",
+          "probe_status",
+          "last_probe_at",
+          "error_code",
+          "metadata_access_passed"
+        ],
+        "title": "SourceHealthView",
+        "type": "object"
+      },
       "SourceProbeEvidence": {
         "additionalProperties": false,
         "properties": {
@@ -6112,6 +6240,102 @@
           }
         ],
         "summary": "Job Health",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/v1/admin/source-health": {
+      "get": {
+        "description": "Show the latest bounded access probe for each tenant distribution.",
+        "operationId": "source_health_v1_admin_source_health_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "provider_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_SourceHealthView_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Source Health",
         "tags": [
           "operations"
         ]

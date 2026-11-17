@@ -1,5 +1,5 @@
 """Purpose: verify P08 readiness, liveness and operational HTTP reads.
-Behavior: check health probes, role/token scopes, operation paths and secret redaction.
+Behavior: check health probes, scopes, job/source status paths and secret redaction.
 Refs: main_implementation plan.md P08.1; api design.md §§3.1, 14; Phase: P08.
 """
 
@@ -203,3 +203,64 @@ def test_operation_detail_and_list_http(monkeypatch: pytest.MonkeyPatch) -> None
             client.get(f"/v1/operations?organization_id={organization_id}&cursor=bad").status_code
             == 422
         )
+
+
+@pytest.mark.enable_socket
+def test_source_health_scope_and_redaction(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = create_app(
+        Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+    )
+    organization_id, tenant, distribution_id = uuid4(), uuid4(), uuid4()
+    principal = Principal("source-operator", "test", frozenset())
+    app.dependency_overrides[current_principal] = lambda: principal
+    monkeypatch.setattr(operations, "engine", lambda *_args: object())
+    roles = {"source_operator"}
+    monkeypatch.setattr(operations, "resolve_tenant", lambda *_args: (tenant, roles))
+    row = dict(
+        distribution_id=distribution_id,
+        provider_id="NOAA",
+        source_product_id="SST",
+        catalog_status="candidate",
+        probe_status="failed",
+        last_probe_at=datetime.now(timezone.utc),
+        error_code="private https://example.invalid/token",
+        metadata_access_passed=False,
+    )
+
+    class Result:
+        def mappings(self):
+            return self
+
+        def all(self):
+            return [row]
+
+    class Session:
+        def execute(self, statement: object, params: dict[str, object]) -> Result:
+            assert params["tenant"] == tenant
+            assert "FROM research.catalog_versions v" in str(statement)
+            return Result()
+
+    class UnitOfWork:
+        def __init__(self, *_args: object) -> None:
+            pass
+
+        def __enter__(self) -> Session:
+            return Session()
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+    monkeypatch.setattr(operations, "TenantUnitOfWork", UnitOfWork)
+    path = f"/v1/admin/source-health?organization_id={organization_id}&provider_id=NOAA"
+    with TestClient(app) as client:
+        assert client.get(path).status_code == 403
+        principal = Principal("source-operator", "test", frozenset({"source:manage"}))
+        response = client.get(path)
+        assert response.status_code == 200
+        item = response.json()["items"][0]
+        assert item["probe_status"] == "failed"
+        assert item["error_code"] == "SOURCE_UNAVAILABLE"
+        assert item["science_validated"] is False
+        assert "private" not in response.text
+        roles = {"viewer"}
+        assert client.get(path).status_code == 403
