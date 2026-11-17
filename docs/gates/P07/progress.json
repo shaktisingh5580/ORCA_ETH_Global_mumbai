@@ -19,7 +19,7 @@
   "remaining": [
     "P07.1 isolated execution environment, actual source retrieval and independent-operator proof",
     "P07.2 end-to-end HTTP and multi-principal database acceptance for challenge adjudication; separate actor is enforced, but institutional independence is not yet proven",
-    "P07.3 database-backed archival availability proof and historical replay workflow",
+    "P07.3 database-backed archival availability proof and historical replay workflow; current snapshot manifest has a content digest and retrieval clock but no native object version or explicit issue/valid clocks, so a historical replay cannot yet be claimed from it",
     "P07.4 benchmark registry, signed portable review evidence and end-to-end evaluation",
     "P05/P06 prerequisites and P07 gate acceptance"
   ],
