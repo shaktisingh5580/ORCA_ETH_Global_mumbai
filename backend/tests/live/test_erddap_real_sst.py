@@ -27,7 +27,7 @@ pytestmark = pytest.mark.live
 def source():
     if os.environ.get("ORCA_TEST_LIVE_MUR") != "1":
         pytest.skip("Set ORCA_TEST_LIVE_MUR=1 to retrieve public NOAA data")
-    return ERDDAP(HOST, frozenset({HOST}), max_bytes=2 * 1024 * 1024, timeout=30)
+    return ERDDAP(HOST, frozenset({HOST}), max_bytes=2 * 1024 * 1024, timeout=60)
 
 
 def read(source, path):

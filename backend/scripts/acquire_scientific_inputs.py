@@ -109,7 +109,7 @@ def main() -> int:
         or report.get("fixture") is not False
     ):
         raise ValueError("capture journal does not match approved real source")
-    client = ERDDAP(HOST, frozenset({HOST}), max_bytes=2 * 1024 * 1024, timeout=30)
+    client = ERDDAP(HOST, frozenset({HOST}), max_bytes=2 * 1024 * 1024, timeout=60)
     try:
         metadata_path = folder / "metadata.json"
         if "metadata" not in report:

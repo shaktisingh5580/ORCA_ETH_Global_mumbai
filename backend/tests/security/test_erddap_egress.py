@@ -40,6 +40,17 @@ def test_redirect_ssrf_reject():
     assert error.value.status == 302
 
 
+def test_validated_public_ipv4_precedes_ipv6_without_dropping_fallback():
+    with patch(
+        "socket.getaddrinfo",
+        return_value=[
+            (0, 0, 0, "", ("2600:1f18::1", 443)),
+            (0, 0, 0, "", ("8.8.8.8", 443)),
+        ],
+    ):
+        assert public_addresses("example.org") == ("8.8.8.8", "2600:1f18::1")
+
+
 def test_invalid_401_403_429_retry_after():
     for status in (401, 403, 429):
         with pytest.raises(SourceError) as error:
@@ -95,8 +106,8 @@ def test_validated_address_fallback_stays_within_one_deadline():
 
 def test_default_transport_budget_allows_slow_tls_with_bounded_failover():
     client = ERDDAP("example.org", frozenset({"example.org"}))
-    assert client.timeout == 30
-    assert client._connect_attempt_seconds == 15
+    assert client.timeout == 60
+    assert client._connect_attempt_seconds == 30
 
 
 def test_empty_valid_subset():

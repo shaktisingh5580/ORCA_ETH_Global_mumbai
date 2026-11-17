@@ -1,5 +1,5 @@
 """Purpose: retrieve bounded P03 ERDDAP metadata and subsets from approved hosts.
-Behavior: pin and fail over across public DNS addresses, validate TLS, reject redirects, and cap each address at 15s within a 30s request and byte limit.
+Behavior: prefer validated public IPv4, fail over to IPv6, validate TLS, reject redirects, and cap each address at 30s within a 60s request and byte limit.
 Refs: main plan P03.2; API 7; research-only guide 5; Phase: P03.2.
 """
 
@@ -25,7 +25,9 @@ def public_addresses(host: str) -> tuple[str, ...]:
     )
     if not addresses or any(not ipaddress.ip_address(x).is_global for x in addresses):
         raise SourceError("UNSAFE_SOURCE_ADDRESS")
-    return addresses
+    # This source's IPv6 route can stall before TLS while its IPv4 route works.
+    # Keep every address validated; choose the usable family first without disabling fallback.
+    return tuple(sorted(addresses, key=lambda address: ipaddress.ip_address(address).version))
 
 
 class PinnedHTTPS(http.client.HTTPSConnection):
@@ -44,7 +46,7 @@ class PinnedHTTPS(http.client.HTTPSConnection):
 
 
 class ERDDAP:
-    _connect_attempt_seconds = 15.0
+    _connect_attempt_seconds = 30.0
 
     def __init__(
         self,
@@ -52,7 +54,7 @@ class ERDDAP:
         allowed_hosts: frozenset[str],
         *,
         max_bytes: int = 8_388_608,
-        timeout: float = 30.0,
+        timeout: float = 60.0,
     ):
         if host not in allowed_hosts or not re.fullmatch(r"[a-z0-9.-]+", host):
             raise SourceError("SOURCE_NOT_APPROVED")
