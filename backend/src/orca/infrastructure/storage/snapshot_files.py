@@ -36,6 +36,17 @@ class SnapshotFiles:
             except FileExistsError:
                 if hashlib.sha256(target.read_bytes()).hexdigest() != digest:
                     raise ValueError("existing immutable snapshot is corrupt") from None
+            except (NotImplementedError, PermissionError):
+                # Windows may deny hard-link creation to an unprivileged process. Its rename
+                # operation is atomic and refuses to replace an existing target, preserving the
+                # content-addressed no-overwrite guarantee before verifying any concurrent winner.
+                if os.name != "nt":
+                    raise
+                try:
+                    os.rename(temporary, target)
+                except FileExistsError:
+                    if hashlib.sha256(target.read_bytes()).hexdigest() != digest:
+                        raise ValueError("existing immutable snapshot is corrupt") from None
         finally:
             temporary.unlink(missing_ok=True)
         return "sha256:" + digest

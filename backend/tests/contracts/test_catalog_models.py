@@ -85,6 +85,34 @@ def test_product_version_stability():
     assert ProductVersion.model_validate_json(version.model_dump_json()) == version
 
 
+def test_source_issued_valid_observed_available_times():
+    from orca.contracts.common import SourceClock
+
+    clock = SourceClock(
+        observed_at="2025-01-01T00:00:00Z",
+        valid_at="2025-01-01T12:00:00Z",
+        issued_at=None,
+        published_at="2025-01-02T00:00:00Z",
+        available_at="2025-01-03T00:00:00Z",
+        retrieved_at="2025-02-02T00:00:00Z",
+        availability_status="partial",
+        missing_reasons={"issued_at": "No issuance time supplied for this observation"},
+    )
+    assert clock.observed_at != clock.valid_at
+    assert clock.issued_at is None
+    assert clock.published_at < clock.available_at < clock.retrieved_at
+    assert SourceClock.model_validate_json(clock.model_dump_json()) == clock
+    with pytest.raises(ValidationError, match="each missing timestamp"):
+        SourceClock.model_validate(clock.model_dump() | {"missing_reasons": {}})
+    with pytest.raises(ValidationError, match="cannot precede"):
+        ProductVersion(
+            **(
+                version_data()
+                | {"published_at": clock.available_at, "available_at": clock.published_at}
+            )
+        )
+
+
 def test_hidden_restricted_metadata():
     owner, outsider = uuid4(), uuid4()
     product = ScientificProduct(

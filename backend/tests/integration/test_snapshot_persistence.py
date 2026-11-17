@@ -5,7 +5,7 @@ Refs: main plan P03.3; research-only guide 4.5; Phase: P03.3.
 
 import os
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import create_engine, text
@@ -164,7 +164,10 @@ def test_snapshot_persistence_isolation_and_immutability():
                         queued.operation.id, recovered["lease_token"], manifest.id
                     )
                     bound = manifest.model_copy(
-                        update={"id": uuid4(), "acquisition_request_digest": request_digest(body)}
+                        update={
+                            "id": uuid4(),
+                            "acquisition_request_digest": request_digest(body, version),
+                        }
                     )
                     repository.add(bound)
                     assert not requests.complete(
@@ -177,6 +180,9 @@ def test_snapshot_persistence_isolation_and_immutability():
                         queued.operation.id, recovered["lease_token"], "SOURCE_TIMEOUT"
                     )
                     assert requests.get(queued.operation.id).snapshot_id == bound.id
+                    cached = requests.create(body, "cached-request-key")
+                    assert cached.operation.status == "succeeded"
+                    assert cached.snapshot_id == bound.id
                     second = manifest.model_copy(update={"id": uuid4()})
                     repository.add(second)
                     ordered = sorted([manifest, second, bound], key=lambda item: item.id)
@@ -193,6 +199,14 @@ def test_snapshot_persistence_isolation_and_immutability():
                     )
                     assert repository.list(product_id=uuid4()) == []
                     assert repository.list(digest="sha256:" + "0" * 64) == []
+                    first_page = repository.list(product_id=product_id, limit=1)
+                    earlier = manifest.model_copy(update={"id": UUID(int=0)})
+                    repository.add(earlier)
+                    assert repository.list(product_id=product_id, limit=1) == [earlier]
+                    assert (
+                        repository.list(product_id=product_id, after=first_page[0].id)
+                        == ordered[1:]
+                    )
                     project, principal = uuid4(), uuid4()
                     session.execute(
                         text(

@@ -41,6 +41,12 @@ class ERDDAPAcquisition:
             or not version.can_preserve_for(self.binding.tenant_id)
         ):
             raise ValueError("unapproved source binding")
+        if request.as_of is not None and (
+            version.retrieved_at > request.as_of
+            or version.available_at is None
+            or version.available_at > request.as_of
+        ):
+            raise ValueError("source availability is not established by the requested cutoff")
         if version.calendar not in {"gregorian", "standard", "proleptic_gregorian"}:
             raise ValueError("unsupported calendar")
         if (
@@ -125,5 +131,5 @@ class ERDDAPAcquisition:
         return AcquisitionResult(
             content,
             f"https://{self.binding.host}/erddap/griddap/{dataset}.csv",
-            request_digest(request),
+            request_digest(request, version),
         )

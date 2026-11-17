@@ -1,6 +1,6 @@
 """Purpose: prove metadata conflicts cannot become scientific compatibility claims.
 Behavior: use synthetic stored versions only in tests and inspect fail/unknown outcomes.
-Refs: API 3.4; main plan P03.5; Phase: P03.
+Refs: API 3.4; main plan P03.3/P03.5; ADR-R02; Phase: P03.
 """
 
 from uuid import uuid4
@@ -10,8 +10,8 @@ from orca.contracts.catalog import ProductVersion
 from orca.contracts.fitness import FitnessRequest
 
 
-def test_fitness_unknown_and_explicit_coverage_conflict():
-    version = ProductVersion(
+def stored_version() -> ProductVersion:
+    return ProductVersion(
         id=uuid4(),
         tenant_id=uuid4(),
         product_id=uuid4(),
@@ -29,6 +29,35 @@ def test_fitness_unknown_and_explicit_coverage_conflict():
             "can_preserve": True,
         },
     )
+
+
+def test_depth_unit_semantics():
+    data = stored_version().model_dump()
+    data.update(
+        standard_name="sea_surface_foundation_temperature",
+        physical_definition="Test foundation SST without a fixed depth",
+    )
+    foundation = ProductVersion.model_validate(data)
+
+    def checks_against(baseline: ProductVersion):
+        return {check.name: check.status for check in compare_versions(foundation, baseline)}
+
+    identical = checks_against(foundation)
+    assert identical["measurement_definition"] == "pass"
+    assert identical["units"] == "pass"
+    assert identical["depth"] == "unknown"
+    surface_zero = ProductVersion.model_validate(data | {"depth_m": 0, "native_units": "degree_C"})
+    assert checks_against(surface_zero)["units"] == "fail"
+    assert checks_against(surface_zero)["depth"] == "unknown"
+
+    known_depth = ProductVersion.model_validate(data | {"depth_m": 5})
+    assert {c.name: c.status for c in compare_versions(known_depth, surface_zero)}[
+        "depth"
+    ] == "fail"
+
+
+def test_fitness_unknown_and_explicit_coverage_conflict():
+    version = stored_version()
     body = FitnessRequest(
         organization_id=uuid4(),
         method_id="sst",

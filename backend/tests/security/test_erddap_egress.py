@@ -4,7 +4,7 @@ Refs: main plan P03.2; API 7; Phase: P03.2.
 """
 
 import io
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -64,8 +64,39 @@ def test_http_timeout_and_malformed():
         patch("orca.infrastructure.connectors.erddap.PinnedHTTPS") as connection,
     ):
         connection.return_value.request.side_effect = TimeoutError()
+        with pytest.raises(SourceError, match="TIMEOUT"):
+            ERDDAP("example.org", frozenset({"example.org"})).metadata("sst")
+    with patch("socket.getaddrinfo", side_effect=OSError("DNS failure")):
         with pytest.raises(SourceError, match="TRANSPORT"):
             ERDDAP("example.org", frozenset({"example.org"})).metadata("sst")
+
+
+def test_validated_address_fallback_stays_within_one_deadline():
+    first, second = Mock(), Mock()
+    first.request.side_effect = TimeoutError()
+    second.getresponse.return_value = Response(b"{}")
+    with (
+        patch(
+            "orca.infrastructure.connectors.erddap.public_addresses",
+            return_value=("2600:1f18::1", "8.8.8.8"),
+        ),
+        patch(
+            "orca.infrastructure.connectors.erddap.PinnedHTTPS",
+            side_effect=[first, second],
+        ) as connection,
+    ):
+        client = ERDDAP("example.org", frozenset({"example.org"}), timeout=3)
+        assert client.metadata("sst") == {}
+    assert connection.call_args_list[0].args[:2] == ("example.org", "2600:1f18::1")
+    assert connection.call_args_list[1].args[:2] == ("example.org", "8.8.8.8")
+    assert 0 < connection.call_args_list[0].args[2] <= 3
+    assert 0 < connection.call_args_list[1].args[2] <= 3
+
+
+def test_default_transport_budget_allows_slow_tls_with_bounded_failover():
+    client = ERDDAP("example.org", frozenset({"example.org"}))
+    assert client.timeout == 30
+    assert client._connect_attempt_seconds == 15
 
 
 def test_empty_valid_subset():

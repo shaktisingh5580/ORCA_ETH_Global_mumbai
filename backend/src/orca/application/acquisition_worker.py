@@ -70,7 +70,7 @@ class AcquisitionWorker:
             if not version.can_preserve_for(self.tenant):
                 raise AcquisitionFailed()
             result = self.source.fetch(body, version)
-            if result.request_digest != request_digest(body):
+            if result.request_digest != request_digest(body, version):
                 raise AcquisitionFailed()
             manifest = preserve_snapshot(
                 self.store,

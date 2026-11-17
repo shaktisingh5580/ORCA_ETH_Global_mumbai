@@ -79,7 +79,14 @@ def main() -> int:
     )
     parser.add_argument("--attempts", type=int, choices=(1, 2, 3), default=2)
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument(
+        "--as-of", type=datetime.fromisoformat, help="Explicit ISO 8601 analysis cutoff"
+    )
     args = parser.parse_args()
+    if args.as_of is not None and args.as_of.utcoffset() is None:
+        parser.error("--as-of requires an explicit time zone")
+    if args.as_of is not None and args.as_of > datetime.now(timezone.utc):
+        parser.error("--as-of cannot be in the future")
     folder = args.cache_dir.resolve()
     folder.mkdir(parents=True, exist_ok=True)
     journal = folder / "capture.json"
@@ -163,7 +170,7 @@ def main() -> int:
             parsed[CURRENT_YEAR], tuple(parsed[y] for y in BASELINE_YEARS), BASELINE_YEARS
         )
         report["qualification"] = qualification
-        as_of = datetime.now(timezone.utc)
+        as_of = args.as_of or datetime.now(timezone.utc)
         qualify_availability(
             tuple(
                 datetime.fromisoformat(value["retrieved_at"]) for value in report["inputs"].values()

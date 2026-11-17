@@ -90,7 +90,7 @@ def source_case():
 def test_source_preserves_exact_validated_native_bytes():
     source, body, version, _, content = source_case()
     result = source.fetch(body, version)
-    assert result.content == content and result.request_digest == request_digest(body)
+    assert result.content == content and result.request_digest == request_digest(body, version)
     assert "?" not in result.origin_uri
     assert ".csv?sst" in source.client._get.call_args.args[0]
 

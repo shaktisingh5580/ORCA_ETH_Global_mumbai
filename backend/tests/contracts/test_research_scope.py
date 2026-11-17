@@ -91,6 +91,11 @@ def test_scope_09_local_sources_match_immutable_snapshot():
     revisions = load("docs/review/A01-source-reconciliation.json")
     assert revisions["decision"] == "A01-ai-prototype"
     revised = {item["path"]: item for item in revisions["files"]}
+    full_plan = load("docs/review/full-plan-source-reconciliation.json")
+    assert full_plan["decision"] == "full-platform-plan-authority"
+    authority = load(full_plan["authority"])
+    assert authority["active_plan"] == "main_implementation plan.md"
+    current = {item["path"]: item for item in full_plan["files"]}
     assert snapshot["decision"] == "ADR-R01"
     assert any("Research_Only_Scope" in item["path"] for item in snapshot["files"])
     for item in snapshot["files"]:
@@ -99,6 +104,13 @@ def test_scope_09_local_sources_match_immutable_snapshot():
             expected = revised.get(item["path"], item)
             if expected is not item:
                 assert expected["previous_sha256"] == item["sha256"]
+            if item["path"] in current:
+                revision = current[item["path"]]
+                assert revision["previous_sha256"] == expected["sha256"]
+                archive = ROOT / revision["previous_archive"]
+                assert hashlib.sha256(archive.read_bytes()).hexdigest() == expected["sha256"]
+                assert len(archive.read_bytes()) == expected["bytes"]
+                expected = revision
             assert len(path.read_bytes()) == expected["bytes"]
             assert hashlib.sha256(path.read_bytes()).hexdigest() == expected["sha256"]
 

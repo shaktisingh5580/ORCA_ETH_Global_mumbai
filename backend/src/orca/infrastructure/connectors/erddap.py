@@ -1,5 +1,5 @@
 """Purpose: retrieve bounded P03 ERDDAP metadata and subsets from approved hosts.
-Behavior: pin public DNS addresses, validate TLS, reject redirects and cap time/bytes.
+Behavior: pin and fail over across public DNS addresses, validate TLS, reject redirects, and cap each address at 15s within a 30s request and byte limit.
 Refs: main plan P03.2; API 7; research-only guide 5; Phase: P03.2.
 """
 
@@ -44,13 +44,15 @@ class PinnedHTTPS(http.client.HTTPSConnection):
 
 
 class ERDDAP:
+    _connect_attempt_seconds = 15.0
+
     def __init__(
         self,
         host: str,
         allowed_hosts: frozenset[str],
         *,
         max_bytes: int = 8_388_608,
-        timeout: float = 20.0,
+        timeout: float = 30.0,
     ):
         if host not in allowed_hosts or not re.fullmatch(r"[a-z0-9.-]+", host):
             raise SourceError("SOURCE_NOT_APPROVED")
@@ -60,40 +62,54 @@ class ERDDAP:
 
     def _get(self, path: str) -> bytes:
         started = time.monotonic()
-        addresses = public_addresses(self.host)
-        remaining = self.timeout - (time.monotonic() - started)
-        if remaining <= 0:
-            raise SourceError("SOURCE_TIMEOUT")
-        connection = PinnedHTTPS(self.host, addresses[0], remaining)
         try:
-            connection.request("GET", path, headers={"Accept-Encoding": "identity"})
-            response = connection.getresponse()
-            if response.status != 200:
-                raise SourceError(
-                    "SOURCE_HTTP_ERROR", response.status, response.getheader("Retry-After")
-                )
-            if response.getheader("Content-Encoding", "identity").lower() != "identity":
-                raise SourceError("ENCODED_RESPONSE_REJECTED")
-            length = response.getheader("Content-Length")
-            if length is not None and (not length.isdecimal() or int(length) > self.max_bytes):
-                raise SourceError("SOURCE_OVERSIZE", 413)
-            result = bytearray()
-            while True:
-                remaining = self.timeout - (time.monotonic() - started)
-                if remaining <= 0:
-                    raise SourceError("SOURCE_TIMEOUT")
-                if connection.sock is not None:
-                    connection.sock.settimeout(remaining)
-                chunk = response.read1(min(65536, self.max_bytes + 1 - len(result)))
-                if not chunk:
-                    return bytes(result)
-                result.extend(chunk)
-                if len(result) > self.max_bytes:
-                    raise SourceError("SOURCE_OVERSIZE", 413)
-        except (OSError, http.client.HTTPException) as exc:
+            addresses = public_addresses(self.host)
+        except OSError as exc:
             raise SourceError("SOURCE_TRANSPORT_ERROR") from exc
-        finally:
-            connection.close()
+        last_error: OSError | http.client.HTTPException | None = None
+        for address in addresses:
+            remaining = self.timeout - (time.monotonic() - started)
+            if remaining <= 0:
+                break
+            connection = PinnedHTTPS(
+                self.host, address, min(remaining, self._connect_attempt_seconds)
+            )
+            try:
+                connection.request("GET", path, headers={"Accept-Encoding": "identity"})
+                response = connection.getresponse()
+                if response.status != 200:
+                    raise SourceError(
+                        "SOURCE_HTTP_ERROR", response.status, response.getheader("Retry-After")
+                    )
+                if response.getheader("Content-Encoding", "identity").lower() != "identity":
+                    raise SourceError("ENCODED_RESPONSE_REJECTED")
+                length = response.getheader("Content-Length")
+                if length is not None and (not length.isdecimal() or int(length) > self.max_bytes):
+                    raise SourceError("SOURCE_OVERSIZE", 413)
+                result = bytearray()
+                while True:
+                    remaining = self.timeout - (time.monotonic() - started)
+                    if remaining <= 0:
+                        raise TimeoutError("source request deadline exceeded")
+                    if connection.sock is not None:
+                        connection.sock.settimeout(remaining)
+                    chunk = response.read1(min(65536, self.max_bytes + 1 - len(result)))
+                    if not chunk:
+                        return bytes(result)
+                    result.extend(chunk)
+                    if len(result) > self.max_bytes:
+                        raise SourceError("SOURCE_OVERSIZE", 413)
+            except TimeoutError as exc:
+                last_error = exc
+            except (OSError, http.client.HTTPException) as exc:
+                last_error = exc
+            finally:
+                connection.close()
+        if isinstance(last_error, TimeoutError) or time.monotonic() - started >= self.timeout:
+            raise SourceError("SOURCE_TIMEOUT") from last_error
+        if last_error is not None:
+            raise SourceError("SOURCE_TRANSPORT_ERROR") from last_error
+        raise SourceError("SOURCE_TIMEOUT")
 
     @staticmethod
     def _identifier(value: str) -> str:

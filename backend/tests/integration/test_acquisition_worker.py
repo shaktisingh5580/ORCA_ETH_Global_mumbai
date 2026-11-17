@@ -138,7 +138,11 @@ def test_acquisition_atomic_publication_and_recovery(tmp_path, outcome, worker_s
                     raise AcquisitionFailed("private provider details")
                 if outcome == "crash" and self.calls == 1:
                     raise OSError("temporary storage or network interruption")
-                digest = "sha256:" + "0" * 64 if outcome == "mismatch" else request_digest(request)
+                digest = (
+                    "sha256:" + "0" * 64
+                    if outcome == "mismatch"
+                    else request_digest(request, pinned)
+                )
                 return AcquisitionResult(
                     b"test-only exact bytes\r\n", "https://example.org/test.nc", digest
                 )
@@ -176,7 +180,7 @@ def test_acquisition_atomic_publication_and_recovery(tmp_path, outcome, worker_s
             status = SnapshotRequests(session, tenant).get(queued.operation.id)
             if outcome in {"success", "crash"}:
                 assert len(snapshots) == 1 and status.snapshot_id == snapshots[0].id
-                assert snapshots[0].acquisition_request_digest == request_digest(body)
+                assert snapshots[0].acquisition_request_digest == request_digest(body, version)
                 assert snapshots[0].scientific_status == "not_validated"
                 assert status.attempts == (2 if outcome == "crash" else 1)
             else:

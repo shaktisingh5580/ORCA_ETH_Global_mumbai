@@ -50,7 +50,6 @@ class SnapshotRequests:
         if not 1 <= len(key) <= 128:
             raise ValueError("invalid idempotency key")
         payload = body.model_dump(mode="json")
-        digest = request_digest(body).removeprefix("sha256:")
         stored = self.session.execute(
             text(
                 "SELECT manifest FROM research.catalog_versions WHERE tenant_id=:tenant AND id=:id"
@@ -62,14 +61,30 @@ class SnapshotRequests:
         version = ProductVersion.model_validate(stored)
         if not version.can_preserve_for(self.tenant):
             raise PermissionError("preservation rights unavailable")
+        digest = request_digest(body, version).removeprefix("sha256:")
+        if body.as_of is not None:
+            if version.retrieved_at > body.as_of:
+                raise ValueError("source version was first observed after the requested cutoff")
+            if version.available_at is None or version.available_at > body.as_of:
+                raise ValueError("source availability is not established by the requested cutoff")
         if body.variables != [version.native_variable]:
             raise ValueError("only the stored scientific variable is approved for this request")
         if body.depth is not None and body.depth != version.depth_m:
             raise ValueError("requested depth does not match stored version")
+
+        # A completed immutable snapshot can satisfy an identical scoped request. The tenant,
+        # organization, source/license version, geometry, time, depth and cutoff all participate
+        # in the digest; private API responses remain no-store and authorization still runs.
+        cached_snapshot = self.session.execute(
+            text("""SELECT id FROM research.dataset_snapshots
+              WHERE tenant_id=:tenant AND manifest->>'acquisition_request_digest'=:digest
+              ORDER BY created_at,id LIMIT 1"""),
+            {"tenant": self.tenant, "digest": "sha256:" + digest},
+        ).scalar_one_or_none()
         inserted = self.session.execute(
             text("""INSERT INTO research.snapshot_requests
-            (id,tenant_id,version_id,idempotency_key,request_hash,payload)
-            VALUES(:id,:tenant,:version,:key,:hash,CAST(:payload AS jsonb))
+            (id,tenant_id,version_id,idempotency_key,request_hash,payload,status,snapshot_id)
+            VALUES(:id,:tenant,:version,:key,:hash,CAST(:payload AS jsonb),:status,:snapshot)
             ON CONFLICT(tenant_id,idempotency_key) DO NOTHING RETURNING id"""),
             {
                 "id": uuid4(),
@@ -78,6 +93,8 @@ class SnapshotRequests:
                 "key": key,
                 "hash": digest,
                 "payload": json.dumps(payload),
+                "status": "succeeded" if cached_snapshot is not None else "queued",
+                "snapshot": cached_snapshot,
             },
         ).scalar_one_or_none()
         if inserted is None:

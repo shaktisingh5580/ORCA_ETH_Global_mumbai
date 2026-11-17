@@ -6,6 +6,7 @@ Refs: main plan P03.3/P03.4; ADR-R02; Phase: P03; fixtures confined to tests.
 import csv
 import io
 from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -13,6 +14,7 @@ from orca.domain.scientific_inputs import (
     MetadataProof,
     NativeGrid,
     parse_native_month,
+    qualify_availability,
     qualify_metadata,
     qualify_seasonal_inputs,
 )
@@ -115,6 +117,23 @@ def test_native_input_rejects_missing_duplicate_subsampled_or_wrong_unit_cells()
         parse_native_month(csv_month(2024), 2025, 1, GRID, PROOF)
 
 
+def test_preservation_license():
+    metadata = source_metadata()
+    assert qualify_metadata(metadata) == PROOF
+    for row in metadata["table"]["rows"]:
+        if row[1:3] == ["NC_GLOBAL", "license"]:
+            row[4] = "Viewing permitted; no copies may be preserved"
+    with pytest.raises(PermissionError):
+        qualify_metadata(metadata)
+
+
+def test_availability_does_not_infer_historical_access_from_observation_date():
+    retrieved = datetime(2026, 11, 6, tzinfo=timezone.utc)
+    qualify_availability((retrieved,), retrieved)
+    with pytest.raises(ValueError, match="not observed available"):
+        qualify_availability((retrieved,), retrieved - timedelta(days=1))
+
+
 def test_baseline_season_depth_calendar_compatibility():
     current = parse_native_month(csv_month(2025), 2025, 1, GRID, PROOF)
     baseline = tuple(parse_native_month(csv_month(y), y, 1, GRID, PROOF) for y in (2003, 2004))
@@ -130,6 +149,15 @@ def test_baseline_season_depth_calendar_compatibility():
     ]:
         with pytest.raises(ValueError):
             qualify_seasonal_inputs(current, changed, years)
+
+
+def test_truncated_leap_year_baseline_cannot_match_non_leap_february():
+    january = parse_native_month(csv_month(2025), 2025, 1, GRID, PROOF)
+    february = replace(january, month=2, cells=tuple(c for c in january.cells if c.day <= 28))
+    truncated_leap_year = replace(february, year=2004)
+
+    with pytest.raises(ValueError, match="explicit leap-day policy"):
+        qualify_seasonal_inputs(february, (truncated_leap_year,), (2004,))
 
 
 @pytest.mark.parametrize("mask", [0, 2, 4, 8, 16, -128])

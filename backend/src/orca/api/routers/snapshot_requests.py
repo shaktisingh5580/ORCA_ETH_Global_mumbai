@@ -7,8 +7,10 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Request
+from starlette.responses import Response
 
 from orca.api.dependencies import CurrentPrincipal
+from orca.api.errors import Problem, problem_response
 from orca.api.routers.catalog import authorize
 from orca.api.routers.projects import engine, resolve_tenant
 from orca.application.projects import IdempotencyConflict
@@ -26,7 +28,7 @@ def create_request(
     request: Request,
     principal: CurrentPrincipal,
     idempotency_key: Annotated[str, Header(min_length=1, max_length=128)],
-) -> Operation:
+) -> Operation | Response:
     db = engine(request)
     tenant, roles = resolve_tenant(db, principal, body.organization_id)
     try:
@@ -34,7 +36,17 @@ def create_request(
     except PermissionError as exc:
         raise HTTPException(403, "Research planning scope required") from exc
     if not getattr(request.app.state, "snapshot_worker_enabled", False):
-        raise HTTPException(503, "Snapshot acquisition worker is not configured")
+        return problem_response(
+            Problem(
+                type="urn:orca:problem:source-unavailable",
+                title="Source unavailable",
+                status=503,
+                detail="Snapshot acquisition is currently unavailable",
+                code="SOURCE_UNAVAILABLE",
+                request_id=request.state.request_id,
+                retryable=True,
+            )
+        )
     if not any(
         binding.tenant_id == tenant and binding.version_id == body.product_version_id
         for binding in getattr(request.app.state, "acquisition_sources", ())

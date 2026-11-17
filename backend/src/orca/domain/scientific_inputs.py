@@ -272,13 +272,13 @@ def qualify_seasonal_inputs(
     if sorted(item.year for item in baseline) != sorted(expected_years):
         raise ValueError("baseline year selection differs from policy")
     height, width = current.grid.shape()
+    days = calendar.monthrange(current.year, current.month)[1]
     expected = {
-        (day, y, x)
-        for day in range(1, calendar.monthrange(current.year, current.month)[1] + 1)
-        for y in range(height)
-        for x in range(width)
+        (day, y, x) for day in range(1, days + 1) for y in range(height) for x in range(width)
     }
     for item in (current, *baseline):
+        if calendar.monthrange(item.year, item.month)[1] != days:
+            raise ValueError("baseline calendar support differs; explicit leap-day policy required")
         keys = [(cell.day, cell.latitude_index, cell.longitude_index) for cell in item.cells]
         if len(keys) != len(expected) or set(keys) != expected:
             raise ValueError("complete distinct daily grid support required")
@@ -290,8 +290,6 @@ def qualify_seasonal_inputs(
             or item.nominal_time_utc != current.nominal_time_utc
         ):
             raise ValueError("baseline is future, seasonally mismatched or on a different grid")
-        if len(item.cells) != len(current.cells):
-            raise ValueError("baseline calendar support differs; explicit leap-day policy required")
     # The initial input benchmark is intentionally strict. Missing/masked cells
     # block admission rather than becoming an interpolated scientific result.
     if any(
@@ -304,13 +302,12 @@ def qualify_seasonal_inputs(
         for cell in item.cells
     ):
         raise ValueError("native benchmark requires complete valid open-ocean QC support")
-    height, width = current.grid.shape()
     return {
         "status": "INPUT_COMPATIBILITY_VERIFIED",
         "method_science_validated": False,
         "baseline_years": list(expected_years),
         "baseline_complete_years": len(baseline),
-        "days_per_year": calendar.monthrange(current.year, current.month)[1],
+        "days_per_year": days,
         "native_latitudes": height,
         "native_longitudes": width,
         "current_cells": len(current.cells),
