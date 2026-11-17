@@ -19,6 +19,8 @@ class HistoricalSnapshot:
     issued_at: datetime | None
     archived_original: bool
     supersedes_id: UUID | None = None
+    available_at: datetime | None = None
+    archived_at: datetime | None = None
 
 
 def _utc(value: datetime) -> datetime:
@@ -39,6 +41,8 @@ def select_historical_snapshot(
             _utc(item.retrieved_at),
             _utc(item.valid_at),
         )
+        available = _utc(item.available_at) if item.available_at is not None else None
+        archived = _utc(item.archived_at) if item.archived_at is not None else None
         issued = _utc(item.issued_at) if item.issued_at is not None else None
         if not item.object_version_id or retrieved < published:
             raise ValueError("snapshot requires a pinned version and ordered source times")
@@ -46,9 +50,17 @@ def select_historical_snapshot(
             raise ValueError("forecast issuance cannot follow its valid time")
         if item.source_id != source_id:
             continue
+        if available is None or archived is None:
+            continue
         if not item.archived_original or item.supersedes_id is not None:
             continue
-        if published > cutoff or retrieved > cutoff or (issued is not None and issued > cutoff):
+        if (
+            published > cutoff
+            or available > cutoff
+            or retrieved > cutoff
+            or archived > cutoff
+            or (issued is not None and issued > cutoff)
+        ):
             continue
         eligible.append(item)
     if not eligible:

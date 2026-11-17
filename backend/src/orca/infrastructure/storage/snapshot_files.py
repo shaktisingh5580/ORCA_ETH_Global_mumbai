@@ -15,6 +15,20 @@ class SnapshotFiles:
         self.root = root.resolve()
         self.max_bytes = max_bytes
 
+    def read(self, tenant: UUID, digest: str) -> bytes:
+        if not digest.startswith("sha256:") or len(digest) != 71:
+            raise ValueError("invalid snapshot digest")
+        suffix = digest[7:]
+        if any(char not in "0123456789abcdef" for char in suffix):
+            raise ValueError("invalid snapshot digest")
+        target = self.root / str(tenant) / suffix
+        if target.stat().st_size > self.max_bytes:
+            raise ValueError("stored snapshot exceeds limit")
+        content = target.read_bytes()
+        if "sha256:" + hashlib.sha256(content).hexdigest() != digest:
+            raise ValueError("stored snapshot digest mismatch")
+        return content
+
     def preserve(self, tenant: UUID, content: bytes, *, permitted: bool) -> str:
         if not permitted:
             raise PermissionError("source preservation rights are unverified")

@@ -23,6 +23,8 @@ def snapshot(**changes: object) -> HistoricalSnapshot:
         "retrieved_at": CUTOFF - timedelta(days=1),
         "valid_at": CUTOFF + timedelta(days=1),
         "issued_at": CUTOFF - timedelta(days=2),
+        "available_at": CUTOFF - timedelta(days=2),
+        "archived_at": CUTOFF - timedelta(hours=1),
         "archived_original": True,
     }
     values.update(changes)
@@ -66,6 +68,21 @@ def test_no_archived_original_returns_inconclusive() -> None:
 def test_later_retrieval_cannot_be_backdated_as_archived_evidence() -> None:
     late = snapshot(retrieved_at=CUTOFF + timedelta(days=1))
     assert select_historical_snapshot((late,), source_id=SOURCE, as_of=CUTOFF) is None
+
+
+def test_late_archive_or_unknown_availability_cannot_support_past_decision() -> None:
+    assert (
+        select_historical_snapshot(
+            (snapshot(archived_at=CUTOFF + timedelta(minutes=1)),),
+            source_id=SOURCE,
+            as_of=CUTOFF,
+        )
+        is None
+    )
+    assert (
+        select_historical_snapshot((snapshot(available_at=None),), source_id=SOURCE, as_of=CUTOFF)
+        is None
+    )
 
 
 def test_calendar_timezones() -> None:

@@ -13,6 +13,7 @@ from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from orca.application.historical_replay import HistoricalReplay
 from orca.application.ingestion import SnapshotStore, preserve_snapshot
 from orca.application.snapshot_requests import SnapshotRequests
 from orca.application.snapshots import SnapshotRepository
@@ -92,6 +93,7 @@ class AcquisitionWorker:
         try:
             with self.transaction() as session:
                 SnapshotRepository(session, self.tenant).add(manifest)
+                HistoricalReplay(session, self.tenant).record_observation(manifest, body)
                 if not SnapshotRequests(session, self.tenant).complete(
                     claim["id"], claim["lease_token"], manifest.id
                 ):
