@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
+from a2a.types import AgentCard
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -188,9 +189,10 @@ class Onboarding:
         registration = row["registration"]
         if digest(card) != registration["card_digest"]:
             raise ValueError("Agent Card differs from the registered digest")
-        if card.get("url") != registration["endpoint"] or card.get("protocolVersion") != "0.3.0":
+        parsed = AgentCard.model_validate(card)
+        if parsed.url != registration["endpoint"] or parsed.protocol_version != "0.3.0":
             raise ValueError("Agent Card endpoint or protocol differs")
-        if registration["capability"] not in {s.get("id") for s in card.get("skills", [])}:
+        if registration["capability"] not in {skill.id for skill in parsed.skills}:
             raise ValueError("Agent Card does not declare the requested capability")
         challenge_id = uuid4()
         expiry = datetime.now(timezone.utc) + timedelta(minutes=10)

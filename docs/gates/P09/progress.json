@@ -4,11 +4,13 @@
   "acceptance": "not_passed",
   "implemented": [
     "P09.1 authenticated tenant-scoped agent directory projects durable onboarding registrations, capability claims, provider mode, qualification expiry and explicit unverified ENS/affiliation/research-dispatch status",
+    "P09.1 registration challenge now validates the pinned Agent Card against the official A2A 0.3.0 schema before accepting its endpoint or capability claim",
     "Earlier H04/F02 work includes an official A2A 0.3.0 SDK client, provider servers, scoped signed requests, durable provider tasks and cancellation; these are reusable foundations for P09.2, not a P09 gate pass"
   ],
   "verified": [
     "9 focused P08/P09 HTTP contract tests passed and one disposable PostgreSQL test verified tenant isolation, expired qualification, role/token scope and no automatic research trust escalation",
-    "17 existing provider/cancellation tests passed; the official A2A client emits a deprecation warning but the pinned 0.3.22 SDK tests succeed locally"
+    "17 existing provider/cancellation tests passed; the official A2A client emits a deprecation warning but the pinned 0.3.22 SDK tests succeed locally",
+    "Malformed pinned Agent Card is rejected by a focused unit test; the affected full onboarding/proof/qualification/revocation integration passed against the disposable local PostgreSQL database on its actual port 15432. Ruff, mypy and purpose headers passed."
   ],
   "remaining": [
     "P09.1 full registry/capability/endpoint CRUD, independent verification and revocation",
