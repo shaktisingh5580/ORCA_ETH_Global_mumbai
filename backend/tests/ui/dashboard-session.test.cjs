@@ -58,11 +58,12 @@ async function boot({storage = new Map(), override} = {}) {
       if (url === '/v1/me') return response({orgs:[{id:'org-one',name:'Institution one'},{id:'org-two',name:'Institution two'}]});
       if (url.startsWith('/v1/research/projects?')) return response({items:[{id:'project-one',name:'Project one'},{id:'project-two',name:'Project two'}]});
       if (url === '/v1/network/config') return response({});
+      if (url.startsWith('/v1/network/agents?')) return response({items:[]});
       if (/\/(datasets|reasoning|agents|institutional-agents)(\?|$)/.test(url)) return response([]);
       throw new Error(`Unhandled isolated request: ${url}`);
     },
   };
-  const api = await vm.runInNewContext(`(async()=>{${script}\nreturn {state,selectView,authRequest,token,api,clearSession,loadProjects,loadProject};})()`,context);
+  const api = await vm.runInNewContext(`(async()=>{${script}\nreturn {state,selectView,authRequest,token,api,clearSession,loadProjects,loadProject,loadNetwork,renderEnsObservation};})()`,context);
   return {...api,elements,tabs,panels,calls,storage};
 }
 
@@ -90,6 +91,18 @@ test('all four tab handlers retain the signed-in account and selected project', 
   assert.equal(page.calls.length,calls,'View changes must not restart authentication');
   assert.equal(page.elements.get('password').value,'');
   assert.ok(!page.storage.get(sessionKey).includes('test-only-password'));
+});
+
+test('network directory renders paginated service eligibility without implying ENS authority', async () => {
+  const page = await boot({override:url=>url.startsWith('/v1/network/agents?') && response({items:[{name:'Ocean provider',capability:'temperature_summary_v1',provider_mode:'self_declared_external',service_eligible:true,ens_verified:false,research_dispatch_enabled:false}]})});
+  await login(page); await page.loadNetwork();
+  const listing = page.elements.get('network-agents').innerHTML;
+  assert.match(listing,/Ocean provider/);
+  assert.match(listing,/Service qualified · ENS not verified · Research dispatch disabled/);
+  assert.doesNotMatch(listing,/Network unavailable/);
+  const observation = page.renderEnsObservation({status:'NAME_OBSERVED_NOT_AUTHORIZED',hierarchy:[{owner:'0x123'}],block_number:'42',registration_matches:{endpoint:false,public_key:false,card_digest:false},authority_verified:false,research_dispatch_enabled:false});
+  assert.match(observation,/Name active on finalized Sepolia state/);
+  assert.match(observation,/Agent authority not verified/);
 });
 
 test('same-tab reload restores and authorizes the account and remembered workspace', async () => {

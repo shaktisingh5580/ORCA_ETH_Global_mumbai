@@ -128,10 +128,12 @@ async function loadNetwork() {
   $('network-refresh').disabled = true;
   empty('network-agents','Loading registered services…');
   try {
-    const [agents, profile] = await Promise.all([api(`/v1/network/agents?organization_id=${encodeURIComponent(organization)}`),api('/v1/network/config')]);
+    const [page, profile] = await Promise.all([api(`/v1/network/agents?organization_id=${encodeURIComponent(organization)}`),api('/v1/network/config')]);
     if (generation !== state.generation) return;
-    if (!agents.length) empty('network-agents','No active services are registered for this organization.');
-    else fill('network-agents',agents.map(a=>`<div class="review-card"><strong>${esc(a.name)}</strong><p>${esc(a.capability)}</p>${badge(a.operator_mode)}<p class="muted">${esc(a.identity_status)}</p></div>`).join(''));
+    const agents = page.items;
+    if (!Array.isArray(agents)) throw new Error('The service directory returned an invalid page.');
+    if (!agents.length) empty('network-agents','No services are registered for this organization.');
+    else fill('network-agents',agents.map(a=>`<div class="review-card"><strong>${esc(a.name)}</strong><p>${esc(a.capability)}</p>${badge(a.provider_mode)}<p class="muted">${a.service_eligible ? 'Service qualified' : 'Service not currently qualified'} · ENS ${a.ens_verified ? 'verified' : 'not verified'} · Research dispatch ${a.research_dispatch_enabled ? 'enabled' : 'disabled'}</p></div>`).join(''));
     fill('network-profile',`<p>A2A ${esc(profile.a2a_protocol)} · ${esc(profile.chain)} (${esc(profile.chain_id)})</p><p>ENS identity: ${profile.ens_verified === true ? 'verified by configured profile' : 'not verified'}</p><p>Institutional affiliation: ${profile.institution_verified === true ? 'verified by configured profile' : 'not verified'}</p><p class="muted">Network configuration describes execution services; it does not establish scientific correctness.</p>`);
   } catch (error) {
     if (generation !== state.generation) return;
@@ -140,6 +142,13 @@ async function loadNetwork() {
   } finally { if (generation === state.generation) $('network-refresh').disabled = !state.project; }
 }
 function agentsBase() { const id = $('organization').value; if (!state.token || !id) throw new Error('Select an authorized organization.'); return `/v1/organizations/${encodeURIComponent(id)}/agents`; }
+function renderEnsObservation(observation) {
+  const matches = observation.registration_matches || {};
+  const active = observation.status === 'NAME_OBSERVED_NOT_AUTHORIZED' && Array.isArray(observation.hierarchy) && observation.hierarchy.length > 0;
+  const summary = active ? 'Name active on finalized Sepolia state' : 'Name inactive or not finalized';
+  const binding = ['endpoint','public_key','card_digest'].every(key => matches[key] === true);
+  return `<div class="review-card"><strong>${esc(summary)}</strong><p class="muted">${active ? `Owner ${esc(observation.hierarchy.at(-1).owner)} · block ${esc(observation.block_number)}` : esc(observation.message || 'Retry after ENS finality.')}</p><p>Service records ${binding ? 'match registration' : 'do not yet match registration'} · Agent authority ${observation.authority_verified === true ? 'verified' : 'not verified'} · Research dispatch ${observation.research_dispatch_enabled === true ? 'enabled' : 'disabled'}</p>${detail('Finalized ENS observation and service comparison',observation)}</div>`;
+}
 async function loadOwnedAgents() {
   const generation = state.generation;
   if (!state.token || !state.project) return;
@@ -169,7 +178,7 @@ async function refreshAgentDetail() {
     const section = document.createElement('section');
     section.innerHTML = '<h3>ENSv2 identity · Sepolia</h3><p class="muted">Inspect an agent subname and compare its public records with this service. Lookup does not grant controller authority or research access.</p><label>Agent ENS name<input id="agent-ens-name" placeholder="analyst.orca-research-lab.eth" autocomplete="off"></label><button class="secondary" id="agent-ens-inspect">Inspect ENS records</button><div id="agent-ens-result" role="status"></div>';
     $('agent-detail').append(section);
-    $('agent-ens-inspect').onclick=e=>action(e.currentTarget,async()=>{const target=a.id;const observation=await api(`${agentsBase()}/${target}/ens-observation?name=${encodeURIComponent($('agent-ens-name').value.trim())}`);if(generation!==state.generation||selectedAgent?.id!==target)return;$('agent-ens-result').innerHTML=detail('Finalized ENS observation and service comparison',observation);});
+    $('agent-ens-inspect').onclick=e=>action(e.currentTarget,async()=>{const target=a.id;const observation=await api(`${agentsBase()}/${target}/ens-observation?name=${encodeURIComponent($('agent-ens-name').value.trim())}`);if(generation!==state.generation||selectedAgent?.id!==target)return;$('agent-ens-result').innerHTML=renderEnsObservation(observation);});
   }
   const events = await api(`${agentsBase()}/${a.id}/events`);
   if (generation !== state.generation || selectedAgent?.id !== a.id) return;
