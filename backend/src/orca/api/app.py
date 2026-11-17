@@ -19,6 +19,7 @@ from orca.api.dashboard import install_dashboard
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.agents import directory_router
 from orca.api.routers.agents import router as agents_router
+from orca.api.routers.benchmarks import router as benchmarks_router
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
 from orca.api.routers.evidence import router as evidence_router
@@ -135,6 +136,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(investigations_router)
     app.include_router(evidence_router)
     app.include_router(reviews_router)
+    app.include_router(benchmarks_router)
     app.include_router(reports_router)
     if settings.research_demo_enabled:
         app.include_router(demo_router)

@@ -302,6 +302,86 @@
         "title": "ArtifactView",
         "type": "object"
       },
+      "BenchmarkDefinitionView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "domain": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Domain",
+            "type": "string"
+          },
+          "frozen_test_set_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Frozen Test Set Digest",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "method_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Method Id",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reference_kind": {
+            "enum": [
+              "independent_observation",
+              "synthetic_fixture"
+            ],
+            "title": "Reference Kind",
+            "type": "string"
+          },
+          "reference_policy_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Reference Policy Digest",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "title",
+          "domain",
+          "method_id",
+          "version",
+          "frozen_test_set_digest",
+          "reference_policy_digest",
+          "reference_kind",
+          "synthetic",
+          "created_at"
+        ],
+        "title": "BenchmarkDefinitionView",
+        "type": "object"
+      },
       "CanonicalVariableMapping": {
         "additionalProperties": false,
         "properties": {
@@ -8591,6 +8671,179 @@
         "summary": "Create Review",
         "tags": [
           "scientific reviews"
+        ]
+      }
+    },
+    "/v1/research/benchmarks": {
+      "get": {
+        "operationId": "list_benchmarks_v1_research_benchmarks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "domain",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          },
+          {
+            "in": "query",
+            "name": "method",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Method"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BenchmarkDefinitionView"
+                  },
+                  "title": "Response List Benchmarks V1 Research Benchmarks Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Benchmarks",
+        "tags": [
+          "benchmarks"
+        ]
+      }
+    },
+    "/v1/research/benchmarks/{benchmark_id}": {
+      "get": {
+        "operationId": "get_benchmark_v1_research_benchmarks__benchmark_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "benchmark_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Benchmark Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkDefinitionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Benchmark",
+        "tags": [
+          "benchmarks"
         ]
       }
     },
