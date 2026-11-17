@@ -24,13 +24,13 @@
     "P07.4: 5 focused contract/science tests and 1 local database schema test passed; 0030 migration applied to disposable local orca_test; generated OpenAPI, Ruff, mypy, headers and import boundaries checked",
     "P07.4 scoring: 9 focused science tests and 1 local database evaluation test passed; 0031-0032 migrations applied to disposable local orca_test; Ruff, mypy, purpose headers and import boundaries passed",
     "P07.4 portable review package: 4 focused tests passed for signatures, tampering, context, assembly and denied access; Ruff, mypy, purpose headers and import boundaries passed",
-    "P07.4 media type delivery: 18 focused route/export tests passed, generated OpenAPI check, Ruff and mypy of changed router/config passed; full Windows TestClient transport could not start its local event-loop socket pair and remains unverified"
+    "P07.4 media type delivery: 20 combined checks passed, including HTTP content negotiation outside the network sandbox and disposable PostgreSQL assembly of signed packages for owner and external reviewer with revoked access denied; fixture evidence is synthetic and no institutional independence is claimed"
   ],
   "remaining": [
     "P07.1 isolated execution environment, actual source retrieval and independent-operator proof",
     "P07.2 end-to-end HTTP and multi-principal database acceptance for challenge adjudication; separate actor is enforced, but institutional independence is not yet proven",
     "P07.3 full historical replay acceptance: source-native forecast issue and valid clocks, independent source availability proof, provider-enforced retention or equivalent durable object lock, authorized HTTP workflow and replay from real source bytes; past snapshots cannot be retroactively qualified",
-    "P07.4 authorized benchmark curation and private frozen data provisioning, public evaluation job/read workflow, independent reference proof, real HTTP/database review-package delivery, reviewer-owned signatures and end-to-end evaluation",
+    "P07.4 authorized benchmark curation and private frozen data provisioning, public evaluation job/read workflow, independent reference proof, production HTTP review-package acceptance, reviewer-owned signatures and end-to-end evaluation",
     "P05/P06 prerequisites and P07 gate acceptance"
   ],
   "oracle_deployment": "deferred_by_user"

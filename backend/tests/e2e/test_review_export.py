@@ -178,6 +178,9 @@ def test_review_export_assembles_scoped_immutable_rows(monkeypatch: pytest.Monke
             return self.records
 
     class Session:
+        def __init__(self, stored_author: str = evidence.created_by) -> None:
+            self.stored_author = stored_author
+
         def execute(self, statement, params):
             assert params["tenant"] == evidence.tenant_id
             assert params["artifact"] == artifact
@@ -191,6 +194,7 @@ def test_review_export_assembles_scoped_immutable_rows(monkeypatch: pytest.Monke
                             "scientific_status": evidence.result_status,
                             "manifest": evidence.model_dump(mode="json"),
                             "manifest_digest": evidence.manifest_digest,
+                            "stored_author": self.stored_author,
                         }
                     ]
                 )
@@ -228,6 +232,13 @@ def test_review_export_assembles_scoped_immutable_rows(monkeypatch: pytest.Monke
     assert not package.signed
     assert payload["reviews"][0]["reviewer_subject"] == "separate-reviewer"
     assert payload["challenges"][0]["status"] == "inconclusive"
+    with pytest.raises(ValueError, match="evidence lineage mismatch"):
+        assemble_review_export(
+            Session(stored_author="different-author"),
+            evidence.tenant_id,
+            artifact,
+            Principal("reader", "test", frozenset({"evidence:read"})),
+        )
 
 
 def test_review_export_rechecks_revoked_or_missing_grant(monkeypatch: pytest.MonkeyPatch) -> None:

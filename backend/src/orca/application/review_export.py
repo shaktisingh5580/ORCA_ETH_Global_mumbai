@@ -204,7 +204,8 @@ def assemble_review_export(
     row = (
         session.execute(
             text("""SELECT a.project_id,a.evidence_manifest_id,a.scientific_status,
-          m.manifest,m.manifest_digest FROM research.run_artifacts a
+          m.manifest,m.manifest_digest,m.created_by AS stored_author
+          FROM research.run_artifacts a
           JOIN research.science_evidence_manifests m
             ON m.tenant_id=a.tenant_id AND m.project_id=a.project_id
               AND m.id=a.evidence_manifest_id
@@ -243,6 +244,7 @@ def assemble_review_export(
         or evidence.id != row["evidence_manifest_id"]
         or evidence.manifest_digest != row["manifest_digest"]
         or evidence.result_status != row["scientific_status"]
+        or evidence.created_by != row["stored_author"]
     ):
         raise ValueError("review artifact evidence lineage mismatch")
     params = {"tenant": tenant, "project": row["project_id"], "artifact": artifact_id}

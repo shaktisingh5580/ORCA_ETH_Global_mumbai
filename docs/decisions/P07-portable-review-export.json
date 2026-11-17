@@ -1,6 +1,6 @@
 {
   "phase": "P07.4",
-  "status": "HTTP_CONTENT_NEGOTIATION_IMPLEMENTED_LOCAL_CHECKS",
+  "status": "HTTP_AND_LOCAL_DATABASE_VERIFIED_DEVELOPMENT",
   "authority": "main_implementation plan.md P07.4; api design.md sections 3.8 and 4.5",
   "package": "Canonical JSON envelope with original evidence digest, review, challenge, response and resolution records; linked correction/arbitration artifacts are references only",
   "signature": "Optional Ed25519 signature over domain-separated package digest. Verification requires an out-of-band trusted public key, key ID, expected artifact ID and evidence manifest digest.",
@@ -8,9 +8,10 @@
   "operator_configuration": "Optional ORCA_REVIEW_EXPORT_SIGNING_KEY is a URL-safe base64 encoded 32-byte Ed25519 private key and must be paired with ORCA_REVIEW_EXPORT_KEY_ID. Without both, downloads are explicitly unsigned.",
   "claim_boundary": "A package signature proves package integrity under the supplied key. It does not prove reviewer authorship, institutional independence, or scientific correctness.",
   "remaining": [
-    "HTTP transport and real database end-to-end package assembly with independent reviewer principals",
     "Reviewer-controlled signature collection and identity binding",
-    "Verification of linked correction and arbitration artifact bytes"
+    "Verification of linked correction and arbitration artifact bytes",
+    "Production HTTP and external institutional acceptance"
   ],
+  "local_verification": "20 combined local checks passed: 19 affected route/export tests including Windows HTTP content negotiation, and one disposable PostgreSQL test assembling signed packages from immutable rows for the project owner and separately granted external reviewer, then denying the reviewer after grant revocation. Evidence fixtures are test-only and do not prove institutional independence.",
   "oracle_deployment": "deferred_by_user"
 }

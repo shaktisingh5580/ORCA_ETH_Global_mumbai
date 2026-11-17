@@ -13,9 +13,11 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from fastapi import HTTPException
 from fastapi.responses import Response
+from fastapi.testclient import TestClient
 from pydantic import SecretStr, ValidationError
 
 from orca.api.app import create_app
+from orca.api.dependencies import current_principal
 from orca.api.routers import evidence, reviews
 from orca.application.review_export import ReviewExportPackage
 from orca.config import Settings
@@ -127,6 +129,46 @@ def test_review_package_signing_requires_valid_configured_key() -> None:
     )
     assert app.state.review_export_key_id == "operator"
     assert app.state.review_export_signing_key is not None
+
+
+@pytest.mark.enable_socket
+def test_portable_review_http_media_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = create_app(
+        Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+    )
+    principal = Principal("reader", "test", frozenset({"evidence:read"}))
+    app.dependency_overrides[current_principal] = lambda: principal
+    artifact, tenant = uuid4(), uuid4()
+
+    class UnitOfWork:
+        def __init__(self, *_args: object) -> None:
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+    monkeypatch.setattr(reviews, "_review_tenant", lambda *_args: tenant)
+    monkeypatch.setattr(reviews, "engine", lambda *_args: object())
+    monkeypatch.setattr(reviews, "TenantUnitOfWork", UnitOfWork)
+    monkeypatch.setattr(
+        reviews,
+        "assemble_review_export",
+        lambda *_args, **_kwargs: ReviewExportPackage(
+            b'{"payload":"test"}', "sha256:" + "a" * 64, False
+        ),
+    )
+    with TestClient(app) as client:
+        response = client.get(
+            f"/v1/research/artifacts/{artifact}/reviews",
+            headers={"Accept": "application/vnd.orca.review+json"},
+        )
+    assert response.status_code == 200
+    assert response.content == b'{"payload":"test"}'
+    assert response.headers["content-type"] == "application/vnd.orca.review+json"
+    assert response.headers["x-orca-package-signature"] == "unsigned"
 
 
 def test_normal_review_list_remains_json_records(monkeypatch: pytest.MonkeyPatch) -> None:
