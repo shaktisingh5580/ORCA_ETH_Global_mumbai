@@ -1368,6 +1368,79 @@
         "title": "DownloadIntent",
         "type": "object"
       },
+      "ENSResolutionSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_verified": {
+            "const": false,
+            "default": false,
+            "title": "Authority Verified",
+            "type": "boolean"
+          },
+          "ens_chain_id": {
+            "const": 11155111,
+            "default": 11155111,
+            "title": "Ens Chain Id",
+            "type": "integer"
+          },
+          "finalized": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finalized"
+          },
+          "institutional_affiliation_verified": {
+            "const": false,
+            "default": false,
+            "title": "Institutional Affiliation Verified",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "observed_block": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Block"
+          },
+          "records": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Records",
+            "type": "object"
+          },
+          "research_dispatch_enabled": {
+            "const": false,
+            "default": false,
+            "title": "Research Dispatch Enabled",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "records"
+        ],
+        "title": "ENSResolutionSnapshot",
+        "type": "object"
+      },
       "EphemeralDownload": {
         "additionalProperties": false,
         "properties": {
@@ -4373,6 +4446,34 @@
           "limitations"
         ],
         "title": "ResolveChallengeRequest",
+        "type": "object"
+      },
+      "ResolveENSRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "ens_chain_id": {
+            "const": 11155111,
+            "title": "Ens Chain Id",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 253,
+            "minLength": 5,
+            "title": "Name",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "name",
+          "ens_chain_id"
+        ],
+        "title": "ResolveENSRequest",
         "type": "object"
       },
       "ResourceRef": {
@@ -7890,6 +7991,53 @@
         "summary": "Get Probe",
         "tags": [
           "operator source probes"
+        ]
+      }
+    },
+    "/v1/identity/ens/resolutions": {
+      "post": {
+        "description": "Inspect a finalized Sepolia name without converting text records to authority.",
+        "operationId": "resolve_ens_v1_identity_ens_resolutions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveENSRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ENSResolutionSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Resolve Ens",
+        "tags": [
+          "ENS identity"
         ]
       }
     },

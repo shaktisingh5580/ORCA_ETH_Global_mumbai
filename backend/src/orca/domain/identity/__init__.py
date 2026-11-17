@@ -26,6 +26,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "ops:read",
             "audit:read",
             "network:read",
+            "identity:manage",
             "operation:read",
         }
     ),
@@ -47,6 +48,7 @@ ROLE_SCOPES: Final[dict[str, frozenset[str]]] = {
             "ops:read",
             "audit:read",
             "network:read",
+            "identity:manage",
             "operation:read",
         }
     ),

@@ -1,0 +1,19 @@
+{
+  "phase": "P10",
+  "status": "development_in_progress",
+  "acceptance": "not_passed",
+  "implemented": [
+    "P10.4 initial read-only ENS resolution route uses the existing pinned Sepolia finalized-state verifier under organization identity scope and never promotes text records into research or institutional authority"
+  ],
+  "verified": [
+    "9 focused ENS HTTP and generated OpenAPI contract tests passed; Ruff, mypy and file-header checks passed. No live chain transaction, registration, delegation or wallet-binding acceptance is claimed."
+  ],
+  "remaining": [
+    "P10.1 dedicated protocol adapter, supported deployment and live namespace readback",
+    "P10.2 EAC permission boundaries, delegation and revocation",
+    "P10.3 signed ENS/Arkiv/A2A wallet and key binding",
+    "P10.4 complete identity and permission evidence UI, cache invalidation and live revocation tests",
+    "G09 prerequisite acceptance and all G10 live chain evidence"
+  ],
+  "oracle_deployment": "deferred_by_user"
+}
