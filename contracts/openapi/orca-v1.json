@@ -450,6 +450,66 @@
         "title": "ChallengeRequest",
         "type": "object"
       },
+      "ChallengeResolutionView": {
+        "additionalProperties": false,
+        "properties": {
+          "arbitration_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Arbitration Refs",
+            "type": "array"
+          },
+          "challenge_id": {
+            "format": "uuid",
+            "title": "Challenge Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "independence_verified": {
+            "title": "Independence Verified",
+            "type": "boolean"
+          },
+          "limitations": {
+            "title": "Limitations",
+            "type": "string"
+          },
+          "resolver_subject": {
+            "title": "Resolver Subject",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "upheld",
+              "rejected",
+              "inconclusive"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "challenge_id",
+          "resolver_subject",
+          "verdict",
+          "arbitration_refs",
+          "limitations",
+          "independence_verified",
+          "created_at"
+        ],
+        "title": "ChallengeResolutionView",
+        "type": "object"
+      },
       "ChallengeResponseRequest": {
         "additionalProperties": false,
         "properties": {
@@ -537,10 +597,22 @@
             "title": "Discrepancy Type",
             "type": "string"
           },
+          "etag": {
+            "description": "Bind If-Match to the challenge and its observed response count.",
+            "readOnly": true,
+            "title": "Etag",
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "response_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Response Count",
+            "type": "integer"
           },
           "reviewer_subject": {
             "title": "Reviewer Subject",
@@ -562,7 +634,9 @@
             "default": "open",
             "enum": [
               "open",
-              "responded"
+              "responded",
+              "resolved",
+              "inconclusive"
             ],
             "title": "Status",
             "type": "string"
@@ -575,7 +649,8 @@
           "discrepancy_type",
           "source_refs",
           "statement",
-          "created_at"
+          "created_at",
+          "etag"
         ],
         "title": "ChallengeView",
         "type": "object"
@@ -3811,6 +3886,41 @@
           "selected_sources"
         ],
         "title": "RecipeValidationRequest",
+        "type": "object"
+      },
+      "ResolveChallengeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "arbitration_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Arbitration Refs",
+            "type": "array"
+          },
+          "limitations": {
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Limitations",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "upheld",
+              "rejected",
+              "inconclusive"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "limitations"
+        ],
+        "title": "ResolveChallengeRequest",
         "type": "object"
       },
       "ResourceRef": {
@@ -8479,6 +8589,73 @@
           }
         ],
         "summary": "Create Review",
+        "tags": [
+          "scientific reviews"
+        ]
+      }
+    },
+    "/v1/research/challenges/{challenge_id}/resolve": {
+      "post": {
+        "operationId": "resolve_challenge_v1_research_challenges__challenge_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "challenge_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Challenge Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-match",
+            "required": true,
+            "schema": {
+              "title": "If-Match",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResolutionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Resolve Challenge",
         "tags": [
           "scientific reviews"
         ]

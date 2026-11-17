@@ -7,16 +7,18 @@
     "P07.4 finite aligned MAE, RMSE and bias calculations with explicit not-evaluable result when held-out truth is absent",
     "P07.1 numerical reproduction validates exact raw input bytes, origin result digest and registered approved method without claiming institutional independence",
     "P07.2 scoped reviewer grants, append-only challenges and review opinions, revocation, and response links to a separate immutable artifact",
-    "P07 artifact detail/manifest/lineage reads permit a named external reviewer only while an exact artifact grant and evidence:read token scope remain active"
+    "P07 artifact detail/manifest/lineage reads permit a named external reviewer only while an exact artifact grant and evidence:read token scope remain active",
+    "P07.2 immutable one-time challenge resolutions with response-count If-Match, separate resolver, verified same-investigation evidence references, terminal response fencing and explicit inconclusive verdict"
   ],
   "verified": [
     "13 focused P07 and affected P04 science tests passed",
     "ruff and mypy passed for new P07 source files",
-    "9 focused P07 review and reproduction tests passed; 0026 migration rendered offline but was not applied to a live database"
+    "9 focused P07 review and reproduction tests passed; 0026 migration rendered offline but was not applied to a live database",
+    "23 focused P07/relevant science tests passed; 0028 resolution migration applied to disposable local orca_test; 1 local database test verified forced RLS, runtime INSERT-only grants, immutable trigger and unique resolution constraint; generated OpenAPI checks, Ruff, mypy, headers and import boundaries passed"
   ],
   "remaining": [
     "P07.1 isolated execution environment, actual source retrieval and independent-operator proof",
-    "P07.2 live database/RLS validation, challenge adjudication and proof of independent reviewer operation",
+    "P07.2 end-to-end HTTP and multi-principal database acceptance for challenge adjudication; separate actor is enforced, but institutional independence is not yet proven",
     "P07.3 database-backed archival availability proof and historical replay workflow",
     "P07.4 benchmark registry, signed portable review evidence and end-to-end evaluation",
     "P05/P06 prerequisites and P07 gate acceptance"
