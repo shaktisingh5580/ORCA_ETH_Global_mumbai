@@ -166,6 +166,113 @@
       "title": "AddProjectMember",
       "type": "object"
     },
+    "ApprovePlan": {
+      "additionalProperties": false,
+      "description": "Exact plan acknowledgement; the digest prevents approval drift.",
+      "properties": {
+        "accepted_assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 24,
+          "title": "Accepted Assumptions",
+          "type": "array"
+        },
+        "approver_comment": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Approver Comment"
+        },
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "digest"
+      ],
+      "title": "ApprovePlan",
+      "type": "object"
+    },
+    "ApprovedPlanView": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Accepted Assumptions",
+          "type": "array"
+        },
+        "approved_at": {
+          "format": "date-time",
+          "title": "Approved At",
+          "type": "string"
+        },
+        "approved_by": {
+          "title": "Approved By",
+          "type": "string"
+        },
+        "approver_comment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Approver Comment"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "investigation_id": {
+          "format": "uuid",
+          "title": "Investigation Id",
+          "type": "string"
+        },
+        "plan_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Plan Digest",
+          "type": "string"
+        },
+        "plan_id": {
+          "format": "uuid",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "project_id": {
+          "format": "uuid",
+          "title": "Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "investigation_id",
+        "plan_id",
+        "project_id",
+        "plan_digest",
+        "accepted_assumptions",
+        "approver_comment",
+        "approved_by",
+        "approved_at"
+      ],
+      "title": "ApprovedPlanView",
+      "type": "object"
+    },
     "Capability": {
       "additionalProperties": false,
       "properties": {
@@ -311,6 +418,56 @@
         "sha256"
       ],
       "title": "CompleteUpload",
+      "type": "object"
+    },
+    "CreateInvestigation": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "As Of"
+        },
+        "geo_scope": {
+          "$ref": "#/$defs/GeoScope"
+        },
+        "project_id": {
+          "format": "uuid",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "question": {
+          "maxLength": 2000,
+          "minLength": 10,
+          "title": "Question",
+          "type": "string"
+        },
+        "risk_tier": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Risk Tier",
+          "type": "string"
+        },
+        "time_window": {
+          "$ref": "#/$defs/TimeWindow"
+        }
+      },
+      "required": [
+        "project_id",
+        "question",
+        "geo_scope",
+        "time_window",
+        "risk_tier"
+      ],
+      "title": "CreateInvestigation",
       "type": "object"
     },
     "CreateInvitation": {
@@ -578,6 +735,181 @@
         "evidence_id"
       ],
       "title": "IdentityReference",
+      "type": "object"
+    },
+    "InvestigationPlanView": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "title": "Created By",
+          "type": "string"
+        },
+        "etag": {
+          "title": "Etag",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "investigation_id": {
+          "format": "uuid",
+          "title": "Investigation Id",
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/$defs/TypedPlan"
+        },
+        "plan_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Plan Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "format": "uuid",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "investigation_id",
+        "project_id",
+        "revision",
+        "plan",
+        "plan_digest",
+        "created_by",
+        "created_at",
+        "etag"
+      ],
+      "title": "InvestigationPlanView",
+      "type": "object"
+    },
+    "InvestigationView": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "As Of"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "current_plan_revision": {
+          "title": "Current Plan Revision",
+          "type": "integer"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description"
+        },
+        "etag": {
+          "title": "Etag",
+          "type": "string"
+        },
+        "geo_scope": {
+          "$ref": "#/$defs/GeoScope"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "project_id": {
+          "format": "uuid",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "risk_tier": {
+          "title": "Risk Tier",
+          "type": "string"
+        },
+        "scientific_status": {
+          "const": "not_run",
+          "title": "Scientific Status",
+          "type": "string"
+        },
+        "source_readiness": {
+          "enum": [
+            "not_assessed",
+            "unverified"
+          ],
+          "title": "Source Readiness",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "DRAFT",
+            "PLAN_PENDING",
+            "PLAN_READY",
+            "APPROVED"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "time_window": {
+          "$ref": "#/$defs/TimeWindow"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "project_id",
+        "question",
+        "description",
+        "geo_scope",
+        "time_window",
+        "as_of",
+        "risk_tier",
+        "state",
+        "source_readiness",
+        "scientific_status",
+        "current_plan_revision",
+        "version",
+        "created_at",
+        "updated_at",
+        "etag"
+      ],
+      "title": "InvestigationView",
       "type": "object"
     },
     "Invitation": {
@@ -1106,6 +1438,62 @@
       "title": "Page[ResearchProject]",
       "type": "object"
     },
+    "PatchInvestigation": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "geo_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeoScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "question": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 10,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Question"
+        },
+        "time_window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeWindow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "PatchInvestigation",
+      "type": "object"
+    },
     "PatchMember": {
       "additionalProperties": false,
       "properties": {
@@ -1323,6 +1711,121 @@
         }
       },
       "title": "PatchProjectMember",
+      "type": "object"
+    },
+    "PlanNode": {
+      "additionalProperties": false,
+      "description": "One allowlisted operation in a plan DAG; no user-supplied executable text.",
+      "properties": {
+        "depends_on": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_-]*$",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "node_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "source_metadata",
+            "compatibility_check",
+            "scientific_method",
+            "evidence_manifest"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "source_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "node_id",
+        "operation",
+        "depends_on"
+      ],
+      "title": "PlanNode",
+      "type": "object"
+    },
+    "PlanRequest": {
+      "additionalProperties": false,
+      "description": "HTTP input used to request deterministic typed plan construction.",
+      "properties": {
+        "budget": {
+          "$ref": "#/$defs/MoneyBudget"
+        },
+        "data_constraints": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxProperties": 24,
+          "title": "Data Constraints",
+          "type": "object"
+        },
+        "method_hint": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Method Hint"
+        },
+        "source_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "strategy": {
+          "const": "typed",
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "strategy",
+        "data_constraints",
+        "budget"
+      ],
+      "title": "PlanRequest",
       "type": "object"
     },
     "Point": {
@@ -2153,6 +2656,100 @@
         "end"
       ],
       "title": "TimeWindow",
+      "type": "object"
+    },
+    "TypedPlan": {
+      "additionalProperties": false,
+      "description": "A versioned DAG whose digest binds every execution-relevant input.",
+      "properties": {
+        "assumptions": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 24,
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "budget": {
+          "$ref": "#/$defs/MoneyBudget"
+        },
+        "data_constraints": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxProperties": 24,
+          "title": "Data Constraints",
+          "type": "object"
+        },
+        "method_hint": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Method Hint"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/PlanNode"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Nodes",
+          "type": "array"
+        },
+        "revision": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "orca.research_plan/1",
+          "default": "orca.research_plan/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "revision",
+        "data_constraints",
+        "budget",
+        "nodes",
+        "assumptions",
+        "source_ids"
+      ],
+      "title": "TypedPlan",
       "type": "object"
     },
     "UploadIntent": {

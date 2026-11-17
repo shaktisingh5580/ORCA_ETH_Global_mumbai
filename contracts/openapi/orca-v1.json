@@ -123,6 +123,185 @@
         "title": "AddProjectMember",
         "type": "object"
       },
+      "ApprovePlan": {
+        "additionalProperties": false,
+        "description": "Exact plan acknowledgement; the digest prevents approval drift.",
+        "properties": {
+          "accepted_assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 24,
+            "title": "Accepted Assumptions",
+            "type": "array"
+          },
+          "approver_comment": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Comment"
+          },
+          "digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "digest"
+        ],
+        "title": "ApprovePlan",
+        "type": "object"
+      },
+      "ApprovedPlanView": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Accepted Assumptions",
+            "type": "array"
+          },
+          "approved_at": {
+            "title": "Approved At",
+            "type": "string"
+          },
+          "approved_by": {
+            "title": "Approved By",
+            "type": "string"
+          },
+          "approver_comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Comment"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "format": "uuid",
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "plan_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Plan Digest",
+            "type": "string"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "investigation_id",
+          "plan_id",
+          "project_id",
+          "plan_digest",
+          "accepted_assumptions",
+          "approver_comment",
+          "approved_by",
+          "approved_at"
+        ],
+        "title": "ApprovedPlanView",
+        "type": "object"
+      },
+      "ArtifactView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence_manifest_id": {
+            "format": "uuid",
+            "title": "Evidence Manifest Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "format": "uuid",
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "method_id": {
+            "title": "Method Id",
+            "type": "string"
+          },
+          "method_version": {
+            "title": "Method Version",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "scientific_status": {
+            "enum": [
+              "supported",
+              "insufficient_evidence"
+            ],
+            "title": "Scientific Status",
+            "type": "string"
+          },
+          "source_mode": {
+            "enum": [
+              "live_real",
+              "preserved_real",
+              "synthetic_test"
+            ],
+            "title": "Source Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "investigation_id",
+          "run_id",
+          "evidence_manifest_id",
+          "manifest_digest",
+          "scientific_status",
+          "source_mode",
+          "method_id",
+          "method_version",
+          "created_at"
+        ],
+        "title": "ArtifactView",
+        "type": "object"
+      },
       "CanonicalVariableMapping": {
         "additionalProperties": false,
         "properties": {
@@ -230,6 +409,175 @@
           "name"
         ],
         "title": "Capability",
+        "type": "object"
+      },
+      "ChallengeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "discrepancy_type": {
+            "enum": [
+              "wrong_baseline",
+              "numerical_mismatch",
+              "method_mismatch",
+              "missing_source",
+              "unsupported_claim"
+            ],
+            "title": "Discrepancy Type",
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "statement": {
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "discrepancy_type",
+          "source_refs",
+          "statement"
+        ],
+        "title": "ChallengeRequest",
+        "type": "object"
+      },
+      "ChallengeResponseRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "response_artifact_id": {
+            "format": "uuid",
+            "title": "Response Artifact Id",
+            "type": "string"
+          },
+          "statement": {
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "response_artifact_id",
+          "statement"
+        ],
+        "title": "ChallengeResponseRequest",
+        "type": "object"
+      },
+      "ChallengeResponseView": {
+        "additionalProperties": false,
+        "properties": {
+          "challenge_id": {
+            "format": "uuid",
+            "title": "Challenge Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "responder_subject": {
+            "title": "Responder Subject",
+            "type": "string"
+          },
+          "response_artifact_id": {
+            "format": "uuid",
+            "title": "Response Artifact Id",
+            "type": "string"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "challenge_id",
+          "responder_subject",
+          "response_artifact_id",
+          "statement",
+          "created_at"
+        ],
+        "title": "ChallengeResponseView",
+        "type": "object"
+      },
+      "ChallengeView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "discrepancy_type": {
+            "enum": [
+              "wrong_baseline",
+              "numerical_mismatch",
+              "method_mismatch",
+              "missing_source",
+              "unsupported_claim"
+            ],
+            "title": "Discrepancy Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reviewer_subject": {
+            "title": "Reviewer Subject",
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
+          "status": {
+            "default": "open",
+            "enum": [
+              "open",
+              "responded"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "artifact_id",
+          "reviewer_subject",
+          "discrepancy_type",
+          "source_refs",
+          "statement",
+          "created_at"
+        ],
+        "title": "ChallengeView",
         "type": "object"
       },
       "CompatibilityReport": {
@@ -358,6 +706,55 @@
         "title": "Coverage",
         "type": "object"
       },
+      "CreateInvestigation": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "geo_scope": {
+            "$ref": "#/components/schemas/GeoScope"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 2000,
+            "minLength": 10,
+            "title": "Question",
+            "type": "string"
+          },
+          "risk_tier": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Risk Tier",
+            "type": "string"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/TimeWindow-Input"
+          }
+        },
+        "required": [
+          "project_id",
+          "question",
+          "geo_scope",
+          "time_window",
+          "risk_tier"
+        ],
+        "title": "CreateInvestigation",
+        "type": "object"
+      },
       "CreateInvitation": {
         "additionalProperties": false,
         "properties": {
@@ -477,6 +874,38 @@
         "title": "CreateProject",
         "type": "object"
       },
+      "CreateScientificReport": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Limitations",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "title"
+        ],
+        "title": "CreateScientificReport",
+        "type": "object"
+      },
       "CurrentUser": {
         "additionalProperties": false,
         "properties": {
@@ -560,7 +989,7 @@
             "type": "array"
           },
           "time_window": {
-            "$ref": "#/components/schemas/TimeWindow"
+            "$ref": "#/components/schemas/TimeWindow-Input"
           }
         },
         "required": [
@@ -869,7 +1298,7 @@
             "type": "string"
           },
           "time_window": {
-            "$ref": "#/components/schemas/TimeWindow"
+            "$ref": "#/components/schemas/TimeWindow-Input"
           },
           "version_ref": {
             "format": "uuid",
@@ -980,6 +1409,280 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IndependentReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reproduction_digest": {
+            "anyOf": [
+              {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reproduction Digest"
+          },
+          "statement": {
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Statement",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "agrees",
+              "disagrees",
+              "inconclusive"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "statement"
+        ],
+        "title": "IndependentReviewRequest",
+        "type": "object"
+      },
+      "IndependentReviewView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "independence_verified": {
+            "title": "Independence Verified",
+            "type": "boolean"
+          },
+          "reproduction_digest": {
+            "anyOf": [
+              {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reproduction Digest"
+          },
+          "reviewer_subject": {
+            "title": "Reviewer Subject",
+            "type": "string"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "agrees",
+              "disagrees",
+              "inconclusive"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "artifact_id",
+          "reviewer_subject",
+          "verdict",
+          "statement",
+          "reproduction_digest",
+          "independence_verified",
+          "created_at"
+        ],
+        "title": "IndependentReviewView",
+        "type": "object"
+      },
+      "InvestigationPlanView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "etag": {
+            "title": "Etag",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "format": "uuid",
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/TypedPlan"
+          },
+          "plan_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Plan Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "investigation_id",
+          "project_id",
+          "revision",
+          "plan",
+          "plan_digest",
+          "created_by",
+          "created_at",
+          "etag"
+        ],
+        "title": "InvestigationPlanView",
+        "type": "object"
+      },
+      "InvestigationView": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_plan_revision": {
+            "title": "Current Plan Revision",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "etag": {
+            "title": "Etag",
+            "type": "string"
+          },
+          "geo_scope": {
+            "$ref": "#/components/schemas/GeoScope"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "risk_tier": {
+            "title": "Risk Tier",
+            "type": "string"
+          },
+          "scientific_status": {
+            "const": "not_run",
+            "title": "Scientific Status",
+            "type": "string"
+          },
+          "source_readiness": {
+            "enum": [
+              "not_assessed",
+              "unverified"
+            ],
+            "title": "Source Readiness",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "DRAFT",
+              "PLAN_PENDING",
+              "PLAN_READY",
+              "APPROVED"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/TimeWindow-Output"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "question",
+          "description",
+          "geo_scope",
+          "time_window",
+          "as_of",
+          "risk_tier",
+          "state",
+          "source_readiness",
+          "scientific_status",
+          "current_plan_revision",
+          "version",
+          "created_at",
+          "updated_at",
+          "etag"
+        ],
+        "title": "InvestigationView",
         "type": "object"
       },
       "Invitation": {
@@ -1147,6 +1850,39 @@
           "etag"
         ],
         "title": "Member",
+        "type": "object"
+      },
+      "MoneyBudget": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "const": "USD",
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "max_amount": {
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Max Amount",
+            "type": "string"
+          },
+          "reserved_amount": {
+            "default": "0",
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Reserved Amount",
+            "type": "string"
+          },
+          "spent_amount": {
+            "default": "0",
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Spent Amount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "max_amount"
+        ],
+        "title": "MoneyBudget",
         "type": "object"
       },
       "MultiPolygon": {
@@ -1494,6 +2230,42 @@
         "title": "Page[AccessGrant]",
         "type": "object"
       },
+      "Page_ArtifactView_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[ArtifactView]",
+        "type": "object"
+      },
       "Page_CanonicalVariableMapping_": {
         "additionalProperties": false,
         "properties": {
@@ -1564,6 +2336,78 @@
           "next_cursor"
         ],
         "title": "Page[DatasetSnapshot]",
+        "type": "object"
+      },
+      "Page_InvestigationPlanView_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationPlanView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[InvestigationPlanView]",
+        "type": "object"
+      },
+      "Page_InvestigationView_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[InvestigationView]",
         "type": "object"
       },
       "Page_Member_": {
@@ -1746,6 +2590,42 @@
         "title": "Page[ProjectMemberDetail]",
         "type": "object"
       },
+      "Page_RunView_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[RunView]",
+        "type": "object"
+      },
       "Page_ScientificProduct_": {
         "additionalProperties": false,
         "properties": {
@@ -1816,6 +2696,58 @@
           "next_cursor"
         ],
         "title": "Page[SourceProvider]",
+        "type": "object"
+      },
+      "PatchInvestigation": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "geo_scope": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GeoScope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "question": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "time_window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimeWindow-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "PatchInvestigation",
         "type": "object"
       },
       "PatchMember": {
@@ -2025,6 +2957,120 @@
         "title": "PatchProjectMember",
         "type": "object"
       },
+      "PlanNode": {
+        "additionalProperties": false,
+        "description": "One allowlisted operation in a plan DAG; no user-supplied executable text.",
+        "properties": {
+          "depends_on": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_-]*$",
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Depends On",
+            "type": "array"
+          },
+          "node_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_-]*$",
+            "title": "Node Id",
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "source_metadata",
+              "compatibility_check",
+              "scientific_method",
+              "evidence_manifest"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Source Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "node_id",
+          "operation",
+          "depends_on"
+        ],
+        "title": "PlanNode",
+        "type": "object"
+      },
+      "PlanRequest": {
+        "additionalProperties": false,
+        "description": "HTTP input used to request deterministic typed plan construction.",
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/MoneyBudget"
+          },
+          "data_constraints": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxProperties": 24,
+            "title": "Data Constraints",
+            "type": "object"
+          },
+          "method_hint": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method Hint"
+          },
+          "source_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "strategy": {
+            "const": "typed",
+            "title": "Strategy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "strategy",
+          "data_constraints",
+          "budget"
+        ],
+        "title": "PlanRequest",
+        "type": "object"
+      },
       "Point": {
         "additionalProperties": false,
         "properties": {
@@ -2171,7 +3217,7 @@
             "$ref": "#/components/schemas/GeoScope"
           },
           "time_window": {
-            "$ref": "#/components/schemas/TimeWindow"
+            "$ref": "#/components/schemas/TimeWindow-Input"
           }
         },
         "required": [
@@ -2492,6 +3538,53 @@
         "title": "ProjectMemberDetail",
         "type": "object"
       },
+      "QualityCodebook": {
+        "additionalProperties": false,
+        "properties": {
+          "flags": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "object"
+          },
+          "policy_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Policy Digest",
+            "type": "string"
+          },
+          "policy_id": {
+            "minLength": 1,
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "review_status": {
+            "const": "approved",
+            "default": "approved",
+            "title": "Review Status",
+            "type": "string"
+          },
+          "source_id": {
+            "minLength": 1,
+            "title": "Source Id",
+            "type": "string"
+          },
+          "variable": {
+            "minLength": 1,
+            "title": "Variable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "variable",
+          "policy_id",
+          "policy_digest",
+          "flags"
+        ],
+        "title": "QualityCodebook",
+        "type": "object"
+      },
       "ReadinessReport": {
         "additionalProperties": false,
         "properties": {
@@ -2525,6 +3618,199 @@
           "blocked_gates"
         ],
         "title": "ReadinessReport",
+        "type": "object"
+      },
+      "RecipeTemplatePage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecipeTemplateView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "page_size"
+        ],
+        "title": "RecipeTemplatePage",
+        "type": "object"
+      },
+      "RecipeTemplateView": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar": {
+            "title": "Calendar",
+            "type": "string"
+          },
+          "measurement_semantics": {
+            "title": "Measurement Semantics",
+            "type": "string"
+          },
+          "method_digest": {
+            "title": "Method Digest",
+            "type": "string"
+          },
+          "method_id": {
+            "title": "Method Id",
+            "type": "string"
+          },
+          "method_version": {
+            "title": "Method Version",
+            "type": "string"
+          },
+          "qc_policy_digest": {
+            "title": "Qc Policy Digest",
+            "type": "string"
+          },
+          "qc_policy_id": {
+            "title": "Qc Policy Id",
+            "type": "string"
+          },
+          "required_baseline_years": {
+            "title": "Required Baseline Years",
+            "type": "integer"
+          },
+          "source_compatibility_verified": {
+            "const": false,
+            "default": false,
+            "title": "Source Compatibility Verified",
+            "type": "boolean"
+          },
+          "template_id": {
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "method_id",
+          "method_version",
+          "method_digest",
+          "required_baseline_years",
+          "qc_policy_id",
+          "qc_policy_digest",
+          "calendar",
+          "measurement_semantics"
+        ],
+        "title": "RecipeTemplateView",
+        "type": "object"
+      },
+      "RecipeValidationCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "reason"
+        ],
+        "title": "RecipeValidationCheck",
+        "type": "object"
+      },
+      "RecipeValidationReport": {
+        "additionalProperties": false,
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/RecipeValidationCheck"
+            },
+            "minItems": 1,
+            "title": "Checks",
+            "type": "array"
+          },
+          "method_id": {
+            "title": "Method Id",
+            "type": "string"
+          },
+          "method_version": {
+            "title": "Method Version",
+            "type": "string"
+          },
+          "scientific_finding": {
+            "const": false,
+            "default": false,
+            "title": "Scientific Finding",
+            "type": "boolean"
+          },
+          "selected_sources": {
+            "$ref": "#/components/schemas/SelectedSources"
+          },
+          "status": {
+            "enum": [
+              "invalid",
+              "incompatible",
+              "requires_source_validation"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "method_id",
+          "method_version",
+          "selected_sources",
+          "checks"
+        ],
+        "title": "RecipeValidationReport",
+        "type": "object"
+      },
+      "RecipeValidationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/SSTRecipe"
+          },
+          "selected_sources": {
+            "$ref": "#/components/schemas/SelectedSources"
+          }
+        },
+        "required": [
+          "organization_id",
+          "recipe",
+          "selected_sources"
+        ],
+        "title": "RecipeValidationRequest",
         "type": "object"
       },
       "ResourceRef": {
@@ -2588,6 +3874,807 @@
           "version"
         ],
         "title": "ResourceRef",
+        "type": "object"
+      },
+      "ReviewGrantRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "reviewer_subject": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Reviewer Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reviewer_subject",
+          "expires_at"
+        ],
+        "title": "ReviewGrantRequest",
+        "type": "object"
+      },
+      "ReviewGrantView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "granted_by": {
+            "title": "Granted By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reviewer_subject": {
+            "title": "Reviewer Subject",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "required": [
+          "id",
+          "artifact_id",
+          "reviewer_subject",
+          "granted_by",
+          "expires_at",
+          "revoked_at",
+          "created_at"
+        ],
+        "title": "ReviewGrantView",
+        "type": "object"
+      },
+      "RunOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Artifact Ids",
+            "type": "array"
+          },
+          "evidence_manifest_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Manifest Id"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "supported",
+              "insufficient_evidence",
+              "inconclusive",
+              "invalid"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "artifact_ids",
+          "limitations"
+        ],
+        "title": "RunOutcome",
+        "type": "object"
+      },
+      "RunView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_budget": {
+            "title": "Execution Budget",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "format": "uuid",
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "CANCEL_REQUESTED",
+              "CANCELLED",
+              "FAILED",
+              "SUCCEEDED_SUPPORTED",
+              "SUCCEEDED_INSUFFICIENT",
+              "INCONCLUSIVE"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "investigation_id",
+          "plan_id",
+          "state",
+          "stage",
+          "execution_budget",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RunView",
+        "type": "object"
+      },
+      "SSTRecipe": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "baseline_depth_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Depth M"
+          },
+          "baseline_measurement": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Baseline Measurement",
+            "type": "string"
+          },
+          "baseline_qc_policy_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Baseline Qc Policy Digest",
+            "type": "string"
+          },
+          "baseline_qc_policy_id": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Baseline Qc Policy Id",
+            "type": "string"
+          },
+          "baseline_season": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Baseline Season",
+            "type": "string"
+          },
+          "baseline_unit": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Baseline Unit",
+            "type": "string"
+          },
+          "baseline_years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Baseline Years",
+            "type": "array"
+          },
+          "calendar": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Calendar",
+            "type": "string"
+          },
+          "current_depth_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Depth M"
+          },
+          "current_end": {
+            "format": "date-time",
+            "title": "Current End",
+            "type": "string"
+          },
+          "current_measurement": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Current Measurement",
+            "type": "string"
+          },
+          "current_qc_policy_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Current Qc Policy Digest",
+            "type": "string"
+          },
+          "current_qc_policy_id": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Current Qc Policy Id",
+            "type": "string"
+          },
+          "current_season": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Current Season",
+            "type": "string"
+          },
+          "current_start": {
+            "format": "date-time",
+            "title": "Current Start",
+            "type": "string"
+          },
+          "current_unit": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Current Unit",
+            "type": "string"
+          },
+          "method_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Method Digest",
+            "type": "string"
+          },
+          "method_id": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Method Id",
+            "type": "string"
+          },
+          "method_version": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Method Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method_id",
+          "method_version",
+          "method_digest",
+          "current_qc_policy_id",
+          "current_qc_policy_digest",
+          "baseline_qc_policy_id",
+          "baseline_qc_policy_digest",
+          "as_of",
+          "current_start",
+          "current_end",
+          "calendar",
+          "baseline_years",
+          "current_season",
+          "baseline_season",
+          "current_measurement",
+          "baseline_measurement",
+          "current_depth_m",
+          "baseline_depth_m",
+          "current_unit",
+          "baseline_unit"
+        ],
+        "title": "SSTRecipe",
+        "type": "object"
+      },
+      "ScienceEvidenceManifest": {
+        "additionalProperties": false,
+        "properties": {
+          "absolute_tolerance_celsius": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Absolute Tolerance Celsius"
+          },
+          "baseline_qualified": {
+            "title": "Baseline Qualified",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/ScienceSnapshotInput"
+            },
+            "maxItems": 256,
+            "minItems": 2,
+            "title": "Inputs",
+            "type": "array"
+          },
+          "manifest_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "method_approval_status": {
+            "enum": [
+              "draft",
+              "approved",
+              "retired"
+            ],
+            "title": "Method Approval Status",
+            "type": "string"
+          },
+          "method_code_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Method Code Digest",
+            "type": "string"
+          },
+          "method_id": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Method Id",
+            "type": "string"
+          },
+          "method_version": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Method Version",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "qc_policy_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Qc Policy Digest",
+            "type": "string"
+          },
+          "qc_policy_id": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Qc Policy Id",
+            "type": "string"
+          },
+          "recipe_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Recipe Digest",
+            "type": "string"
+          },
+          "result_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Result Digest",
+            "type": "string"
+          },
+          "result_status": {
+            "enum": [
+              "supported",
+              "insufficient_evidence",
+              "inconclusive",
+              "invalid"
+            ],
+            "title": "Result Status",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "orca.science-evidence/1.0",
+            "default": "orca.science-evidence/1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_mode": {
+            "enum": [
+              "live_real",
+              "preserved_real",
+              "synthetic_test"
+            ],
+            "title": "Source Mode",
+            "type": "string"
+          },
+          "source_qualified": {
+            "title": "Source Qualified",
+            "type": "boolean"
+          },
+          "tenant_id": {
+            "format": "uuid",
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "uncertainty_celsius": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uncertainty Celsius"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_id",
+          "project_id",
+          "created_by",
+          "created_at",
+          "source_mode",
+          "method_id",
+          "method_version",
+          "method_code_digest",
+          "method_approval_status",
+          "qc_policy_id",
+          "qc_policy_digest",
+          "recipe_digest",
+          "result_digest",
+          "result_status",
+          "source_qualified",
+          "baseline_qualified",
+          "inputs",
+          "manifest_digest"
+        ],
+        "title": "ScienceEvidenceManifest",
+        "type": "object"
+      },
+      "ScienceSnapshotInput": {
+        "additionalProperties": false,
+        "properties": {
+          "byte_count": {
+            "exclusiveMinimum": 0.0,
+            "title": "Byte Count",
+            "type": "integer"
+          },
+          "object_version_id": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object Version Id"
+          },
+          "raw_content_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Raw Content Digest",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "current",
+              "baseline"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "year": {
+            "maximum": 9998.0,
+            "minimum": 1.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "role",
+          "year",
+          "raw_content_digest",
+          "byte_count"
+        ],
+        "title": "ScienceSnapshotInput",
+        "type": "object"
+      },
+      "ScientificMethodDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "approved_versions": {
+            "items": {
+              "$ref": "#/components/schemas/ScientificMethodView"
+            },
+            "title": "Approved Versions",
+            "type": "array"
+          },
+          "kind": {
+            "const": "sst_anomaly",
+            "default": "sst_anomaly",
+            "title": "Kind",
+            "type": "string"
+          },
+          "method_id": {
+            "title": "Method Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method_id",
+          "approved_versions"
+        ],
+        "title": "ScientificMethodDetail",
+        "type": "object"
+      },
+      "ScientificMethodPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ScientificMethodView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "page_size"
+        ],
+        "title": "ScientificMethodPage",
+        "type": "object"
+      },
+      "ScientificMethodView": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_status": {
+            "const": "approved",
+            "default": "approved",
+            "title": "Approval Status",
+            "type": "string"
+          },
+          "calendar": {
+            "title": "Calendar",
+            "type": "string"
+          },
+          "code_digest": {
+            "title": "Code Digest",
+            "type": "string"
+          },
+          "kind": {
+            "const": "sst_anomaly",
+            "default": "sst_anomaly",
+            "title": "Kind",
+            "type": "string"
+          },
+          "limitations": {
+            "default": [
+              "Approval of a method does not establish source fitness or a supported finding"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "measurement_semantics": {
+            "title": "Measurement Semantics",
+            "type": "string"
+          },
+          "method_id": {
+            "title": "Method Id",
+            "type": "string"
+          },
+          "qc_policy_digest": {
+            "title": "Qc Policy Digest",
+            "type": "string"
+          },
+          "qc_policy_id": {
+            "title": "Qc Policy Id",
+            "type": "string"
+          },
+          "required_baseline_years": {
+            "title": "Required Baseline Years",
+            "type": "integer"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method_id",
+          "version",
+          "code_digest",
+          "required_baseline_years",
+          "measurement_semantics",
+          "qc_policy_id",
+          "qc_policy_digest",
+          "calendar"
+        ],
+        "title": "ScientificMethodView",
+        "type": "object"
+      },
+      "ScientificPolicySummary": {
+        "additionalProperties": false,
+        "properties": {
+          "method_id": {
+            "title": "Method Id",
+            "type": "string"
+          },
+          "minimum_spatial_coverage": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum Spatial Coverage"
+          },
+          "minimum_temporal_coverage": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum Temporal Coverage"
+          },
+          "minimum_valid_samples": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum Valid Samples"
+          },
+          "numerical_tolerance_celsius": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numerical Tolerance Celsius"
+          },
+          "qc_policy_digest": {
+            "title": "Qc Policy Digest",
+            "type": "string"
+          },
+          "qc_policy_id": {
+            "title": "Qc Policy Id",
+            "type": "string"
+          },
+          "rationale": {
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          },
+          "threshold_status": {
+            "enum": [
+              "review_pending",
+              "approved"
+            ],
+            "title": "Threshold Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method_id",
+          "version",
+          "qc_policy_id",
+          "qc_policy_digest",
+          "threshold_status",
+          "rationale"
+        ],
+        "title": "ScientificPolicySummary",
         "type": "object"
       },
       "ScientificProduct": {
@@ -2663,9 +4750,123 @@
         "title": "ScientificProduct",
         "type": "object"
       },
+      "ScientificReportView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "document_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Document Digest",
+            "type": "string"
+          },
+          "html_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Html Digest",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "format": "uuid",
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "pdf_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Pdf Digest",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "investigation_id",
+          "artifact_id",
+          "revision",
+          "created_by",
+          "status",
+          "document_digest",
+          "html_digest",
+          "pdf_digest",
+          "created_at",
+          "published_at"
+        ],
+        "title": "ScientificReportView",
+        "type": "object"
+      },
+      "SelectedSources": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_version_id": {
+            "format": "uuid",
+            "title": "Baseline Version Id",
+            "type": "string"
+          },
+          "current_version_id": {
+            "format": "uuid",
+            "title": "Current Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_version_id",
+          "baseline_version_id"
+        ],
+        "title": "SelectedSources",
+        "type": "object"
+      },
       "SnapshotRequest": {
         "additionalProperties": false,
         "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
           "depth": {
             "anyOf": [
               {
@@ -2692,7 +4893,7 @@
             "type": "string"
           },
           "time_window": {
-            "$ref": "#/components/schemas/TimeWindow"
+            "$ref": "#/components/schemas/TimeWindow-Input"
           },
           "variables": {
             "items": {
@@ -2880,7 +5081,34 @@
         "title": "SourceProvider",
         "type": "object"
       },
-      "TimeWindow": {
+      "StartRun": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Digest",
+            "type": "string"
+          },
+          "execution_budget": {
+            "pattern": "^(?:0|[1-9]\\d*)(?:\\.\\d{1,8})?$",
+            "title": "Execution Budget",
+            "type": "string"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan_id",
+          "digest",
+          "execution_budget"
+        ],
+        "title": "StartRun",
+        "type": "object"
+      },
+      "TimeWindow-Input": {
         "additionalProperties": false,
         "properties": {
           "calendar": {
@@ -2921,6 +5149,140 @@
           "end"
         ],
         "title": "TimeWindow",
+        "type": "object"
+      },
+      "TimeWindow-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar"
+          },
+          "end": {
+            "title": "End",
+            "type": "string"
+          },
+          "start": {
+            "title": "Start",
+            "type": "string"
+          },
+          "temporal_resolution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temporal Resolution"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "TimeWindow",
+        "type": "object"
+      },
+      "TypedPlan": {
+        "additionalProperties": false,
+        "description": "A versioned DAG whose digest binds every execution-relevant input.",
+        "properties": {
+          "assumptions": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 24,
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/MoneyBudget"
+          },
+          "data_constraints": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxProperties": 24,
+            "title": "Data Constraints",
+            "type": "object"
+          },
+          "method_hint": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method Hint"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/PlanNode"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Nodes",
+            "type": "array"
+          },
+          "revision": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "orca.research_plan/1",
+            "default": "orca.research_plan/1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Source Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "revision",
+          "data_constraints",
+          "budget",
+          "nodes",
+          "assumptions",
+          "source_ids"
+        ],
+        "title": "TypedPlan",
         "type": "object"
       },
       "UploadIntent": {
@@ -5644,6 +8006,542 @@
         ]
       }
     },
+    "/v1/research/artifacts/{artifact_id}": {
+      "get": {
+        "operationId": "get_artifact_v1_research_artifacts__artifact_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Artifact",
+        "tags": [
+          "evidence"
+        ]
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/challenges": {
+      "get": {
+        "operationId": "list_challenges_v1_research_artifacts__artifact_id__challenges_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChallengeView"
+                  },
+                  "title": "Response List Challenges V1 Research Artifacts  Artifact Id  Challenges Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Challenges",
+        "tags": [
+          "scientific reviews"
+        ]
+      },
+      "post": {
+        "operationId": "create_challenge_v1_research_artifacts__artifact_id__challenges_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Challenge",
+        "tags": [
+          "scientific reviews"
+        ]
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/lineage": {
+      "get": {
+        "operationId": "get_artifact_lineage_v1_research_artifacts__artifact_id__lineage_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Artifact Lineage V1 Research Artifacts  Artifact Id  Lineage Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Artifact Lineage",
+        "tags": [
+          "evidence"
+        ]
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/manifest": {
+      "get": {
+        "operationId": "get_artifact_manifest_v1_research_artifacts__artifact_id__manifest_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScienceEvidenceManifest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Artifact Manifest",
+        "tags": [
+          "evidence"
+        ]
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/review-grants": {
+      "post": {
+        "operationId": "grant_review_v1_research_artifacts__artifact_id__review_grants_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewGrantView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Grant Review",
+        "tags": [
+          "scientific reviews"
+        ]
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/review-grants/{grant_id}/revoke": {
+      "post": {
+        "operationId": "revoke_review_v1_research_artifacts__artifact_id__review_grants__grant_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Grant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewGrantView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Revoke Review",
+        "tags": [
+          "scientific reviews"
+        ]
+      }
+    },
+    "/v1/research/artifacts/{artifact_id}/reviews": {
+      "get": {
+        "operationId": "list_reviews_v1_research_artifacts__artifact_id__reviews_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IndependentReviewView"
+                  },
+                  "title": "Response List Reviews V1 Research Artifacts  Artifact Id  Reviews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Reviews",
+        "tags": [
+          "scientific reviews"
+        ]
+      },
+      "post": {
+        "operationId": "create_review_v1_research_artifacts__artifact_id__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndependentReviewView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Review",
+        "tags": [
+          "scientific reviews"
+        ]
+      }
+    },
+    "/v1/research/challenges/{challenge_id}/responses": {
+      "post": {
+        "operationId": "respond_to_challenge_v1_research_challenges__challenge_id__responses_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "challenge_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Challenge Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResponseView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Respond To Challenge",
+        "tags": [
+          "scientific reviews"
+        ]
+      }
+    },
     "/v1/research/files/{file_id}": {
       "get": {
         "operationId": "read_file_v1_research_files__file_id__get",
@@ -5747,6 +8645,1399 @@
         "summary": "Download File",
         "tags": [
           "project files"
+        ]
+      }
+    },
+    "/v1/research/investigations": {
+      "get": {
+        "operationId": "list_investigations_v1_research_investigations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "DRAFT",
+                    "PLAN_PENDING",
+                    "PLAN_READY",
+                    "APPROVED"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_InvestigationView_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Investigations",
+        "tags": [
+          "investigations"
+        ]
+      },
+      "post": {
+        "operationId": "create_investigation_v1_research_investigations_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvestigation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Investigation",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}": {
+      "get": {
+        "operationId": "get_investigation_v1_research_investigations__investigation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Investigation",
+        "tags": [
+          "investigations"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_investigation_v1_research_investigations__investigation_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchInvestigation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Patch Investigation",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/artifacts": {
+      "get": {
+        "operationId": "list_artifacts_v1_research_investigations__investigation_id__artifacts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ArtifactView_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Artifacts",
+        "tags": [
+          "evidence"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/plans": {
+      "get": {
+        "operationId": "list_plans_v1_research_investigations__investigation_id__plans_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_InvestigationPlanView_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Plans",
+        "tags": [
+          "investigations"
+        ]
+      },
+      "post": {
+        "operationId": "create_plan_v1_research_investigations__investigation_id__plans_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Plan",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/plans/{plan_id}": {
+      "get": {
+        "operationId": "get_plan_v1_research_investigations__investigation_id__plans__plan_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationPlanView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Plan",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/plans/{plan_id}/approve": {
+      "post": {
+        "operationId": "approve_plan_v1_research_investigations__investigation_id__plans__plan_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Plan Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovePlan"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovedPlanView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Approve Plan",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/reports": {
+      "get": {
+        "operationId": "list_reports_v1_research_investigations__investigation_id__reports_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScientificReportView"
+                  },
+                  "title": "Response List Reports V1 Research Investigations  Investigation Id  Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Reports",
+        "tags": [
+          "scientific reports"
+        ]
+      },
+      "post": {
+        "operationId": "create_report_v1_research_investigations__investigation_id__reports_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScientificReport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificReportView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Report",
+        "tags": [
+          "scientific reports"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs": {
+      "get": {
+        "operationId": "list_runs_v1_research_investigations__investigation_id__runs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RunView_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Runs",
+        "tags": [
+          "investigations"
+        ]
+      },
+      "post": {
+        "operationId": "start_run_v1_research_investigations__investigation_id__runs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartRun"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Start Run",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}": {
+      "get": {
+        "operationId": "get_run_v1_research_investigations__investigation_id__runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Run",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/cancel": {
+      "post": {
+        "operationId": "cancel_run_v1_research_investigations__investigation_id__runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Cancel Run",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/costs": {
+      "get": {
+        "operationId": "run_costs_v1_research_investigations__investigation_id__runs__run_id__costs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Run Costs V1 Research Investigations  Investigation Id  Runs  Run Id  Costs Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Run Costs",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/events": {
+      "get": {
+        "operationId": "run_events_v1_research_investigations__investigation_id__runs__run_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Run Events V1 Research Investigations  Investigation Id  Runs  Run Id  Events Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Run Events",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/events/stream": {
+      "get": {
+        "operationId": "stream_run_events_v1_research_investigations__investigation_id__runs__run_id__events_stream_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "last-event-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Stream Run Events",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/outcome": {
+      "get": {
+        "operationId": "run_outcome_v1_research_investigations__investigation_id__runs__run_id__outcome_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOutcome"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Run Outcome",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/retry": {
+      "post": {
+        "operationId": "retry_run_v1_research_investigations__investigation_id__runs__run_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Retry Run",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/task-graph": {
+      "get": {
+        "operationId": "run_task_graph_v1_research_investigations__investigation_id__runs__run_id__task_graph_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Run Task Graph V1 Research Investigations  Investigation Id  Runs  Run Id  Task Graph Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Run Task Graph",
+        "tags": [
+          "investigations"
         ]
       }
     },
@@ -6527,6 +10818,157 @@
         ]
       }
     },
+    "/v1/research/reports/{report_id}": {
+      "get": {
+        "operationId": "get_report_v1_research_reports__report_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificReportView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Report",
+        "tags": [
+          "scientific reports"
+        ]
+      }
+    },
+    "/v1/research/reports/{report_id}/content/{format}": {
+      "get": {
+        "operationId": "report_content_v1_research_reports__report_id__content__format__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "format",
+            "required": true,
+            "schema": {
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Report Content",
+        "tags": [
+          "scientific reports"
+        ]
+      }
+    },
+    "/v1/research/reports/{report_id}/publish": {
+      "post": {
+        "operationId": "publish_report_v1_research_reports__report_id__publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificReportView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Publish Report",
+        "tags": [
+          "scientific reports"
+        ]
+      }
+    },
     "/v1/research/uploads/{upload_id}": {
       "delete": {
         "operationId": "abort_upload_v1_research_uploads__upload_id__delete",
@@ -6669,6 +11111,612 @@
         "summary": "Complete Upload",
         "tags": [
           "project files"
+        ]
+      }
+    },
+    "/v1/science/methods": {
+      "get": {
+        "operationId": "methods_v1_science_methods_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "const": "sst_anomaly",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "const": "approved",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificMethodPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Methods",
+        "tags": [
+          "scientific methods"
+        ]
+      }
+    },
+    "/v1/science/methods/{method_id}": {
+      "get": {
+        "operationId": "method_detail_v1_science_methods__method_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "method_id",
+            "required": true,
+            "schema": {
+              "title": "Method Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificMethodDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Method Detail",
+        "tags": [
+          "scientific methods"
+        ]
+      }
+    },
+    "/v1/science/methods/{method_id}/versions/{version}": {
+      "get": {
+        "operationId": "method_version_v1_science_methods__method_id__versions__version__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "method_id",
+            "required": true,
+            "schema": {
+              "title": "Method Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificMethodView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Method Version",
+        "tags": [
+          "scientific methods"
+        ]
+      }
+    },
+    "/v1/science/policies": {
+      "get": {
+        "operationId": "policy_v1_science_policies_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "method_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Method Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificPolicySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Policy",
+        "tags": [
+          "scientific methods"
+        ]
+      }
+    },
+    "/v1/science/quality-codebook": {
+      "get": {
+        "operationId": "quality_codebook_v1_science_quality_codebook_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "variable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Variable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityCodebook"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Quality Codebook",
+        "tags": [
+          "scientific methods"
+        ]
+      }
+    },
+    "/v1/science/recipe-templates": {
+      "get": {
+        "operationId": "templates_v1_science_recipe_templates_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "variable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Variable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "method_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Method Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeTemplatePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Templates",
+        "tags": [
+          "scientific methods"
+        ]
+      }
+    },
+    "/v1/science/recipe-templates/{template_id}": {
+      "get": {
+        "operationId": "template_detail_v1_science_recipe_templates__template_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "schema": {
+              "title": "Template Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeTemplateView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Template Detail",
+        "tags": [
+          "scientific methods"
+        ]
+      }
+    },
+    "/v1/science/recipe-validations": {
+      "post": {
+        "operationId": "validate_recipe_v1_science_recipe_validations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecipeValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeValidationReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Validate Recipe",
+        "tags": [
+          "scientific methods"
         ]
       }
     }
