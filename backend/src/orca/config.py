@@ -3,6 +3,8 @@ Behavior: validate monitoring, persistence, object-store and OIDC settings befor
 Refs: API sections 2, 3.1-3.3; main plan P02; Phase: P02.
 """
 
+import base64
+import binascii
 from typing import Literal, Self
 from uuid import UUID
 
@@ -52,6 +54,8 @@ class Settings(BaseSettings):
     gemini_api_keys: SecretStr | None = None
     gemini_api_key: SecretStr | None = None
     gemini_model: str = Field(default="gemini-flash-latest", pattern=r"^[a-z0-9][a-z0-9.-]{0,90}$")
+    review_export_signing_key: SecretStr | None = None
+    review_export_key_id: str | None = Field(default=None, min_length=1, max_length=128)
 
     @model_validator(mode="after")
     def secure_defaults(self) -> Self:
@@ -122,4 +126,16 @@ class Settings(BaseSettings):
             identities = {(s.tenant_id, s.version_id) for s in self.acquisition_sources}
             if len(identities) != len(self.acquisition_sources):
                 raise ValueError("duplicate acquisition source binding")
+        if bool(self.review_export_signing_key) != bool(self.review_export_key_id):
+            raise ValueError("review export signing key and key ID must be configured together")
+        if self.review_export_signing_key is not None:
+            encoded = self.review_export_signing_key.get_secret_value()
+            try:
+                raw = base64.b64decode(
+                    encoded + "=" * (-len(encoded) % 4), altchars=b"-_", validate=True
+                )
+            except (binascii.Error, ValueError) as error:
+                raise ValueError("review export signing key must be URL-safe base64") from error
+            if len(raw) != 32:
+                raise ValueError("review export signing key must decode to 32 bytes")
         return self

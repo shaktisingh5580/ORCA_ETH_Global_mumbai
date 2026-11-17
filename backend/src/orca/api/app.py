@@ -3,10 +3,12 @@ Behavior: readiness fails closed; excluded Marine/chat/training routes are never
 Refs: API section 3.1; research-only guide sections 3 and 10.3; Phase: scope migration.
 """
 
+import base64
 import secrets
 from typing import Any
 from uuid import uuid4
 
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -93,6 +95,11 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.science_registry = METHOD_REGISTRY
     app.state.science_policies = {}
     app.state.science_codebooks = {}
+    if settings.review_export_signing_key is not None:
+        encoded = settings.review_export_signing_key.get_secret_value()
+        raw = base64.b64decode(encoded + "=" * (-len(encoded) % 4), altchars=b"-_", validate=True)
+        app.state.review_export_signing_key = Ed25519PrivateKey.from_private_bytes(raw)
+        app.state.review_export_key_id = settings.review_export_key_id
     if settings.science_approval_bundle_file:
         registry, policies, codebooks = load_approval_bundle(settings.science_approval_bundle_file)
         app.state.science_registry = registry

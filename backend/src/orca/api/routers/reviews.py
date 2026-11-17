@@ -9,12 +9,14 @@ from typing import Any, cast
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi.responses import Response
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.evidence import _artifact_context, _artifact_row, _verified
 from orca.api.routers.projects import engine
+from orca.application.review_export import assemble_review_export
 from orca.application.workspace_access import authorize_project
 from orca.contracts.scientific_reviews import (
     ChallengeRequest,
@@ -465,14 +467,50 @@ def create_review(
         return IndependentReviewView.model_validate(created)
 
 
-@router.get("/artifacts/{artifact_id}/reviews", response_model=list[IndependentReviewView])
+_PORTABLE_REVIEW_MEDIA = "application/vnd.orca.review+json"
+
+
+@router.get(
+    "/artifacts/{artifact_id}/reviews",
+    response_model=list[IndependentReviewView],
+    responses={200: {"content": {_PORTABLE_REVIEW_MEDIA: {"schema": {"type": "object"}}}}},
+)
 def list_reviews(
     artifact_id: UUID,
     request: Request,
     principal: CurrentPrincipal,
-) -> list[IndependentReviewView]:
+    accept: str = Header(default="application/json"),
+) -> list[IndependentReviewView] | Response:
     tenant = _review_tenant(request, principal, artifact_id)
     with TenantUnitOfWork(engine(request), tenant) as session:
+        if accept.partition(";")[0].strip().lower() == _PORTABLE_REVIEW_MEDIA:
+            try:
+                state = request.app.state
+                package = assemble_review_export(
+                    session,
+                    tenant,
+                    artifact_id,
+                    principal,
+                    signing_key=getattr(state, "review_export_signing_key", None),
+                    signer_key_id=getattr(state, "review_export_key_id", None),
+                )
+            except LookupError as error:
+                raise HTTPException(404, "Review artifact not found") from error
+            except PermissionError as error:
+                raise HTTPException(403, "Evidence read permission required") from error
+            except ValueError as error:
+                raise HTTPException(409, "Review evidence is inconsistent") from error
+            return Response(
+                package.document,
+                media_type=_PORTABLE_REVIEW_MEDIA,
+                headers={
+                    "Cache-Control": "private, no-store",
+                    "Content-Disposition": f'attachment; filename="orca-review-{artifact_id}.json"',
+                    "ETag": f'"{package.payload_digest}"',
+                    "Vary": "Accept",
+                    "X-ORCA-Package-Signature": "signed" if package.signed else "unsigned",
+                },
+            )
         row, _ = _original(session, tenant, artifact_id)
         _review_access(session, tenant, row["project_id"], artifact_id, principal, write=False)
         records = (

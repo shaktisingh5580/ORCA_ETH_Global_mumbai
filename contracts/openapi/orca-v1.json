@@ -8579,6 +8579,16 @@
               "title": "Artifact Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "accept",
+            "required": false,
+            "schema": {
+              "default": "application/json",
+              "title": "Accept",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8591,6 +8601,11 @@
                   },
                   "title": "Response List Reviews V1 Research Artifacts  Artifact Id  Reviews Get",
                   "type": "array"
+                }
+              },
+              "application/vnd.orca.review+json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             },
