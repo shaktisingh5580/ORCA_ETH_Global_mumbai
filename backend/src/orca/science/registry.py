@@ -60,6 +60,19 @@ class MethodRegistry:
             raise ValueError("scientific method version is not approved")
         return method
 
+    def approved_versions(self) -> tuple[MethodVersion, ...]:
+        """Expose only versions accepted by the independent scientific review gate."""
+        return tuple(
+            sorted(
+                (
+                    method
+                    for method in self._entries.values()
+                    if method.approval_status == "approved"
+                ),
+                key=lambda method: (method.method_id, method.version),
+            )
+        )
+
 
 # Intentionally empty until the method/tolerance decision and independent review are accepted.
 METHOD_REGISTRY = MethodRegistry()

@@ -1,0 +1,23 @@
+{
+  "phase": "P04",
+  "gate": "G04",
+  "status": "DEVELOPMENT_CHECKS_PASS_GATE_NOT_ACCEPTED",
+  "implemented_operations": [
+    "GET /v1/science/methods",
+    "GET /v1/science/methods/{method_id}",
+    "GET /v1/science/methods/{method_id}/versions/{version}",
+    "GET /v1/science/policies",
+    "GET /v1/science/quality-codebook",
+    "GET /v1/science/recipe-templates",
+    "GET /v1/science/recipe-templates/{template_id}",
+    "POST /v1/science/recipe-validations"
+  ],
+  "behavior": "Tenant-scoped reads and metadata-only recipe validation; unapproved method, policy and quality codebook fail closed. Optional approval bundle requires an identifiable review attestation with matching byte digest and pinned science implementation files.",
+  "focused_check": "37 passed across science HTTP, approval loader and existing scientific method/reference tests; one external Starlette/httpx deprecation warning",
+  "local_database_check": "2 passed against disposable localhost orca_test for immutable scientific evidence references and method version",
+  "static_check": "Ruff check/format, mypy, file headers and import boundaries passed; in-memory OpenAPI schema validated with all eight operations",
+  "known_contract_drift": "The aggregate contracts/openapi/orca-v1.json predates P05-P07 committed routes and shares an unrelated uncommitted P03 generated-contract change. The existing deterministic export regression fails on this file. This is not counted as a pass.",
+  "scientific_review": "PENDING",
+  "prerequisite_G03": "INCOMPLETE",
+  "gate_pass_claimed": false
+}

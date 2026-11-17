@@ -50,3 +50,7 @@ Signature or identifiable written attestation:
 ```
 
 **Current decision:** PENDING. ORCA's production `METHOD_REGISTRY` remains empty and fails closed until a review and explicit method/policy decision are accepted. G03 must separately pass before G04 can pass. G05–G07 remain downstream acceptance gates.
+
+## After the written decision
+
+The operator must retain the identifiable review attestation and prepare an `orca.science-approval/1.0` JSON bundle matching `backend/src/orca/science/approval_bundle.py`. It pins SHA-256 hashes of the method and every supporting science module, the exact review-record bytes, QC codebook, coverage thresholds, numerical tolerance, baseline definition, allowed claim and uncertainty treatment. Set `ORCA_SCIENCE_APPROVAL_BUNDLE_FILE` to its local path only after checking the reviewer's identity and decision. Startup fails if a file or digest differs. No approval bundle is supplied in the repository; the production method list remains empty until the human decision is recorded.

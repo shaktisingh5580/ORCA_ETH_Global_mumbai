@@ -35,6 +35,7 @@ from orca.api.routers.prototype import router as prototype_router
 from orca.api.routers.reasoning import router as reasoning_router
 from orca.api.routers.reports import router as reports_router
 from orca.api.routers.reviews import router as reviews_router
+from orca.api.routers.science import router as science_router
 from orca.api.routers.snapshot_requests import router as snapshot_requests_router
 from orca.api.routers.snapshots import router as snapshots_router
 from orca.api.routers.source_probes import router as source_probes_router
@@ -47,6 +48,8 @@ from orca.infrastructure.auth.supabase import SupabaseVerifier
 from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.federation.runtime import load_runtime
 from orca.infrastructure.storage.composition import snapshot_store, upload_store
+from orca.science.approval_bundle import load_approval_bundle
+from orca.science.registry import METHOD_REGISTRY
 
 
 def create_app(settings: Settings) -> FastAPI:
@@ -86,6 +89,14 @@ def create_app(settings: Settings) -> FastAPI:
             expose_headers=["ETag", "X-Request-ID"],
         )
     app.state.snapshot_worker_enabled = settings.acquisition_enabled
+    app.state.science_registry = METHOD_REGISTRY
+    app.state.science_policies = {}
+    app.state.science_codebooks = {}
+    if settings.science_approval_bundle_file:
+        registry, policies, codebooks = load_approval_bundle(settings.science_approval_bundle_file)
+        app.state.science_registry = registry
+        app.state.science_policies = policies
+        app.state.science_codebooks = codebooks
     app.state.source_probes_enabled = settings.source_probes_enabled
     app.state.acquisition_sources = settings.acquisition_sources
     app.state.organization_creation_enabled = settings.organization_creation_enabled
@@ -119,6 +130,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(fitness_router)
     app.include_router(snapshots_router)
     app.include_router(snapshot_requests_router)
+    app.include_router(science_router)
     app.include_router(source_probes_router)
     app.include_router(investigations_router)
     app.include_router(evidence_router)

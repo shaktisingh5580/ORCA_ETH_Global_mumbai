@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     file_uploads_enabled: bool = False
     invitation_signing_key: SecretStr | None = Field(default=None, min_length=32)
     acquisition_sources: tuple[SourceBinding, ...] = ()
+    science_approval_bundle_file: str | None = None
     prototype_enabled: bool = False
     prototype_bundle_digest: str | None = Field(default=None, pattern=r"^sha256:[0-9a-f]{64}$")
     prototype_source_tenant: UUID | None = None
