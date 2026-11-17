@@ -1,10 +1,11 @@
 """Purpose: serve research routes and truthful operational metadata.
 Behavior: readiness probes the database and approved science policy while failing closed.
-Refs: api design.md §3.1; main_implementation plan.md P08.1; Phase: P01/P08.
+Refs: api design.md §§3.1,14; main_implementation plan.md P08.1; Phase: P01/P08.
 """
 
 import base64
 import secrets
+from time import perf_counter
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -56,6 +57,7 @@ from orca.infrastructure.auth.supabase import SupabaseVerifier
 from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.federation.runtime import load_runtime
 from orca.infrastructure.storage.composition import snapshot_store, upload_store
+from orca.infrastructure.telemetry.http import emit_http
 from orca.science.approval_bundle import load_approval_bundle
 from orca.science.registry import METHOD_REGISTRY
 
@@ -170,7 +172,13 @@ def create_app(settings: Settings) -> FastAPI:
     @app.middleware("http")
     async def request_id(request: Request, call_next: RequestResponseEndpoint) -> Response:
         request.state.request_id = str(uuid4())
-        response = await call_next(request)
+        started = perf_counter()
+        try:
+            response = await call_next(request)
+        except Exception:
+            emit_http(request, request.state.request_id, 500, started)
+            raise
+        emit_http(request, request.state.request_id, response.status_code, started)
         response.headers["X-Request-ID"] = request.state.request_id
         response.headers["Cache-Control"] = "no-store"
         return response

@@ -10,7 +10,8 @@
     "P08.1 organization usage reports durable run budget reservation ceilings for bounded windows; actual spend, model tokens and source bytes remain unknown",
     "P08.1 audit-events exposes an organization-scoped, allowlisted projection of existing append-only membership, invitation and download events; raw event JSON is never returned",
     "P08.1 research run starts use a durable organization-locked rolling one-minute admission limit; exact idempotent replay is exempt and HTTP 429 includes Retry-After",
-    "P08.1 GET/PATCH quotas exposes and versions the enforced run-start ceiling under If-Match, persists the limit with tenant RLS and appends a redacted quota-change audit event; source/model/remote-task quotas remain explicitly not enforced"
+    "P08.1 GET/PATCH quotas exposes and versions the enforced run-start ceiling under If-Match, persists the limit with tenant RLS and appends a redacted quota-change audit event; source/model/remote-task quotas remain explicitly not enforced",
+    "P08.1 HTTP telemetry logs only registered route templates, method, status, bounded duration and server-generated request ID; raw paths, queries, headers and bodies are excluded"
   ],
   "verified": [
     "11 focused P08 and prior P01 metadata/health contract tests passed through HTTP TestClient; Ruff, mypy and purpose headers passed. Database success and failure paths used test doubles, not staging acceptance.",
@@ -19,10 +20,11 @@
     "16 focused P08/source-probe/OpenAPI HTTP contracts passed; one disposable PostgreSQL test verified source-health access labels, never-checked state and tenant isolation. External NOAA and staging health remain unverified.",
     "17 focused P08/P01/role HTTP contracts passed; three disposable PostgreSQL tests verified actual budget reservation/release and affected P05 queue behavior. Actual billing is not measured and rate limiting remains unimplemented.",
     "9 focused P08/P09 HTTP contract tests passed; one disposable PostgreSQL test verified audit projection redaction, tenant isolation and P09 unverified agent directory reads.",
-    "Two disposable PostgreSQL tests passed for default and versioned run admission limits, budget non-reservation on denial, exact replay, stale ETag denial and append-only quota audit."
+    "Two disposable PostgreSQL tests passed for default and versioned run admission limits, budget non-reservation on denial, exact replay, stale ETag denial and append-only quota audit.",
+    "Nine focused telemetry and P08 contract tests passed, including a secret-bearing matched request and unmatched URL; Ruff, mypy and file-header checks passed."
   ],
   "remaining": [
-    "P08.1 true usage metering, source/model/remote-task quotas, other route rate limits, project access-decision audit and telemetry APIs; additional operation families, structured retryable failures, worker/fencing observability, external source and staging status",
+    "P08.1 true usage metering, source/model/remote-task quotas, other route rate limits, project access-decision audit and broader worker/source metrics; additional operation families, structured retryable failures, worker/fencing observability, external source and staging status",
     "P08.2 backup/restore, retention, schema rollout and seedless staging",
     "P08.3 live frontend integration with generated contracts",
     "P08.4 threat model, load baseline, live science regressions and prior gate acceptance"
