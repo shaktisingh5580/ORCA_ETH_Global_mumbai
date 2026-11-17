@@ -1,0 +1,18 @@
+{
+  "phase": "P08",
+  "status": "development_in_progress",
+  "acceptance": "not_passed",
+  "implemented": [
+    "P08.1 readiness reports actual database probe status and approved science policy presence while remaining HTTP 503 until core release gates are accepted; liveness asserts only process health"
+  ],
+  "verified": [
+    "11 focused P08 and prior P01 metadata/health contract tests passed through HTTP TestClient; Ruff, mypy and purpose headers passed. Database success and failure paths used test doubles, not staging acceptance."
+  ],
+  "remaining": [
+    "P08.1 operations, budget, audit and telemetry APIs, scoped authorization and real queue/source health",
+    "P08.2 backup/restore, retention, schema rollout and seedless staging",
+    "P08.3 live frontend integration with generated contracts",
+    "P08.4 threat model, load baseline, live science regressions and prior gate acceptance"
+  ],
+  "oracle_deployment": "deferred_by_user"
+}

@@ -1,11 +1,11 @@
-"""Purpose: serve implemented research-foundation routes and truthful operational metadata.
-Behavior: readiness fails closed; excluded Marine/chat/training routes are never registered.
-Refs: API section 3.1; research-only guide sections 3 and 10.3; Phase: scope migration.
+"""Purpose: serve research routes and truthful operational metadata.
+Behavior: readiness probes the database and approved science policy while failing closed.
+Refs: api design.md §3.1; main_implementation plan.md P08.1; Phase: P01/P08.
 """
 
 import base64
 import secrets
-from typing import Any
+from typing import Any, Literal
 from uuid import uuid4
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -14,10 +14,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
+from sqlalchemy import text
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
-from orca.api.dashboard import install_dashboard
+from orca.api.dashboard import install_dashboard  # type: ignore[attr-defined]
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.agents import directory_router
 from orca.api.routers.agents import router as agents_router
@@ -213,8 +214,21 @@ def create_app(settings: Settings) -> FastAPI:
     def ready(request: Request) -> Response:
         if not permitted(request):
             return denied(request)
+        database_status: Literal["not_implemented", "ready", "unavailable"] = "not_implemented"
+        database = getattr(app.state, "runtime_engine", None)
+        if database is not None:
+            try:
+                with database.connect() as connection:
+                    connection.execute(text("SELECT 1"))
+                database_status = "ready"
+            except Exception:
+                database_status = "unavailable"
         body = ReadinessReport(
-            components={"core_backend": "not_implemented"},
+            components={
+                "core_backend": "not_implemented",
+                "database": database_status,
+                "approved_science": "ready" if app.state.science_policies else "unavailable",
+            },
             release_profile="research-foundation",
             blocked_gates=["G02"],
         )
