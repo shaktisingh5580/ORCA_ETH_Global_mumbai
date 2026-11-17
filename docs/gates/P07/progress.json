@@ -9,20 +9,22 @@
     "P07.2 scoped reviewer grants, append-only challenges and review opinions, revocation, and response links to a separate immutable artifact",
     "P07 artifact detail/manifest/lineage reads permit a named external reviewer only while an exact artifact grant and evidence:read token scope remain active",
     "P07.2 immutable one-time challenge resolutions with response-count If-Match, separate resolver, verified same-investigation evidence references, terminal response fencing and explicit inconclusive verdict",
-    "P07.3 append-only server-stamped archive entries for newly acquired validated observations and project-scoped historical selection with exact-byte readback"
+    "P07.3 append-only server-stamped archive entries for newly acquired validated observations and project-scoped historical selection with exact-byte readback",
+    "P07.4 immutable project-scoped benchmark definition registry and authenticated metadata-only GET routes; no held-out answer values are stored or returned by this registry"
   ],
   "verified": [
     "13 focused P07 and affected P04 science tests passed",
     "ruff and mypy passed for new P07 source files",
     "9 focused P07 review and reproduction tests passed; 0026 migration rendered offline but was not applied to a live database",
     "23 focused P07/relevant science tests passed; 0028 resolution migration applied to disposable local orca_test; 1 local database test verified forced RLS, runtime INSERT-only grants, immutable trigger and unique resolution constraint; generated OpenAPI checks, Ruff, mypy, headers and import boundaries passed",
-    "P07.3: 20 focused temporal/input tests and 6 local database acquisition/replay regressions passed; 0029 migration applied to disposable local orca_test; Ruff and mypy passed"
+    "P07.3: 20 focused temporal/input tests and 6 local database acquisition/replay regressions passed; 0029 migration applied to disposable local orca_test; Ruff and mypy passed",
+    "P07.4: 5 focused contract/science tests and 1 local database schema test passed; 0030 migration applied to disposable local orca_test; generated OpenAPI, Ruff, mypy, headers and import boundaries checked"
   ],
   "remaining": [
     "P07.1 isolated execution environment, actual source retrieval and independent-operator proof",
     "P07.2 end-to-end HTTP and multi-principal database acceptance for challenge adjudication; separate actor is enforced, but institutional independence is not yet proven",
     "P07.3 full historical replay acceptance: source-native forecast issue and valid clocks, independent source availability proof, provider-enforced retention or equivalent durable object lock, authorized HTTP workflow and replay from real source bytes; past snapshots cannot be retroactively qualified",
-    "P07.4 benchmark registry, signed portable review evidence and end-to-end evaluation",
+    "P07.4 benchmark definition curation and frozen data provisioning, held-out evaluation workflow, signed portable review evidence and end-to-end evaluation",
     "P05/P06 prerequisites and P07 gate acceptance"
   ],
   "oracle_deployment": "deferred_by_user"
