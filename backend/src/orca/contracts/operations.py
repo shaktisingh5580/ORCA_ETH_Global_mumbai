@@ -7,6 +7,8 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
+from pydantic import Field
+
 from orca.contracts.common import Contract, Money, UTCDateTime
 
 
@@ -83,6 +85,21 @@ class AuditEvent(Contract):
     organization_id: UUID
     created_at: UTCDateTime
     actor_subject: str
-    event_type: Literal["organization_member", "project_member", "file_download", "invitation"]
+    event_type: Literal[
+        "organization_member", "project_member", "file_download", "invitation", "run_quota_updated"
+    ]
     resource_id: UUID
     project_id: UUID | None
+
+
+class RunQuotaSet(Contract):
+    organization_id: UUID
+    max_runs_per_minute: int
+    version: int
+    source_quota_status: Literal["not_enforced"] = "not_enforced"
+    model_quota_status: Literal["not_enforced"] = "not_enforced"
+    remote_task_quota_status: Literal["not_enforced"] = "not_enforced"
+
+
+class PatchRunQuotaSet(Contract):
+    max_runs_per_minute: int = Field(ge=1, le=100)

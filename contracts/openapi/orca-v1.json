@@ -318,7 +318,8 @@
               "organization_member",
               "project_member",
               "file_download",
-              "invitation"
+              "invitation",
+              "run_quota_updated"
             ],
             "title": "Event Type",
             "type": "string"
@@ -3557,6 +3558,22 @@
         "title": "PatchProjectMember",
         "type": "object"
       },
+      "PatchRunQuotaSet": {
+        "additionalProperties": false,
+        "properties": {
+          "max_runs_per_minute": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Runs Per Minute",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_runs_per_minute"
+        ],
+        "title": "PatchRunQuotaSet",
+        "type": "object"
+      },
       "PlanNode": {
         "additionalProperties": false,
         "description": "One allowlisted operation in a plan DAG; no user-supplied executable text.",
@@ -4661,6 +4678,49 @@
           "limitations"
         ],
         "title": "RunOutcome",
+        "type": "object"
+      },
+      "RunQuotaSet": {
+        "additionalProperties": false,
+        "properties": {
+          "max_runs_per_minute": {
+            "title": "Max Runs Per Minute",
+            "type": "integer"
+          },
+          "model_quota_status": {
+            "const": "not_enforced",
+            "default": "not_enforced",
+            "title": "Model Quota Status",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "remote_task_quota_status": {
+            "const": "not_enforced",
+            "default": "not_enforced",
+            "title": "Remote Task Quota Status",
+            "type": "string"
+          },
+          "source_quota_status": {
+            "const": "not_enforced",
+            "default": "not_enforced",
+            "title": "Source Quota Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "organization_id",
+          "max_runs_per_minute",
+          "version"
+        ],
+        "title": "RunQuotaSet",
         "type": "object"
       },
       "RunView": {
@@ -9000,7 +9060,8 @@
                     "organization_member",
                     "project_member",
                     "file_download",
-                    "invitation"
+                    "invitation",
+                    "run_quota_updated"
                   ],
                   "type": "string"
                 },
@@ -9511,6 +9572,128 @@
         "summary": "Patch Policy",
         "tags": [
           "workspace access"
+        ]
+      }
+    },
+    "/v1/organizations/{org_id}/quotas": {
+      "get": {
+        "description": "Read the enforced run admission ceiling and explicit future quota gaps.",
+        "operationId": "organization_quotas_v1_organizations__org_id__quotas_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Org Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunQuotaSet"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Organization Quotas",
+        "tags": [
+          "operations"
+        ]
+      },
+      "patch": {
+        "description": "Version a bounded tenant quota under the organization lock and append audit.",
+        "operationId": "patch_organization_quotas_v1_organizations__org_id__quotas_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Org Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchRunQuotaSet"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunQuotaSet"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Patch Organization Quotas",
+        "tags": [
+          "operations"
         ]
       }
     },

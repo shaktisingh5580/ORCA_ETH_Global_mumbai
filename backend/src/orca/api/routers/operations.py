@@ -6,16 +6,23 @@ Refs: main_implementation plan.md P08.1; api design.md §§3.9, 14; Phase: P08.
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Literal
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from sqlalchemy import text
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.projects import engine, resolve_tenant
 from orca.application.workspace_access import authorize_project
 from orca.contracts.common import Operation, Page, ResourceRef
-from orca.contracts.operations import AuditEvent, JobHealthSummary, SourceHealthView, UsageSummary
+from orca.contracts.operations import (
+    AuditEvent,
+    JobHealthSummary,
+    PatchRunQuotaSet,
+    RunQuotaSet,
+    SourceHealthView,
+    UsageSummary,
+)
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 
 router = APIRouter(prefix="/v1/admin", tags=["operations"])
@@ -38,7 +45,9 @@ def organization_audit_events(
     start: datetime | None = None,
     end: datetime | None = None,
     actor: str | None = Query(default=None, min_length=1, max_length=255),
-    event_type: Literal["organization_member", "project_member", "file_download", "invitation"]
+    event_type: Literal[
+        "organization_member", "project_member", "file_download", "invitation", "run_quota_updated"
+    ]
     | None = None,
     cursor: UUID | None = None,
     limit: int = Query(default=20, ge=1, le=100),
@@ -60,6 +69,7 @@ def organization_audit_events(
                 text("""SELECT id,created_at,actor_subject,member_id,
                   CASE WHEN event->>'kind'='project_member' THEN 'project_member'
                     WHEN event->>'kind'='file_download' THEN 'file_download'
+                    WHEN event->>'kind'='run_quota_updated' THEN 'run_quota_updated'
                     WHEN event->>'kind' LIKE 'invitation_%' THEN 'invitation'
                     ELSE 'organization_member' END AS event_type,
                   event->>'project_id' AS project_id
@@ -71,6 +81,7 @@ def organization_audit_events(
                     AND (CAST(:kind AS text) IS NULL OR
                       CASE WHEN event->>'kind'='project_member' THEN 'project_member'
                         WHEN event->>'kind'='file_download' THEN 'file_download'
+                        WHEN event->>'kind'='run_quota_updated' THEN 'run_quota_updated'
                         WHEN event->>'kind' LIKE 'invitation_%' THEN 'invitation'
                         ELSE 'organization_member' END = :kind)
                     AND (CAST(:after AS uuid) IS NULL OR id>:after)
@@ -105,6 +116,91 @@ def organization_audit_events(
         next_cursor=str(rows[limit - 1]["id"]) if len(rows) > limit else None,
         page_size=limit,
     )
+
+
+def _run_quotas(session: Any, tenant: UUID, org_id: UUID) -> RunQuotaSet:
+    row = (
+        session.execute(
+            text("""SELECT max_runs_per_minute,version FROM iam.organization_run_quotas
+          WHERE tenant_id=:tenant"""),
+            {"tenant": tenant},
+        )
+        .mappings()
+        .one_or_none()
+    )
+    return RunQuotaSet(
+        organization_id=org_id,
+        max_runs_per_minute=row["max_runs_per_minute"] if row else 10,
+        version=row["version"] if row else 1,
+    )
+
+
+@usage_router.get("/{org_id}/quotas", response_model=RunQuotaSet)
+def organization_quotas(
+    org_id: UUID, request: Request, response: Response, principal: CurrentPrincipal
+) -> RunQuotaSet:
+    """Read the enforced run admission ceiling and explicit future quota gaps."""
+    database = engine(request)
+    tenant, roles = resolve_tenant(database, principal, org_id)
+    try:
+        principal.require("org:read", roles)
+    except PermissionError as error:
+        raise HTTPException(403, "Organization read scope required") from error
+    with TenantUnitOfWork(database, tenant) as session:
+        result = _run_quotas(session, tenant, org_id)
+    response.headers["ETag"] = f'"{result.version}"'
+    return result
+
+
+@usage_router.patch("/{org_id}/quotas", response_model=RunQuotaSet)
+def patch_organization_quotas(
+    org_id: UUID,
+    body: PatchRunQuotaSet,
+    request: Request,
+    response: Response,
+    principal: CurrentPrincipal,
+    if_match: str | None = Header(default=None),
+) -> RunQuotaSet:
+    """Version a bounded tenant quota under the organization lock and append audit."""
+    database = engine(request)
+    tenant, roles = resolve_tenant(database, principal, org_id)
+    try:
+        principal.require("org:write", roles)
+    except PermissionError as error:
+        raise HTTPException(403, "Organization write scope required") from error
+    if if_match is None:
+        raise HTTPException(428, "If-Match is required")
+    with TenantUnitOfWork(database, tenant) as session:
+        session.execute(
+            text("SELECT id FROM iam.organizations WHERE tenant_id=:tenant FOR UPDATE"),
+            {"tenant": tenant},
+        ).scalar_one()
+        before = _run_quotas(session, tenant, org_id)
+        if if_match != f'"{before.version}"':
+            raise HTTPException(412, "Quota version is stale")
+        session.execute(
+            text("""INSERT INTO iam.organization_run_quotas
+              (tenant_id,max_runs_per_minute,version) VALUES(:tenant,:limit,:version)
+              ON CONFLICT(tenant_id) DO UPDATE SET max_runs_per_minute=EXCLUDED.max_runs_per_minute,
+                version=EXCLUDED.version,updated_at=clock_timestamp()"""),
+            {"tenant": tenant, "limit": body.max_runs_per_minute, "version": before.version + 1},
+        )
+        session.execute(
+            text("""INSERT INTO iam.membership_audit
+              (id,tenant_id,actor_subject,member_id,event)
+              VALUES(:id,:tenant,:actor,:organization,
+                jsonb_build_object('kind','run_quota_updated','version',:version))"""),
+            {
+                "id": uuid4(),
+                "tenant": tenant,
+                "actor": principal.subject,
+                "organization": org_id,
+                "version": before.version + 1,
+            },
+        )
+        result = _run_quotas(session, tenant, org_id)
+    response.headers["ETag"] = f'"{result.version}"'
+    return result
 
 
 def _operation(row: dict[str, Any], *, requested_id: UUID | None = None) -> Operation:

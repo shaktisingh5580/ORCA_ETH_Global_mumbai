@@ -1,6 +1,6 @@
 """Purpose: expose P05 investigation draft, plan and exact-digest approval APIs.
 Behavior: resolve the tenant server-side, enforce project scopes and return explicit plan readiness.
-Refs: main_implementation plan.md P05.1; api design.md §§3.6, 5.1; Phase: P05.
+Refs: main_implementation plan.md P05.1/P08.1; api design.md §§3.6, 5.1; Phase: P05/P08.
 """
 
 import hashlib
@@ -39,7 +39,7 @@ from orca.contracts.science_evidence import ScienceEvidenceManifest
 from orca.domain.identity import Principal
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.infrastructure.events.postgres_outbox import PostgresRunEvents
-from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
+from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue, RunRateLimitExceeded
 from orca.science.manifests import verify_manifest
 
 router = APIRouter(prefix="/v1/research/investigations", tags=["investigations"])
@@ -74,6 +74,10 @@ def investigation_context(db: Engine, principal: Principal, identifier: UUID) ->
 
 
 def raise_service_error(error: Exception) -> NoReturn:
+    if isinstance(error, RunRateLimitExceeded):
+        raise HTTPException(
+            429, "Organization research run rate limit reached", headers={"Retry-After": "60"}
+        ) from error
     if isinstance(error, LookupError):
         raise HTTPException(404, str(error)) from error
     if isinstance(error, PermissionError):

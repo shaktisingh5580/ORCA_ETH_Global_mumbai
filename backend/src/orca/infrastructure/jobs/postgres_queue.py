@@ -1,6 +1,6 @@
 """Purpose: provide P05's PostgreSQL-backed run queue, leases, fencing and reservations.
 Behavior: atomically enqueue approved runs, reserve plan budget and reject stale worker completion.
-Refs: main_implementation plan.md P05.2; api design.md §§5.1, 18.1; Phase: P05.
+Refs: main_implementation plan.md P05.2/P08.1; api design.md §§5.1, 18.1; Phase: P05/P08.
 """
 
 import json
@@ -21,6 +21,11 @@ from orca.science.manifests import verify_manifest
 from orca.science.registry import METHOD_REGISTRY
 
 _SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
+MAX_ORGANIZATION_RUNS_PER_MINUTE = 10
+
+
+class RunRateLimitExceeded(Exception):
+    """The tenant has reached its durable rolling run-start limit."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -142,6 +147,25 @@ class PostgresQueue:
         ).scalar_one_or_none()
         if approved is None:
             raise ValueError("exact approved plan digest is required before enqueue")
+
+        # Serialize run admission per tenant. Counting committed runs while holding
+        # the organization row lock avoids an in-memory or per-process limiter.
+        self.session.execute(
+            text("SELECT id FROM iam.organizations WHERE tenant_id=:tenant FOR UPDATE"),
+            {"tenant": self.tenant},
+        ).scalar_one()
+        run_limit = self.session.execute(
+            text("""SELECT coalesce((SELECT max_runs_per_minute FROM iam.organization_run_quotas
+              WHERE tenant_id=:tenant),:default_limit)"""),
+            {"tenant": self.tenant, "default_limit": MAX_ORGANIZATION_RUNS_PER_MINUTE},
+        ).scalar_one()
+        recent_runs = self.session.execute(
+            text("""SELECT count(*) FROM research.compute_runs
+              WHERE tenant_id=:tenant AND created_at>=clock_timestamp()-interval '60 seconds'"""),
+            {"tenant": self.tenant},
+        ).scalar_one()
+        if recent_runs >= run_limit:
+            raise RunRateLimitExceeded()
 
         run_id, reservation_id, job_id = uuid4(), uuid4(), uuid4()
         self.session.execute(
