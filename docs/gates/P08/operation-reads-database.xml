@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="14.148" timestamp="2026-11-17T19:30:56.997218+05:30" hostname="SHAKTI"><testcase classname="tests.integration.test_job_health_database" name="test_job_health_reads_scoped_queue_rows" time="6.474" /></testsuite></testsuites>

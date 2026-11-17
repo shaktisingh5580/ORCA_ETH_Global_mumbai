@@ -1,0 +1,11 @@
+{
+  "phase": "P08.1",
+  "status": "LOCAL_DEVELOPMENT_VERIFIED",
+  "authority": "main_implementation plan.md P08.1; api design.md section 3.1",
+  "endpoints": ["GET /v1/operations/{operation_id}", "GET /v1/operations"],
+  "scope": "Only durable P05 research_run queue jobs are currently projected. The detail route accepts the canonical queue job ID and the run ID alias emitted by P05 cancel/retry; the list emits canonical queue job IDs.",
+  "authorization": "Both routes require an organization_id query parameter resolved through membership. Detail requires token and role operation:read plus project:read access; list requires token and owner/admin role ops:read. Reads remain inside tenant RLS.",
+  "pagination": "List uses a bounded UUID cursor and stable job ID ordering; state and kind filters are constrained to known values.",
+  "limitation": "Plan, snapshot and source-probe operations are not yet included. Retryable failure detail is not emitted because the current Operation contract has no failure field and the queue does not store a safe structured error. No production acceptance is claimed.",
+  "oracle_deployment": "deferred_by_user"
+}

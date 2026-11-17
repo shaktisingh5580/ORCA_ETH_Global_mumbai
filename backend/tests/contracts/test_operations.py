@@ -1,9 +1,10 @@
-"""Purpose: verify P08 readiness and liveness do not overclaim release health.
-Behavior: check authenticated probes, science gating, database failures, and secret redaction.
+"""Purpose: verify P08 readiness, liveness and operational HTTP reads.
+Behavior: check health probes, role/token scopes, operation paths and secret redaction.
 Refs: main_implementation plan.md P08.1; api design.md §§3.1, 14; Phase: P08.
 """
 
 import secrets
+from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
@@ -134,3 +135,71 @@ def test_ops_scope(monkeypatch: pytest.MonkeyPatch) -> None:
         assert allowed.json()["fencing_failures"] is None
         assert allowed.json()["worker_status"] == "unknown"
         assert client.get(path + "&queue=another").status_code == 422
+
+
+@pytest.mark.enable_socket
+def test_operation_detail_and_list_http(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = create_app(
+        Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+    )
+    organization_id, tenant, job_id, run_id, project_id, investigation_id = [
+        uuid4() for _ in range(6)
+    ]
+    principal = Principal("researcher", "test", frozenset({"operation:read", "project:read"}))
+    app.dependency_overrides[current_principal] = lambda: principal
+    monkeypatch.setattr(operations, "engine", lambda *_args: object())
+    monkeypatch.setattr(operations, "resolve_tenant", lambda *_args: (tenant, {"org_owner"}))
+    monkeypatch.setattr(operations, "authorize_project", lambda *_args: None)
+    row = dict(
+        id=job_id,
+        project_id=project_id,
+        run_id=run_id,
+        queue_state="queued",
+        generation=0,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+        investigation_id=investigation_id,
+        plan_digest="sha256:" + "a" * 64,
+        run_state="QUEUED",
+    )
+
+    class Result:
+        def mappings(self):
+            return self
+
+        def one_or_none(self):
+            return row
+
+        def all(self):
+            return [row]
+
+    class Session:
+        def execute(self, statement: object, params: dict[str, object]) -> Result:
+            assert params["tenant"] == tenant
+            assert "FROM research.job_queue q" in str(statement)
+            return Result()
+
+    class UnitOfWork:
+        def __init__(self, *_args: object) -> None:
+            pass
+
+        def __enter__(self) -> Session:
+            return Session()
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+    monkeypatch.setattr(operations, "TenantUnitOfWork", UnitOfWork)
+    with TestClient(app) as client:
+        detail = client.get(f"/v1/operations/{job_id}?organization_id={organization_id}")
+        assert detail.status_code == 200
+        assert detail.json()["resource_ref"]["id"] == str(run_id)
+        assert detail.json()["status"] == "queued"
+        principal = Principal("researcher", "test", frozenset({"ops:read"}))
+        listing = client.get(f"/v1/operations?organization_id={organization_id}")
+        assert listing.status_code == 200
+        assert [item["id"] for item in listing.json()["items"]] == [str(job_id)]
+        assert (
+            client.get(f"/v1/operations?organization_id={organization_id}&cursor=bad").status_code
+            == 422
+        )
