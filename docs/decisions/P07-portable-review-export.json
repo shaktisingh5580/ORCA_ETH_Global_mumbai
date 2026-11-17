@@ -1,0 +1,15 @@
+{
+  "phase": "P07.4",
+  "status": "INTERNAL_PACKAGE_IMPLEMENTED",
+  "authority": "main_implementation plan.md P07.4; api design.md sections 3.8 and 4.5",
+  "package": "Canonical JSON envelope with original evidence digest, review, challenge, response and resolution records; linked correction/arbitration artifacts are references only",
+  "signature": "Optional Ed25519 signature over domain-separated package digest. Verification requires an out-of-band trusted public key, key ID, expected artifact ID and evidence manifest digest.",
+  "claim_boundary": "A package signature proves package integrity under the supplied key. It does not prove reviewer authorship, institutional independence, or scientific correctness.",
+  "remaining": [
+    "Approved public export route and authorization contract",
+    "Real database end-to-end package assembly with independent reviewer principals",
+    "Reviewer-controlled signature collection and identity binding",
+    "Verification of linked correction and arbitration artifact bytes"
+  ],
+  "oracle_deployment": "deferred_by_user"
+}
