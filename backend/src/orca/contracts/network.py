@@ -1,6 +1,6 @@
 """Purpose: define the bounded agent-coordination and frontend API contracts.
 Behavior: require explicit disclosure, scoped IDs, immutable bindings and signed evidence.
-Refs: H04-agent-coordination.json; canonical agent/database guides; Phase: H04.
+Refs: H04-agent-coordination.json; main_implementation plan.md P09.1; Phase: H04/P09.
 """
 
 from datetime import datetime
@@ -92,3 +92,21 @@ class SignedEnvelope(Contract):
     key_id: str
     signature: str
     algorithm: Literal["Ed25519"] = "Ed25519"
+
+
+class FederatedAgentSummary(Contract):
+    """Project an existing registration without implying ENS or institutional trust."""
+
+    id: UUID
+    organization_id: UUID
+    name: str
+    capability: str
+    provider_mode: Literal["team_controlled", "self_declared_external"]
+    state: Literal[
+        "draft", "verification_pending", "verified", "qualified", "active", "suspended", "revoked"
+    ]
+    qualification_expires_at: datetime | None
+    service_eligible: bool
+    ens_verified: Literal[False] = False
+    institutional_affiliation_verified: Literal[False] = False
+    research_dispatch_enabled: Literal[False] = False

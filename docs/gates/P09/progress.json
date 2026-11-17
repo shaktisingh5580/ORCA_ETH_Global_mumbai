@@ -1,0 +1,19 @@
+{
+  "phase": "P09",
+  "status": "development_in_progress",
+  "acceptance": "not_passed",
+  "implemented": [
+    "P09.1 authenticated tenant-scoped agent directory projects durable onboarding registrations, capability claims, provider mode, qualification expiry and explicit unverified ENS/affiliation/research-dispatch status"
+  ],
+  "verified": [
+    "9 focused P08/P09 HTTP contract tests passed and one disposable PostgreSQL test verified tenant isolation, expired qualification, role/token scope and no automatic research trust escalation"
+  ],
+  "remaining": [
+    "P09.1 full registry/capability/endpoint CRUD, independent verification and revocation",
+    "P09.2 official A2A SDK interoperability with separately keyed provider processes",
+    "P09.3 scoped remote delegation, limits, SSRF controls and fallback behavior",
+    "P09.4 independent reproducer and correlation ledger",
+    "G08 prerequisite acceptance and all G09 live external process evidence"
+  ],
+  "oracle_deployment": "deferred_by_user"
+}

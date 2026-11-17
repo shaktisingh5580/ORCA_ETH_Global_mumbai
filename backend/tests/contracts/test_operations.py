@@ -139,6 +139,67 @@ def test_ops_scope(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.enable_socket
+def test_audit_scope_and_redaction(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = create_app(
+        Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+    )
+    org_id, tenant, event_id, member_id = [uuid4() for _ in range(4)]
+    roles = {"org_owner"}
+    app.dependency_overrides[current_principal] = lambda: Principal(
+        "owner", "test", frozenset({"audit:read"})
+    )
+    monkeypatch.setattr(operations, "engine", lambda *_args: object())
+    monkeypatch.setattr(operations, "resolve_tenant", lambda *_args: (tenant, roles))
+
+    class Result:
+        def mappings(self):
+            return self
+
+        def all(self):
+            return [
+                dict(
+                    id=event_id,
+                    created_at=datetime.now(timezone.utc),
+                    actor_subject="owner",
+                    member_id=member_id,
+                    event_type="organization_member",
+                    project_id=None,
+                )
+            ]
+
+    class Session:
+        def execute(self, statement: object, params: dict[str, object]) -> Result:
+            assert "iam.membership_audit" in str(statement)
+            assert params["tenant"] == tenant
+            return Result()
+
+    class UnitOfWork:
+        def __init__(self, *_args: object) -> None:
+            pass
+
+        def __enter__(self) -> Session:
+            return Session()
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+    monkeypatch.setattr(operations, "TenantUnitOfWork", UnitOfWork)
+    with TestClient(app) as client:
+        url = f"/v1/organizations/{org_id}/audit-events"
+        allowed = client.get(url)
+        assert allowed.status_code == 200
+        assert allowed.json()["items"][0]["resource_id"] == str(member_id)
+        assert "event" not in allowed.json()["items"][0]
+        roles = {"viewer"}
+        assert client.get(url).status_code == 403
+        roles = {"org_owner"}
+        app.dependency_overrides[current_principal] = lambda: Principal(
+            "owner", "test", frozenset()
+        )
+        assert client.get(url).status_code == 403
+
+
+@pytest.mark.enable_socket
 def test_operation_detail_and_list_http(monkeypatch: pytest.MonkeyPatch) -> None:
     app = create_app(
         Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")

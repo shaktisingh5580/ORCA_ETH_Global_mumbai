@@ -76,3 +76,13 @@ class UsageSummary(Contract):
     model_tokens: None = None
     source_bytes: None = None
     accounting_status: Literal["budget_reservations_only"] = "budget_reservations_only"
+
+
+class AuditEvent(Contract):
+    id: UUID
+    organization_id: UUID
+    created_at: UTCDateTime
+    actor_subject: str
+    event_type: Literal["organization_member", "project_member", "file_download", "invitation"]
+    resource_id: UUID
+    project_id: UUID | None

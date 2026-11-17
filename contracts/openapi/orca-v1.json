@@ -302,6 +302,67 @@
         "title": "ArtifactView",
         "type": "object"
       },
+      "AuditEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_subject": {
+            "title": "Actor Subject",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "event_type": {
+            "enum": [
+              "organization_member",
+              "project_member",
+              "file_download",
+              "invitation"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "resource_id": {
+            "format": "uuid",
+            "title": "Resource Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "organization_id",
+          "created_at",
+          "actor_subject",
+          "event_type",
+          "resource_id",
+          "project_id"
+        ],
+        "title": "AuditEvent",
+        "type": "object"
+      },
       "BenchmarkDefinitionView": {
         "additionalProperties": false,
         "properties": {
@@ -1330,6 +1391,97 @@
           "sha256"
         ],
         "title": "EphemeralDownload",
+        "type": "object"
+      },
+      "FederatedAgentSummary": {
+        "additionalProperties": false,
+        "description": "Project an existing registration without implying ENS or institutional trust.",
+        "properties": {
+          "capability": {
+            "title": "Capability",
+            "type": "string"
+          },
+          "ens_verified": {
+            "const": false,
+            "default": false,
+            "title": "Ens Verified",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "institutional_affiliation_verified": {
+            "const": false,
+            "default": false,
+            "title": "Institutional Affiliation Verified",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "provider_mode": {
+            "enum": [
+              "team_controlled",
+              "self_declared_external"
+            ],
+            "title": "Provider Mode",
+            "type": "string"
+          },
+          "qualification_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualification Expires At"
+          },
+          "research_dispatch_enabled": {
+            "const": false,
+            "default": false,
+            "title": "Research Dispatch Enabled",
+            "type": "boolean"
+          },
+          "service_eligible": {
+            "title": "Service Eligible",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "verification_pending",
+              "verified",
+              "qualified",
+              "active",
+              "suspended",
+              "revoked"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "organization_id",
+          "name",
+          "capability",
+          "provider_mode",
+          "state",
+          "qualification_expires_at",
+          "service_eligible"
+        ],
+        "title": "FederatedAgentSummary",
         "type": "object"
       },
       "FitnessCheck": {
@@ -2497,6 +2649,42 @@
         "title": "Page[ArtifactView]",
         "type": "object"
       },
+      "Page_AuditEvent_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[AuditEvent]",
+        "type": "object"
+      },
       "Page_CanonicalVariableMapping_": {
         "additionalProperties": false,
         "properties": {
@@ -2567,6 +2755,42 @@
           "next_cursor"
         ],
         "title": "Page[DatasetSnapshot]",
+        "type": "object"
+      },
+      "Page_FederatedAgentSummary_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FederatedAgentSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[FederatedAgentSummary]",
         "type": "object"
       },
       "Page_InvestigationPlanView_": {
@@ -7772,6 +7996,129 @@
         "x-orca-phase": "P01"
       }
     },
+    "/v1/network/agents": {
+      "get": {
+        "description": "List local registrations; verified-only is empty until identity checks exist.",
+        "operationId": "list_agents_v1_network_agents_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capability",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capability"
+            }
+          },
+          {
+            "in": "query",
+            "name": "provider_mode",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(team_controlled|self_declared_external)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "verified_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Verified Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_FederatedAgentSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "List Agents",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
     "/v1/operations": {
       "get": {
         "description": "List only the current tenant's research run jobs in stable ID order.",
@@ -8424,6 +8771,158 @@
         "summary": "Revoke Grant",
         "tags": [
           "invitations and grants"
+        ]
+      }
+    },
+    "/v1/organizations/{org_id}/audit-events": {
+      "get": {
+        "description": "Read append-only membership events with an allowlisted public projection.",
+        "operationId": "organization_audit_events_v1_organizations__org_id__audit_events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Org Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "in": "query",
+            "name": "actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "event_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "organization_member",
+                    "project_member",
+                    "file_download",
+                    "invitation"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Event Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AuditEvent_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Organization Audit Events",
+        "tags": [
+          "operations"
         ]
       }
     },

@@ -26,6 +26,7 @@ from orca.api.routers.benchmarks import router as benchmarks_router
 from orca.api.routers.catalog import router as catalog_router
 from orca.api.routers.demo import router as demo_router
 from orca.api.routers.evidence import router as evidence_router
+from orca.api.routers.federation import router as federation_router
 from orca.api.routers.files import router as files_router
 from orca.api.routers.fitness import router as fitness_router
 from orca.api.routers.identity import router as identity_router
@@ -136,6 +137,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(organizations_router)
     app.include_router(workspace_access_router)
     app.include_router(files_router)
+    app.include_router(federation_router)
     app.include_router(invitations_router)
     app.include_router(catalog_router)
     app.include_router(fitness_router)

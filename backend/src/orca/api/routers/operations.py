@@ -15,7 +15,7 @@ from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.projects import engine, resolve_tenant
 from orca.application.workspace_access import authorize_project
 from orca.contracts.common import Operation, Page, ResourceRef
-from orca.contracts.operations import JobHealthSummary, SourceHealthView, UsageSummary
+from orca.contracts.operations import AuditEvent, JobHealthSummary, SourceHealthView, UsageSummary
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 
 router = APIRouter(prefix="/v1/admin", tags=["operations"])
@@ -28,6 +28,83 @@ _OPERATION_ROWS = """SELECT q.id,q.project_id,q.run_id,q.state AS queue_state,q.
   FROM research.job_queue q JOIN research.compute_runs r
     ON r.tenant_id=q.tenant_id AND r.project_id=q.project_id AND r.id=q.run_id
   WHERE q.tenant_id=:tenant"""
+
+
+@usage_router.get("/{org_id}/audit-events", response_model=Page[AuditEvent])
+def organization_audit_events(
+    org_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    start: datetime | None = None,
+    end: datetime | None = None,
+    actor: str | None = Query(default=None, min_length=1, max_length=255),
+    event_type: Literal["organization_member", "project_member", "file_download", "invitation"]
+    | None = None,
+    cursor: UUID | None = None,
+    limit: int = Query(default=20, ge=1, le=100),
+) -> Page[AuditEvent]:
+    """Read append-only membership events with an allowlisted public projection."""
+    database = engine(request)
+    tenant, roles = resolve_tenant(database, principal, org_id)
+    try:
+        principal.require("audit:read", roles)
+    except PermissionError as error:
+        raise HTTPException(403, "Audit read scope required") from error
+    if (start and start.tzinfo is None) or (end and end.tzinfo is None):
+        raise HTTPException(422, "Audit timestamps require timezone")
+    if start and end and start >= end:
+        raise HTTPException(422, "start must precede end")
+    with TenantUnitOfWork(database, tenant) as session:
+        rows = (
+            session.execute(
+                text("""SELECT id,created_at,actor_subject,member_id,
+                  CASE WHEN event->>'kind'='project_member' THEN 'project_member'
+                    WHEN event->>'kind'='file_download' THEN 'file_download'
+                    WHEN event->>'kind' LIKE 'invitation_%' THEN 'invitation'
+                    ELSE 'organization_member' END AS event_type,
+                  event->>'project_id' AS project_id
+                  FROM iam.membership_audit
+                  WHERE tenant_id=:tenant
+                    AND (CAST(:start AS timestamptz) IS NULL OR created_at>=:start)
+                    AND (CAST(:end AS timestamptz) IS NULL OR created_at<:end)
+                    AND (CAST(:actor AS text) IS NULL OR actor_subject=:actor)
+                    AND (CAST(:kind AS text) IS NULL OR
+                      CASE WHEN event->>'kind'='project_member' THEN 'project_member'
+                        WHEN event->>'kind'='file_download' THEN 'file_download'
+                        WHEN event->>'kind' LIKE 'invitation_%' THEN 'invitation'
+                        ELSE 'organization_member' END = :kind)
+                    AND (CAST(:after AS uuid) IS NULL OR id>:after)
+                  ORDER BY id LIMIT :limit"""),
+                {
+                    "tenant": tenant,
+                    "start": start,
+                    "end": end,
+                    "actor": actor,
+                    "kind": event_type,
+                    "after": cursor,
+                    "limit": limit + 1,
+                },
+            )
+            .mappings()
+            .all()
+        )
+    page = rows[:limit]
+    return Page[AuditEvent](
+        items=[
+            AuditEvent(
+                id=row["id"],
+                organization_id=org_id,
+                created_at=row["created_at"],
+                actor_subject=row["actor_subject"],
+                event_type=row["event_type"],
+                resource_id=row["member_id"],
+                project_id=UUID(row["project_id"]) if row["project_id"] else None,
+            )
+            for row in page
+        ],
+        next_cursor=str(rows[limit - 1]["id"]) if len(rows) > limit else None,
+        page_size=limit,
+    )
 
 
 def _operation(row: dict[str, Any], *, requested_id: UUID | None = None) -> Operation:
