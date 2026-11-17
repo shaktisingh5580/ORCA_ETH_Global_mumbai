@@ -1,13 +1,14 @@
 {
   "phase": "P07.4",
-  "status": "INTERNAL_PACKAGE_IMPLEMENTED",
+  "status": "HTTP_CONTENT_NEGOTIATION_IMPLEMENTED_LOCAL_CHECKS",
   "authority": "main_implementation plan.md P07.4; api design.md sections 3.8 and 4.5",
   "package": "Canonical JSON envelope with original evidence digest, review, challenge, response and resolution records; linked correction/arbitration artifacts are references only",
   "signature": "Optional Ed25519 signature over domain-separated package digest. Verification requires an out-of-band trusted public key, key ID, expected artifact ID and evidence manifest digest.",
+  "api_revision": "Existing GET /v1/research/artifacts/{artifact_id}/reviews retains its JSON list by default. Accept: application/vnd.orca.review+json returns the private portable package with no-store, ETag and explicit signed/unsigned status. No operation was added to the 220-route design inventory.",
+  "operator_configuration": "Optional ORCA_REVIEW_EXPORT_SIGNING_KEY is a URL-safe base64 encoded 32-byte Ed25519 private key and must be paired with ORCA_REVIEW_EXPORT_KEY_ID. Without both, downloads are explicitly unsigned.",
   "claim_boundary": "A package signature proves package integrity under the supplied key. It does not prove reviewer authorship, institutional independence, or scientific correctness.",
   "remaining": [
-    "Approved public export route and authorization contract",
-    "Real database end-to-end package assembly with independent reviewer principals",
+    "HTTP transport and real database end-to-end package assembly with independent reviewer principals",
     "Reviewer-controlled signature collection and identity binding",
     "Verification of linked correction and arbitration artifact bytes"
   ],
