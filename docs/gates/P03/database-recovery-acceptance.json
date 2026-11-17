@@ -1,0 +1,152 @@
+{
+  "phase": "P03",
+  "recorded_at": "2026-11-15T17:52:35.326175+00:00",
+  "status": "REQUIRED_CASES_PASS_GATE_INCOMPLETE",
+  "required_cases": {
+    "test_catalog_semantic_types": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_catalog_license_scope": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_product_version_stability": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_asset_page_cursor": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_hidden_restricted_metadata": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_metadata_dimension_variable_mapping": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_invalid_401_403_429_retry_after": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_http_timeout_and_malformed": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_oversize_413": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_redirect_ssrf_reject": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_empty_valid_subset": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_sha256_exact_bytes": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_duplicate_retrieval_versioned": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_source_issued_valid_observed_available_times": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_depth_unit_semantics": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_no_partial_publish": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_live_product_metadata_access": {
+      "status": "PASS",
+      "report": "workstation-live-noaa.xml"
+    },
+    "test_live_subset_bytes_and_qc": {
+      "status": "PASS",
+      "report": "workstation-live-noaa.xml"
+    },
+    "test_baseline_season_depth_calendar_compatibility": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_preservation_license": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_real_as_of_availability": {
+      "status": "PASS",
+      "report": "availability-recheck.xml"
+    },
+    "test_cache_keys_org_license_cycle_depth_as_of": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_cursor_page_stable": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_source_unavailable_error": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    },
+    "test_no_dataset_on_cache_miss": {
+      "status": "PASS",
+      "report": "backend-regression-recheck.xml"
+    }
+  },
+  "reports": [
+    {
+      "path": "docs/gates/P03/backend-regression-recheck.xml",
+      "sha256": "eebf87af3b8d421525b09bb65eee1cfdbcc8e7acbb8e0689621332d1df8d43ea"
+    },
+    {
+      "path": "docs/gates/P03/workstation-live-noaa.xml",
+      "sha256": "7e5675af18da6192fb65478ea9cdfa4868b06fd5e5bd2a78f4d6aba11fb555cf"
+    },
+    {
+      "path": "docs/gates/P03/preserved-baseline-qualification.xml",
+      "sha256": "e627b3312e6053a45a66d459e0d43752b9fb5ee06ba4d2717d140d4348682065"
+    },
+    {
+      "path": "docs/gates/P03/database-recheck.xml",
+      "sha256": "e46a37550a7227d159e08f048f00b9990f6e5c819e04a00b8e0c626045f05440"
+    },
+    {
+      "path": "docs/gates/P03/local-recovery-storage.xml",
+      "sha256": "d45e78c06fc7fb0ed06eb36f223024176d214d53e6f5d816da8784dc39de5f51"
+    },
+    {
+      "path": "docs/gates/P03/availability-recheck.xml",
+      "sha256": "782a907f27bdef0d889932a4912f368438f3686ebe985aa16af287d70b0e1362"
+    }
+  ],
+  "database": {
+    "target": "existing localhost-only orca_test PostGIS",
+    "migration_from": "0019_institutional_agents",
+    "migration_to": "0020_science_evidence",
+    "result": "3 passed in 3.30 seconds: P03 snapshot persistence and two P04 evidence lineage cases",
+    "production_modified": false
+  },
+  "recovery_and_storage": {
+    "target": "local PostGIS and MinIO test containers",
+    "result": "11 passed in 6.80 seconds",
+    "scope": "acquisition success/rejection/mismatch/crash/expired lease, exact-byte storage and corruption rejection, P02 object staging/access checks",
+    "source_inputs": "synthetic inputs injected only by test tooling; separate real NOAA source evidence retained"
+  },
+  "availability": "1 passed in 0.68 seconds",
+  "remaining": [
+    "P02 prerequisite hash verification reports changed backend/scripts/acquire_scientific_inputs.py; revalidate affected prerequisite checks and evidence before gate completion.",
+    "Oracle compose inspected is a historical prototype deployment; P03 acquisition-worker deployment and actual remote recovery acceptance remain unverified.",
+    "Complete static checks and final gate/report reconciliation; no scientific method approval is implied by input checks."
+  ]
+}

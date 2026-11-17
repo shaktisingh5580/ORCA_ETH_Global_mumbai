@@ -1,8 +1,10 @@
 {
   "id": "P03-research-scope",
-  "status": "ACCEPTED_FOR_IMPLEMENTATION",
-  "implementation_status": "NOT_STARTED",
-  "authority": "User directed implementation of the reduced research product rather than the whole historical plan.",
+  "status": "HISTORICAL_SUPERSEDED_BY_FULL_PLATFORM_PLAN_2026-11-14",
+  "implementation_status": "HISTORICAL_SCOPE_ONLY",
+  "authority": "This decision captured the earlier reduced research-product scope. The user's 2026-11-14 instruction makes main_implementation plan.md the active authority for full P00-P14 delivery.",
+  "superseded_by": "docs/decisions/full-platform-plan-authority.json",
+  "superseded_on": "2026-11-14",
   "references": [
     "ORCA_3_0_Research_Only_Scope_and_Pruning_Guide (1).md sections 3.4, 5, 8 and 11",
     "main_implementation plan.md P03.1-P03.5",
@@ -12,11 +14,11 @@
     "docs/adr/ADR-001-initial-sst-scope.md",
     "docs/adr/ADR-R01-research-only-scope.json"
   ],
-  "precedence": "Research-only guide and ADR-R01 override historical feature breadth; retained wire contracts and mandatory tests remain binding.",
+  "precedence": "Historical only. It does not narrow current P03 or defer P04-P14. Follow main_implementation plan.md and api design.md, reconciled through current ADRs, decisions and phase gates.",
   "prerequisite": "G02 PASS with current source hashes",
-  "route_manifest": "contracts/designed/research-route-dispositions.json",
-  "selected_operations": 16,
-  "deferred_operations": [
+  "historical_route_manifest": "contracts/designed/research-route-dispositions.json",
+  "historical_selected_operations": 16,
+  "historically_deferred_operations": [
     "GET /v1/catalog/providers/{provider_id}",
     "GET /v1/catalog/products/{product_id}/versions/{version_id}",
     "GET /v1/catalog/products/{product_id}/distributions",
@@ -27,7 +29,7 @@
     {"id": "P03.2", "scope": "One ERDDAP connector with metadata-derived dimensions, approved endpoints, bounded requests and SSRF protection."},
     {"id": "P03.3", "scope": "Exact-byte immutable snapshots, content hashes, provenance, QC and truthful availability times; preserve only where licensed."},
     {"id": "P03.4", "scope": "Real bounded SST and compatible seasonal baseline retrieval with source rights and metadata evidence; missing evidence blocks G03."},
-    {"id": "P03.5", "scope": "Only the 16 selected catalog operations, with tenant/license-scoped access, cache keys, pagination and failure behavior."}
+    {"id": "P03.5", "scope": "Historical reduced-scope description only; active deliverables and mandatory cases are defined by main_implementation plan.md P03.5 and api design.md."}
   ],
   "study": {
     "longitude": [68, 69],
@@ -39,7 +41,7 @@
     "baseline_id": null,
     "provider": "INCOIS ERDDAP candidate; alternatives require an explicit source ADR"
   },
-  "not_in_this_phase": [
+  "historical_not_in_this_phase": [
     "multi-provider ingestion platform",
     "SST numerical engine (P04)",
     "durable investigation execution (P05)",

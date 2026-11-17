@@ -1,0 +1,209 @@
+{
+  "phase": "P03.4",
+  "status": "LIVE_CONNECTOR_TESTS_PASS_DURABLE_DIGEST_EVIDENCE_CAPTURED",
+  "explicit_cutoff_recheck": {
+    "input": "Preserved real NOAA batch; checksums and quality validated on both runs",
+    "historical_cutoff": "2025-02-01T00:00:00Z",
+    "historical_result": "Rejected because retrieval evidence postdates the cutoff",
+    "execution_time_cutoff_result": "Passed for the preserved real inputs"
+  },
+  "repeatable_test": {
+    "path": "backend/tests/live/test_erddap_real_sst.py",
+    "opt_in": "ORCA_TEST_LIVE_MUR=1",
+    "last_result": "PASS on the user's workstation: both opt-in live tests passed after the timeout adjustment. Capture JUnit output to persist response digests."
+  },
+  "repeat_attempt": {
+    "code": "SOURCE_TRANSPORT_ERROR",
+    "http_status": null,
+    "recorded_at": "2026-11-14T20:13:11+05:30",
+    "result": "Fresh opt-in pytest retrieval exhausted its bounded retry before an HTTP response because DNS resolution returned getaddrinfo failure. Metadata and subset cases both errored during shared metadata setup; subset bytes/QC were not fetched."
+  },
+  "public_metadata_page": "https://coastwatch.pfeg.noaa.gov/erddap/info/jplMURSST41/index.html",
+  "connector_attempt": {
+    "code": "SOURCE_TRANSPORT_ERROR",
+    "http_status": null,
+    "retry_after": null,
+    "recorded_at": "2026-11-14T18:48:45.106519+05:30"
+  },
+  "preserved_batch_recheck": {
+    "metadata": {
+      "sha256": "sha256:7c2df14ba2f7ec5cbb3455fa771766fb93eb5830982b7f121525c161112e7fd4",
+      "bytes": 12990,
+      "retrieved_at": "2026-11-06T22:21:41.973201+05:30",
+      "url": "https://coastwatch.pfeg.noaa.gov/erddap/info/jplMURSST41/index.json"
+    },
+    "qualification": {
+      "status": "INPUT_COMPATIBILITY_VERIFIED",
+      "method_science_validated": false,
+      "baseline_years": [
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022
+      ],
+      "baseline_complete_years": 20,
+      "days_per_year": 31,
+      "native_latitudes": 11,
+      "native_longitudes": 11,
+      "current_cells": 3751,
+      "baseline_cells": 75020,
+      "valid_fraction": 1.0,
+      "depth_policy": "same-product foundation SST; no fixed depth inferred",
+      "uncertainty": "unknown aggregate covariance; no independent-error assumption"
+    },
+    "historical_as_of_verified": false
+  },
+  "full_gate_pass_claimed": false,
+  "latest_attempt": {
+    "recorded_at": "2026-11-15T04:05:43Z",
+    "code": "SOURCE_TIMEOUT",
+    "stage": "TLS handshake",
+    "metadata_endpoint_probe": "Read-only curl returned HTTP 200; this does not constitute ORCA connector acceptance.",
+    "connector_result": "Both live tests failed at shared metadata setup after bounded address failover; subset/QC request was not reached.",
+    "fix_validation": "Address failover unit regression passed; an existing local PostGIS persistence/cache integration test passed.",
+    "gate_effect": "G03 remains INCOMPLETE. User authorized early P04 implementation in docs/decisions/P04-early-work-authorization.json; no gate is waived."
+  },
+  "workstation_probe_followup_2026_11_15": {
+    "recorded_at": "2026-11-15T08:02:18Z",
+    "evidence_source": "User-provided PowerShell screenshots; not independently reproduced in the Codex execution environment.",
+    "workstation_probe": {
+      "dns": "A and AAAA addresses resolved; IPv4 address 161.55.160.15. The observed IPv6 address differed between resolver checks.",
+      "proxy": "Python urllib reported no proxy schemes.",
+      "standard_https_metadata_request": "HTTP 200, JSON content type, 12,990 bytes.",
+      "direct_address_probe": [
+        "IPv6 TCP timed out after 8.00 seconds.",
+        "IPv4 TCP connected, but TLS handshake exceeded the probe's 8 second timeout and failed at 8.38 seconds."
+      ]
+    },
+    "connector_adjustment": {
+      "per_address_connection_and_tls_timeout_seconds": 15,
+      "shared_request_deadline_seconds": 30,
+      "live_test_request_deadline_seconds": 30,
+      "security_properties_retained": [
+        "public-address validation",
+        "per-address pinning",
+        "hostname SNI and certificate validation",
+        "redirect rejection",
+        "response byte limit"
+      ]
+    },
+    "regression_validation": {
+      "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/unit/test_acquisition_adapters.py backend/tests/security/test_erddap_egress.py -q",
+      "result": "PASS: 17 tests passed; Ruff check and format checks passed."
+    },
+    "codex_execution_live_recheck": {
+      "command": "ORCA_TEST_LIVE_MUR=1 python -m pytest -c backend/pyproject.toml backend/tests/live/test_erddap_real_sst.py -q -s",
+      "result": "Could not resolve the NOAA host in this execution environment (getaddrinfo failed); no connector request reached an address.",
+      "interpretation": "Environment DNS restriction; this does not validate or contradict the user's workstation connectivity."
+    },
+    "gate_effect": "Superseded by workstation_post_adjustment_live_test_2026_11_15: both live connector tests passed. G03 remains incomplete until fresh live digests are saved and remaining named, operational and scientific evidence passes."
+  },
+  "workstation_post_adjustment_live_test_2026_11_15": {
+    "recorded_at": "2026-11-15T09:04:51Z",
+    "evidence_source": "User-provided PowerShell screenshot from the repository's configured Python virtual environment.",
+    "command": "ORCA_TEST_LIVE_MUR=1 python -m pytest -c backend/pyproject.toml backend/tests/live/test_erddap_real_sst.py -q -s",
+    "result": "PASS: 2 passed, 0 failed in 20.65 seconds; 2 non-fatal record_property/xunit2 compatibility warnings.",
+    "verified_cases": [
+      "test_live_product_metadata_access: fetched fresh metadata through the ORCA connector and checked the declared 0.01 degree latitude/longitude grid resolution.",
+      "test_live_subset_bytes_and_qc: fetched the bounded January 2025 MUR subset through the ORCA connector, parsed the 31-day 11x11 grid, and asserted all 3,751 cells passed the current validity/QC rule."
+    ],
+    "product": "NOAA CoastWatch ERDDAP jplMURSST41",
+    "response_digests": {
+      "metadata_sha256": "6429d8b08900bf214b4211529e891a7d43b211a7dfb593da6e1188537f1933b3",
+      "subset_sha256": "b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+      "subset_bytes": 176308
+    },
+    "gate_effect": "Closes the durable fresh-live-response-digest evidence item for P03.4; G03 remains INCOMPLETE pending consolidated suite and operational/scientific acceptance.",
+    "junit_artifact": {
+      "path": "docs/gates/P03/workstation-live-noaa.xml",
+      "sha256": "sha256:7e5675af18da6192fb65478ea9cdfa4868b06fd5e5bd2a78f4d6aba11fb555cf",
+      "test_count": 2,
+      "failure_count": 0,
+      "error_count": 0,
+      "duration_seconds": 20.591,
+      "timestamp": "2026-11-15T22:06:03.461361+05:30"
+    },
+    "preceding_attempt": "The earlier attempt in the same screenshot showed 1 failed and 1 passed in 90.92 seconds; the subset request ended in SOURCE_TIMEOUT. The subsequent JUnit-backed rerun passed both tests."
+  },
+  "retrieval_independent_recheck_2026_11_15": {
+    "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/unit/test_snapshot_request_cache.py backend/tests/unit/test_scientific_inputs.py backend/tests/security/test_erddap_egress.py",
+    "result": "PASS: 20 tests passed; no live NOAA request was made.",
+    "database_persistence_recheck": "SKIPPED: backend/tests/integration/test_snapshot_persistence.py requires ORCA_TEST_DATABASE_URL, which is not set in this shell. A previous localhost-only orca_test pass remains historical evidence and was not repeated.",
+    "gate_effect": "These checks improve retrieval-independent P03 confidence but do not close the fresh retrieval/baseline requirements or pass G03."
+  },
+  "retrieval_independent_recheck_after_P04_4_2026_11_15": {
+    "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/science backend/tests/integration/test_evidence_fk.py backend/tests/unit/test_snapshot_request_cache.py backend/tests/unit/test_scientific_inputs.py backend/tests/security/test_erddap_egress.py -q",
+    "result": "PASS: 43 passed, 2 skipped. The suite includes P04 deterministic science cases, the preserved-real MUR replay, and affected P03 request/cache/egress regressions.",
+    "skips": "The two database lineage integration cases require ORCA_TEST_DATABASE_URL, which is absent. No database was changed.",
+    "live_retrieval_attempted": false,
+    "gate_effect": "No fresh NOAA request was made. G03 remains INCOMPLETE; P04 early work remains independently authorized."
+  },
+  "preserved_real_baseline_recheck_2026_11_15": {
+    "recorded_at": "2026-11-15T11:29:31.520976Z",
+    "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/live/test_erddap_real_sst.py::test_preserved_real_mur_baseline_qualification -q -s --junitxml=docs/gates/P03/preserved-baseline-qualification.xml",
+    "result": "PASS: 1 passed in 2.26 seconds; all preserved raw files matched their captured byte counts and SHA-256 digests; input compatibility qualification matched the recorded result.",
+    "warning": "Pytest warned that record_property is incompatible with configured xunit2 family; emitted SHA properties are present. This warning affects report-family cleanliness, not the assertion result.",
+    "evidence": [
+      "docs/gates/P03/baseline-qualification.json",
+      "docs/gates/P03/preserved-baseline-qualification.xml"
+    ],
+    "gate_effect": "Clears source-input compatibility and documents source attribution requirements. Does not validate the scientific method, QC thresholds, historical 2025 availability, or G03 as a whole."
+  },
+  "local_full_suite_attempt_2026_11_15": {
+    "status": "INCONCLUSIVE_HUNG_DURING_TESTCLIENT_STARTUP",
+    "case": "backend/tests/contracts/test_snapshot_http.py::test_asset_page_cursor",
+    "diagnostic": "faulthandler showed Starlette TestClient startup waiting in asyncio Proactor socketpair fallback accept. The run was interrupted after over two minutes without an assertion result for this case.",
+    "interpretation": "Treat as an execution-environment/loopback startup problem pending a normal workstation rerun; do not count as a passing or failing assertion. The case has prior targeted pass evidence recorded in required-case-inventory.json.",
+    "gate_effect": "G03 remains INCOMPLETE until the required inventory completes."
+  },
+  "workstation_live_junit_rerun_2026_11_15": {
+    "recorded_at": "2026-11-15T16:36:03.461361Z",
+    "evidence_source": "User workstation JUnit report generated by the instructed opt-in NOAA live test command.",
+    "command": "ORCA_TEST_LIVE_MUR=1 python -m pytest -c backend/pyproject.toml backend/tests/live/test_erddap_real_sst.py::test_live_product_metadata_access backend/tests/live/test_erddap_real_sst.py::test_live_subset_bytes_and_qc -q -s --junitxml=docs/gates/P03/workstation-live-noaa.xml",
+    "result": "PASS: 2 passed, 0 failed in 20.65 seconds; 2 non-fatal record_property/xunit2 compatibility warnings.",
+    "preceding_attempt": "The earlier attempt in the same screenshot showed 1 failed and 1 passed in 90.92 seconds; the subset request ended in SOURCE_TIMEOUT. The subsequent JUnit-backed rerun passed both tests.",
+    "product": "NOAA CoastWatch ERDDAP jplMURSST41",
+    "response_digests": {
+      "metadata_sha256": "6429d8b08900bf214b4211529e891a7d43b211a7dfb593da6e1188537f1933b3",
+      "subset_sha256": "b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+      "subset_bytes": 176308
+    },
+    "junit": {
+      "path": "docs/gates/P03/workstation-live-noaa.xml",
+      "sha256": "sha256:7e5675af18da6192fb65478ea9cdfa4868b06fd5e5bd2a78f4d6aba11fb555cf",
+      "test_count": 2,
+      "failure_count": 0,
+      "error_count": 0,
+      "duration_seconds": 20.591,
+      "timestamp": "2026-11-15T22:06:03.461361+05:30"
+    },
+    "interpretation": "The fresh metadata and bounded subset/QC read succeeded and the JUnit file preserves its response hashes. The preceding bounded timeout shows source latency remains variable; the retryable connector must continue to surface a clear SOURCE_TIMEOUT if future attempts exhaust their deadline.",
+    "gate_effect": "Closes the durable fresh-live-response-digest evidence item for P03.4; G03 remains INCOMPLETE pending consolidated suite and operational/scientific acceptance."
+  },
+  "local_full_suite_resolution": {
+    "result": "212 passed, 60 live tests deselected, 12 warnings in 48.53s",
+    "artifact": "docs/gates/P03/backend-regression-recheck.xml",
+    "cause": "Restricted execution environment prevented Windows loopback socketpair startup; identical HTTP tests passed outside sandbox.",
+    "fixes": [
+      "Regenerated API contracts",
+      "Rebuilt stale runtime wheel",
+      "Reconciled authorized plan revision while verifying preserved prior source checksum"
+    ]
+  }
+}

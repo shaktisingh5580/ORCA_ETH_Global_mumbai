@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="2" failures="0" skipped="0" tests="2" time="63.163" timestamp="2026-11-17T10:22:28.184625+05:30" hostname="SHAKTI"><testcase classname="tests.live.test_erddap_real_sst" name="test_live_product_metadata_access" time="62.721"><error message="failed on setup with &quot;Failed: NOAA retrieval failed: SOURCE_TIMEOUT; HTTP status None&quot;">_ssl.c:993: The handshake operation timed out
+
+The above exception was the direct cause of the following exception:
+SOURCE_TIMEOUT
+
+During handling of the above exception, another exception occurred:
+NOAA retrieval failed: SOURCE_TIMEOUT; HTTP status None</error></testcase><testcase classname="tests.live.test_erddap_real_sst" name="test_live_subset_bytes_and_qc" time="0.003"><error message="failed on setup with &quot;Failed: NOAA retrieval failed: SOURCE_TIMEOUT; HTTP status None&quot;">_ssl.c:993: The handshake operation timed out
+
+The above exception was the direct cause of the following exception:
+SOURCE_TIMEOUT
+
+During handling of the above exception, another exception occurred:
+NOAA retrieval failed: SOURCE_TIMEOUT; HTTP status None</error></testcase></testsuite></testsuites>

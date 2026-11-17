@@ -1,0 +1,85 @@
+{
+  "schema_version": "orca.p03-live-source-evidence/1.0",
+  "phase": "P03.4",
+  "evidence_status": "LIVE_SOURCE_AND_INPUT_COMPATIBILITY_VERIFIED",
+  "subphase_gate": "OPEN_PENDING_FULL_G03_REGRESSION_AND_REVIEW",
+  "recorded_at": "2026-11-15T16:36:03.461361Z",
+  "source": {
+    "host": "coastwatch.pfeg.noaa.gov",
+    "dataset_id": "jplMURSST41",
+    "product": "MUR-JPL-L4-GLOB-v4.1",
+    "metadata_endpoint": "/erddap/info/jplMURSST41/index.json",
+    "subset_endpoint": "/erddap/griddap/jplMURSST41.csv",
+    "product_doi": "10.5067/GHGMR-4FJ04",
+    "metadata_sha256": "6429d8b08900bf214b4211529e891a7d43b211a7dfb593da6e1188537f1933b3",
+    "metadata_bytes": 12990,
+    "subset_query": "analysed_sst[(2025-01-01T09:00:00Z):1:(2025-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2025-01-01T09:00:00Z):1:(2025-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2025-01-01T09:00:00Z):1:(2025-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]",
+    "subset_sha256": "b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+    "subset_bytes": 176308,
+    "subset_parsed": "January 2025, 31 days, 11x11 native-coordinate request; 3,751 qualifying cells.",
+    "metadata_case_duration_seconds": 4.589,
+    "subset_case_duration_seconds": 15.908,
+    "response_status": {
+      "value": 200,
+      "basis": "The connector returns bytes only for HTTP 200; it raises SOURCE_HTTP_ERROR for every other status. The tests passed through that connector path. Status was not separately emitted by pytest."
+    }
+  },
+  "result": {
+    "command": "ORCA_TEST_LIVE_MUR=1 python -m pytest -c backend/pyproject.toml backend/tests/live/test_erddap_real_sst.py::test_live_product_metadata_access backend/tests/live/test_erddap_real_sst.py::test_live_subset_bytes_and_qc -q -s --junitxml=docs/gates/P03/workstation-live-noaa.xml",
+    "passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "duration_seconds": 20.591,
+    "junit": {
+      "path": "docs/gates/P03/workstation-live-noaa.xml",
+      "sha256": "sha256:7e5675af18da6192fb65478ea9cdfa4868b06fd5e5bd2a78f4d6aba11fb555cf",
+      "timestamp": "2026-11-15T22:06:03.461361+05:30"
+    },
+    "warnings": "Two non-fatal pytest warnings because record_property is paired with configured junit_family=xunit2; all three response properties are present in the saved report.",
+    "prior_attempt": "The screenshot records an earlier attempt with one passing case and one SOURCE_TIMEOUT failure after 90.92 seconds; the follow-up JUnit run passed both cases."
+  },
+  "preserved_baseline": {
+    "evidence": "docs/gates/P03/baseline-qualification.json",
+    "test_report": "docs/gates/P03/preserved-baseline-qualification.xml",
+    "period": "January 2003-2022 compared with January 2025",
+    "input_compatibility": "verified for the captured bytes, calendar, same MUR product/version, native grid and QC inputs",
+    "method_science_validated": false,
+    "historical_2025_availability_verified": false,
+    "registered_source_document": "docs/sources/scientific_baselines.yaml remains byte-preserved under the P00 checksum; its UNKNOWN status is not silently rewritten by this engineering probe."
+  },
+  "rights_and_attribution": {
+    "metadata_license_text_digest": "sha256:cf7b9f932fb1b2df2a358d2c4415389ef12284b3d204fe5b3b762ac028b7738c",
+    "sources": [
+      "https://podaac.jpl.nasa.gov/CitingPODAAC",
+      "https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1",
+      "https://osi-saf.eumetsat.int/osi-saf-usage-policy"
+    ],
+    "attribution": "Retain JPL MUR MEaSUREs / PO.DAAC citation and EUMETSAT OSI SAF attribution for the listed Ice_Conc-OSISAF source input; exact OSI SAF product identifier is not named in the NOAA metadata.",
+    "assessment_limit": "Records the dataset metadata and attribution obligations for reuse; not a legal opinion."
+  },
+  "redacted_http_telemetry": {
+    "recorded_fields": [
+      "approved host",
+      "endpoint path pattern",
+      "case duration",
+      "response digest",
+      "byte count",
+      "connector success/failure code"
+    ],
+    "credentials_and_full_ip_addresses": "not recorded",
+    "http_status_note": "200 inferred from the successful connector return path; current JUnit does not emit the status field separately.",
+    "transient_error": "SOURCE_TIMEOUT on the earlier subset request; successful bounded retry run followed."
+  },
+  "scientific_limitations": [
+    "The 20-year January comparator is product-specific, not a 30-year WMO climate normal.",
+    "The 0.1-degree pilot tile is not a whole-Arabian-Sea estimate.",
+    "The baseline was retrieved after January 2025; no historical-as-of-2025 availability claim is made.",
+    "Input compatibility and deterministic parsing do not validate anomaly statistics, uncertainty assumptions, thresholds, or scientific conclusions."
+  ],
+  "references": [
+    "docs/adr/ADR-R02-native-mur-inputs.json",
+    "docs/gates/P03/live-recheck.json",
+    "docs/gates/P03/required-case-inventory.json",
+    "docs/gates/P03/manifest.json"
+  ]
+}

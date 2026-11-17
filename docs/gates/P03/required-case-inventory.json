@@ -1,0 +1,123 @@
+{
+  "phase": "P03",
+  "status": "INCOMPLETE",
+  "prerequisite_evidence": "docs/gates/P02/manifest.json",
+  "case_inventory_only": true,
+  "subphases": {
+    "G03.1": {
+      "required": [
+        "test_catalog_semantic_types",
+        "test_catalog_license_scope",
+        "test_product_version_stability",
+        "test_asset_page_cursor",
+        "test_hidden_restricted_metadata"
+      ],
+      "passed_in_p02_run": [
+        "test_catalog_semantic_types",
+        "test_catalog_license_scope",
+        "test_product_version_stability",
+        "test_hidden_restricted_metadata"
+      ],
+      "passed_in_targeted_run": [
+        "test_asset_page_cursor"
+      ],
+      "targeted_run_scope": "HTTP cursor round trip with test-only persistence. The saved P02 PostGIS test test_snapshot_persistence_isolation_and_immutability covers repository cursor ordering, filters, grant expiry and tenant isolation. A fresh PostGIS rerun was unavailable because Docker was stopped.",
+      "without_passing_named_case": []
+    },
+    "G03.2": {
+      "required": [
+        "test_metadata_dimension_variable_mapping",
+        "test_invalid_401_403_429_retry_after",
+        "test_http_timeout_and_malformed",
+        "test_oversize_413",
+        "test_redirect_ssrf_reject",
+        "test_empty_valid_subset"
+      ],
+      "passed_in_p02_run": [
+        "test_metadata_dimension_variable_mapping",
+        "test_invalid_401_403_429_retry_after",
+        "test_http_timeout_and_malformed",
+        "test_oversize_413",
+        "test_redirect_ssrf_reject",
+        "test_empty_valid_subset"
+      ],
+      "without_passing_named_case": []
+    },
+    "G03.3": {
+      "required": [
+        "test_sha256_exact_bytes",
+        "test_duplicate_retrieval_versioned",
+        "test_source_issued_valid_observed_available_times",
+        "test_depth_unit_semantics",
+        "test_no_partial_publish"
+      ],
+      "passed_in_p02_run": [
+        "test_sha256_exact_bytes",
+        "test_duplicate_retrieval_versioned",
+        "test_no_partial_publish"
+      ],
+      "passed_in_targeted_run": [
+        "test_source_issued_valid_observed_available_times",
+        "test_depth_unit_semantics"
+      ],
+      "targeted_run_scope": "Contract and unit checks cover distinct timestamps, explicit missing reasons, unknown depth, and unit and depth mismatches. Historical availability and real-source semantics require separate source evidence.",
+      "without_passing_named_case": []
+    },
+    "G03.4": {
+      "required": [
+        "test_live_product_metadata_access",
+        "test_live_subset_bytes_and_qc",
+        "test_baseline_season_depth_calendar_compatibility",
+        "test_preservation_license",
+        "test_real_as_of_availability"
+      ],
+      "passed_in_p02_run": [
+        "test_baseline_season_depth_calendar_compatibility"
+      ],
+      "passed_in_targeted_run": [
+        "test_preservation_license"
+      ],
+      "passed_in_current_targeted_run": [
+        "test_real_as_of_availability",
+        "test_preserved_real_mur_baseline_qualification"
+      ],
+      "passed_in_current_live_run": [
+        "test_live_product_metadata_access",
+        "test_live_subset_bytes_and_qc"
+      ],
+      "targeted_run_scope": "Fresh NOAA connector cases passed on the user's workstation (2 passed in 53.80s). The preserved real MUR case also passed locally: exact bytes, per-input hashes, period/calendar/grid compatibility, validity counts, source-license metadata and availability cutoffs are checked from non-fixture capture. This establishes input compatibility/reuse-rights support, not scientific method validity. See baseline-qualification.json and preserved-baseline-qualification.xml.",
+      "without_passing_named_case": [],
+      "current_live_evidence": {
+        "artifact": "docs/gates/P03/workstation-live-noaa.xml",
+        "metadata_sha256": "6429d8b08900bf214b4211529e891a7d43b211a7dfb593da6e1188537f1933b3",
+        "subset_sha256": "b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+        "subset_bytes": 176308,
+        "result": "PASS: 2 passed, 0 failed in 20.65 seconds; 2 non-fatal record_property/xunit2 compatibility warnings.",
+        "note": "An earlier attempt timed out during subset retrieval; the JUnit-backed rerun passed both named live cases."
+      }
+    },
+    "G03.5": {
+      "required": [
+        "test_cache_keys_org_license_cycle_depth_as_of",
+        "test_cursor_page_stable",
+        "test_source_unavailable_error",
+        "test_no_dataset_on_cache_miss"
+      ],
+      "passed_in_p02_run": [],
+      "passed_in_targeted_run": [
+        "test_source_unavailable_error",
+        "test_no_dataset_on_cache_miss",
+        "test_cursor_page_stable"
+      ],
+      "live_pagination_evidence": "Local PostGIS test_snapshot_persistence_isolation_and_immutability passed the insertion-before-cursor scenario. The named HTTP contract test separately passed replaying a cursor with identical filters.",
+      "uncached_access_evidence": "test_snapshot_reads_recheck_access_without_cached_results passed in the saved P02 targeted run. Identical reads reauthorize and return 404 after project membership is lost; responses carry no-store. This access-revocation case is separate from cache reuse.",
+      "targeted_run_scope": "Service-level cache hit/miss and named request-digest contract pass. A fresh local PostGIS integration test also passed snapshot persistence, tenant isolation, immutable records, project grants, lease recovery, and database-backed exact request-cache reuse; all test writes were rolled back. Earlier HTTP checks cover structured source-unavailable errors, empty results, concealed missing IDs, and access rechecks.",
+      "passed_in_current_targeted_run": [
+        "test_cache_keys_org_license_cycle_depth_as_of"
+      ],
+      "cache_scope_evidence": "Postgres-backed cache hit is verified by backend/tests/integration/test_snapshot_persistence.py (1 passed) on localhost-only orca_test. The query binds tenant_id and request digest; the digest includes organization, tenant, product/version, license evidence, geometry, interval, depth, variables, and as_of. The focused service cache hit/miss tests also pass.",
+      "without_passing_named_case": [],
+      "postgres_integration_evidence": "PASS: .cache/p03-postgres-test.xml; existing local orca_test PostGIS; transaction rolled back."
+    }
+  }
+}

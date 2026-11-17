@@ -1,0 +1,347 @@
+{
+  "schema_version": "orca.p03-baseline-qualification/1.0",
+  "recorded_at": "2026-11-15T11:29:31.520976Z",
+  "phase": "P03.4",
+  "status": "INPUT_COMPATIBILITY_AND_REUSE_RIGHTS_SUPPORTED_NOT_SCIENTIFICALLY_VALIDATED",
+  "policy": "ADR-R02",
+  "product": {
+    "provider": "NASA JPL MUR MEaSUREs / NOAA CoastWatch ERDDAP distribution",
+    "host": "coastwatch.pfeg.noaa.gov",
+    "dataset": "jplMURSST41",
+    "version": "4.1",
+    "title": "GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis",
+    "doi": "10.5067/GHGMR-4FJ04",
+    "metadata_url": "https://coastwatch.pfeg.noaa.gov/erddap/info/jplMURSST41/index.json",
+    "metadata_sha256": "sha256:7c2df14ba2f7ec5cbb3455fa771766fb93eb5830982b7f121525c161112e7fd4",
+    "metadata_bytes": 12990,
+    "metadata_retrieved_at": "2026-11-06T16:51:41.973201+00:00",
+    "spatial_resolution_degrees": {
+      "latitude": 0.01,
+      "longitude": 0.01
+    },
+    "source_variables": "MODIS_T-JPL, MODIS_A-JPL, AVHRRMTB_G-NAVO, iQUAM-NOAA/NESDIS, Ice_Conc-OSISAF",
+    "acknowledgement": "Please acknowledge the use of these data with the following statement:  These data were provided by JPL under support by NASA MEaSUREs program.",
+    "dataset_license_text": "These data are available free of charge under the JPL PO.DAAC data policy.\n\nThe data may be used and redistributed for free but is not intended\nfor legal use, since it may contain inaccuracies. Neither the data\nContributor, ERD, NOAA, nor the United States Government, nor any\nof their employees or contractors, makes any warranty, express or\nimplied, including warranties of merchantability and fitness for a\nparticular purpose, or assumes any legal liability for the accuracy,\ncompleteness, or usefulness, of this information.",
+    "dataset_license_text_sha256": "sha256:cf7b9f932fb1b2df2a358d2c4415389ef12284b3d204fe5b3b762ac028b7738c",
+    "distribution_rights_assessment": "The NOAA-served MUR metadata says the data are free to use and redistribute and points to the JPL PO.DAAC data policy. PO.DAAC states its hosted data are openly shared without restriction and asks for bibliographic citation. MUR metadata also lists Ice_Conc-OSISAF as an input source; preserve EUMETSAT OSI SAF attribution. The exact OSI SAF product identifier is not present in this metadata and must not be invented.",
+    "required_attribution": [
+      "JPL MUR MEaSUREs Project. 2015. GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1). Ver. 4.1. PO.DAAC, CA, USA. Dataset accessed [access date] at https://doi.org/10.5067/GHGMR-4FJ04.",
+      "EUMETSAT Ocean and Sea Ice Satellite Application Facility (OSI SAF) attribution for the OSI SAF ice-concentration input; identify the exact source product if confirmed from product provenance."
+    ],
+    "rights_sources": [
+      "https://podaac.jpl.nasa.gov/CitingPODAAC",
+      "https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1",
+      "https://osi-saf.eumetsat.int/osi-saf-usage-policy"
+    ]
+  },
+  "comparison_scope": {
+    "current_period": "January 2025",
+    "baseline_period": "January 2003 through January 2022 inclusive",
+    "baseline_years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022
+    ],
+    "baseline_complete_years": 20,
+    "days_per_year": 31,
+    "spatial_bounds": {
+      "longitude": [
+        68.45,
+        68.55
+      ],
+      "latitude": [
+        20.45,
+        20.55
+      ]
+    },
+    "native_grid": {
+      "latitudes": 11,
+      "longitudes": 11,
+      "resolution_degrees": 0.01
+    },
+    "depth_policy": "same-product foundation SST; no fixed depth inferred",
+    "current_valid_cells": 3751,
+    "baseline_valid_cells": 75020,
+    "valid_fraction": 1.0,
+    "uncertainty_policy": "unknown aggregate covariance; no independent-error assumption",
+    "interpretation_limit": "A 20-year same-product January comparator is not a 30-year climate normal, a whole Arabian Sea estimate, or evidence of causal attribution."
+  },
+  "input_compatibility": {
+    "qualification": {
+      "status": "INPUT_COMPATIBILITY_VERIFIED",
+      "method_science_validated": false,
+      "baseline_years": [
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022
+      ],
+      "baseline_complete_years": 20,
+      "days_per_year": 31,
+      "native_latitudes": 11,
+      "native_longitudes": 11,
+      "current_cells": 3751,
+      "baseline_cells": 75020,
+      "valid_fraction": 1.0,
+      "depth_policy": "same-product foundation SST; no fixed depth inferred",
+      "uncertainty": "unknown aggregate covariance; no independent-error assumption"
+    },
+    "method_science_validated": false,
+    "historical_as_of_2025_verified": false,
+    "availability_note": "First observed at actual retrieval; historical 2025 availability is not asserted",
+    "preserved_inputs": [
+      {
+        "year": 2025,
+        "month": 1,
+        "role": "current",
+        "file": "2025-01.csv",
+        "sha256": "sha256:b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+        "bytes": 176308,
+        "retrieved_at": "2026-11-06T16:51:51.940703+00:00",
+        "query": "analysed_sst[(2025-01-01T09:00:00Z):1:(2025-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2025-01-01T09:00:00Z):1:(2025-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2025-01-01T09:00:00Z):1:(2025-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2003,
+        "month": 1,
+        "role": "baseline",
+        "file": "2003-01.csv",
+        "sha256": "sha256:ea76ac38737c23f8a9ce0fb5351833a6d104f1070d51f294fa6b9cfbbea431b0",
+        "bytes": 176018,
+        "retrieved_at": "2026-11-06T16:52:00.707590+00:00",
+        "query": "analysed_sst[(2003-01-01T09:00:00Z):1:(2003-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2003-01-01T09:00:00Z):1:(2003-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2003-01-01T09:00:00Z):1:(2003-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2004,
+        "month": 1,
+        "role": "baseline",
+        "file": "2004-01.csv",
+        "sha256": "sha256:a5a44d660a99b569b49789940a7db298ec250a9a352ce6300b6490d8e75c9170",
+        "bytes": 176065,
+        "retrieved_at": "2026-11-06T16:52:15.355298+00:00",
+        "query": "analysed_sst[(2004-01-01T09:00:00Z):1:(2004-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2004-01-01T09:00:00Z):1:(2004-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2004-01-01T09:00:00Z):1:(2004-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2005,
+        "month": 1,
+        "role": "baseline",
+        "file": "2005-01.csv",
+        "sha256": "sha256:3006b18cfd69f3134bdccd1a6dea870b0e0cc1cf25b8efc22cf583126f4f878a",
+        "bytes": 175781,
+        "retrieved_at": "2026-11-06T16:52:24.203527+00:00",
+        "query": "analysed_sst[(2005-01-01T09:00:00Z):1:(2005-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2005-01-01T09:00:00Z):1:(2005-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2005-01-01T09:00:00Z):1:(2005-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2006,
+        "month": 1,
+        "role": "baseline",
+        "file": "2006-01.csv",
+        "sha256": "sha256:d3748b457449fd87fddde3bce82548cd31b89fdad3e5730b783dc54037196acc",
+        "bytes": 175533,
+        "retrieved_at": "2026-11-06T16:52:32.916141+00:00",
+        "query": "analysed_sst[(2006-01-01T09:00:00Z):1:(2006-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2006-01-01T09:00:00Z):1:(2006-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2006-01-01T09:00:00Z):1:(2006-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2007,
+        "month": 1,
+        "role": "baseline",
+        "file": "2007-01.csv",
+        "sha256": "sha256:0a175bc74ce45de8fb87c83816b15c6cbfd78ac7a763ff333449d97006b83e0a",
+        "bytes": 175823,
+        "retrieved_at": "2026-11-06T16:52:41.367645+00:00",
+        "query": "analysed_sst[(2007-01-01T09:00:00Z):1:(2007-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2007-01-01T09:00:00Z):1:(2007-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2007-01-01T09:00:00Z):1:(2007-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2008,
+        "month": 1,
+        "role": "baseline",
+        "file": "2008-01.csv",
+        "sha256": "sha256:7d2dbc80c300d72365e216d7646525b608b87b7f0e4ba2c5a54d9d9a01e6f7f8",
+        "bytes": 175519,
+        "retrieved_at": "2026-11-06T16:52:55.563032+00:00",
+        "query": "analysed_sst[(2008-01-01T09:00:00Z):1:(2008-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2008-01-01T09:00:00Z):1:(2008-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2008-01-01T09:00:00Z):1:(2008-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2009,
+        "month": 1,
+        "role": "baseline",
+        "file": "2009-01.csv",
+        "sha256": "sha256:9eb81ec687cd1d36f522522c803d76527ad75292e506217940f3fda58b3ddbc4",
+        "bytes": 176974,
+        "retrieved_at": "2026-11-06T16:53:09.099512+00:00",
+        "query": "analysed_sst[(2009-01-01T09:00:00Z):1:(2009-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2009-01-01T09:00:00Z):1:(2009-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2009-01-01T09:00:00Z):1:(2009-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2010,
+        "month": 1,
+        "role": "baseline",
+        "file": "2010-01.csv",
+        "sha256": "sha256:1bfb987edb944ed06274a58112e6cbe790adc9ebc1484e0c4f42d120928c9de0",
+        "bytes": 175619,
+        "retrieved_at": "2026-11-06T16:53:17.764993+00:00",
+        "query": "analysed_sst[(2010-01-01T09:00:00Z):1:(2010-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2010-01-01T09:00:00Z):1:(2010-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2010-01-01T09:00:00Z):1:(2010-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2011,
+        "month": 1,
+        "role": "baseline",
+        "file": "2011-01.csv",
+        "sha256": "sha256:1e5875498c944c12c583f1369b4cc309c86cc3d0087aeda0e6880c707494c00b",
+        "bytes": 175544,
+        "retrieved_at": "2026-11-06T16:56:09.388090+00:00",
+        "query": "analysed_sst[(2011-01-01T09:00:00Z):1:(2011-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2011-01-01T09:00:00Z):1:(2011-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2011-01-01T09:00:00Z):1:(2011-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2012,
+        "month": 1,
+        "role": "baseline",
+        "file": "2012-01.csv",
+        "sha256": "sha256:2e95d5a04dcbe65bcdbad02744411eaac61612ed0660aea384802279f91d5754",
+        "bytes": 175488,
+        "retrieved_at": "2026-11-06T16:56:19.016306+00:00",
+        "query": "analysed_sst[(2012-01-01T09:00:00Z):1:(2012-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2012-01-01T09:00:00Z):1:(2012-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2012-01-01T09:00:00Z):1:(2012-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2013,
+        "month": 1,
+        "role": "baseline",
+        "file": "2013-01.csv",
+        "sha256": "sha256:86321d67ed3edacfec165f8b6293777b0df05b4b6d43e3318bd6fb016e861acd",
+        "bytes": 175662,
+        "retrieved_at": "2026-11-06T16:56:30.012141+00:00",
+        "query": "analysed_sst[(2013-01-01T09:00:00Z):1:(2013-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2013-01-01T09:00:00Z):1:(2013-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2013-01-01T09:00:00Z):1:(2013-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2014,
+        "month": 1,
+        "role": "baseline",
+        "file": "2014-01.csv",
+        "sha256": "sha256:4680ceecd8bcb6eaea96be5dcbe9b1a3f7666fc56f813422ff238b9c63b7d134",
+        "bytes": 175607,
+        "retrieved_at": "2026-11-06T16:56:47.526511+00:00",
+        "query": "analysed_sst[(2014-01-01T09:00:00Z):1:(2014-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2014-01-01T09:00:00Z):1:(2014-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2014-01-01T09:00:00Z):1:(2014-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2015,
+        "month": 1,
+        "role": "baseline",
+        "file": "2015-01.csv",
+        "sha256": "sha256:51e63fef8405077c9d6ddac284cbc30278c81487f4fac5c29c3f166b67e548dc",
+        "bytes": 175449,
+        "retrieved_at": "2026-11-06T16:57:06.433058+00:00",
+        "query": "analysed_sst[(2015-01-01T09:00:00Z):1:(2015-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2015-01-01T09:00:00Z):1:(2015-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2015-01-01T09:00:00Z):1:(2015-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2016,
+        "month": 1,
+        "role": "baseline",
+        "file": "2016-01.csv",
+        "sha256": "sha256:3b79442e7f8a1383d25c9972557d41256af6de8772dd4b2fef0c8040d5665afe",
+        "bytes": 176050,
+        "retrieved_at": "2026-11-06T16:57:23.093756+00:00",
+        "query": "analysed_sst[(2016-01-01T09:00:00Z):1:(2016-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2016-01-01T09:00:00Z):1:(2016-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2016-01-01T09:00:00Z):1:(2016-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2017,
+        "month": 1,
+        "role": "baseline",
+        "file": "2017-01.csv",
+        "sha256": "sha256:bceba529fede43b15043061682f373564354a058772bdd07254c355a9541cbbe",
+        "bytes": 175996,
+        "retrieved_at": "2026-11-06T16:57:30.647762+00:00",
+        "query": "analysed_sst[(2017-01-01T09:00:00Z):1:(2017-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2017-01-01T09:00:00Z):1:(2017-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2017-01-01T09:00:00Z):1:(2017-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2018,
+        "month": 1,
+        "role": "baseline",
+        "file": "2018-01.csv",
+        "sha256": "sha256:99a79a54d8cc1b1d0dfec2264e88af07aa0c9cb5204ca6eb1d0dde2d28ef85d0",
+        "bytes": 175573,
+        "retrieved_at": "2026-11-06T16:57:41.033320+00:00",
+        "query": "analysed_sst[(2018-01-01T09:00:00Z):1:(2018-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2018-01-01T09:00:00Z):1:(2018-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2018-01-01T09:00:00Z):1:(2018-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2019,
+        "month": 1,
+        "role": "baseline",
+        "file": "2019-01.csv",
+        "sha256": "sha256:aa632f6a5eb271f328ea2c2504a17c048d4416d1497e7125af88fd26c4242e67",
+        "bytes": 175920,
+        "retrieved_at": "2026-11-06T16:57:53.289730+00:00",
+        "query": "analysed_sst[(2019-01-01T09:00:00Z):1:(2019-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2019-01-01T09:00:00Z):1:(2019-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2019-01-01T09:00:00Z):1:(2019-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2020,
+        "month": 1,
+        "role": "baseline",
+        "file": "2020-01.csv",
+        "sha256": "sha256:455c96abfddfe9734a7cbb8ef5ea1a62e9c08d9c39b0f11d0fb107bbfcf6e5c6",
+        "bytes": 175574,
+        "retrieved_at": "2026-11-06T16:58:00.712617+00:00",
+        "query": "analysed_sst[(2020-01-01T09:00:00Z):1:(2020-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2020-01-01T09:00:00Z):1:(2020-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2020-01-01T09:00:00Z):1:(2020-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2021,
+        "month": 1,
+        "role": "baseline",
+        "file": "2021-01.csv",
+        "sha256": "sha256:fd687cafdd342cb60228b7f6f80abab9f243757085650fad88c8a1f02abcaaf7",
+        "bytes": 176071,
+        "retrieved_at": "2026-11-06T16:58:07.545876+00:00",
+        "query": "analysed_sst[(2021-01-01T09:00:00Z):1:(2021-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2021-01-01T09:00:00Z):1:(2021-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2021-01-01T09:00:00Z):1:(2021-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      },
+      {
+        "year": 2022,
+        "month": 1,
+        "role": "baseline",
+        "file": "2022-01.csv",
+        "sha256": "sha256:56f4c3a8a98ea6ce99b6bc795c3feba11ae7bcd495589ecf19cb8b43634dec88",
+        "bytes": 175696,
+        "retrieved_at": "2026-11-06T16:58:20.790394+00:00",
+        "query": "analysed_sst[(2022-01-01T09:00:00Z):1:(2022-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],analysis_error[(2022-01-01T09:00:00Z):1:(2022-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)],mask[(2022-01-01T09:00:00Z):1:(2022-01-31T09:00:00Z)][(20.45):1:(20.55)][(68.45):1:(68.55)]"
+      }
+    ]
+  },
+  "verification": {
+    "test": "backend/tests/live/test_erddap_real_sst.py::test_preserved_real_mur_baseline_qualification",
+    "command": "backend/.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/live/test_erddap_real_sst.py::test_preserved_real_mur_baseline_qualification -q -s --junitxml=docs/gates/P03/preserved-baseline-qualification.xml",
+    "result": "1 tests, 0 failed, 0 errors",
+    "junit_timestamp": "2026-11-15T16:59:31.520976+05:30",
+    "junit_sha256": "sha256:e627b3312e6053a45a66d459e0d43752b9fb5ee06ba4d2717d140d4348682065",
+    "sha_properties_present": 22,
+    "junit_warning": "pytest warns record_property is incompatible with xunit2; the emitted properties are present in this report. Configure a supported JUnit family if warning-free artifacts are required."
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "phase": "P03",
+  "status": "LOCAL_IMPLEMENTATION_VERIFIED_GATE_INCOMPLETE",
+  "recorded_at": "2026-11-17",
+  "scope": "Explicit historical cutoff, source and license scoped immutable snapshot reuse, bounded ERDDAP public-address failover, Windows exact-byte publication, and generated contracts",
+  "focused_offline": {
+    "result": "PASS",
+    "cases": 50,
+    "report": "docs/gates/P03/local-offline-increment.xml",
+    "sha256": "488ad2b36aee6956ca32d3e17800f1ad453fc6df7a51aba61715f4cfcf993885"
+  },
+  "local_postgis": {
+    "result": "PASS",
+    "cases": 6,
+    "database": "isolated localhost orca_test",
+    "report": "docs/gates/P03/local-database-increment.xml",
+    "sha256": "886898bbb43be44f5d829a2e7f31577cc838f1e65143955e6c42dc7d0506061b"
+  },
+  "static": {
+    "ruff_check_and_format": "PASS for changed P03 files",
+    "mypy": "PASS for 8 changed P03 source files with backend/pyproject.toml",
+    "headers_and_import_boundaries": "PASS",
+    "generated_contracts": "PASS: OpenAPI export and TypeScript reproducibility, 2 contract tests"
+  },
+  "real_source": {
+    "saved_success": {
+      "result": "PASS: 2 live NOAA connector cases with response digests",
+      "report": "docs/gates/P03/workstation-live-noaa.xml",
+      "sha256": "7e5675af18da6192fb65478ea9cdfa4868b06fd5e5bd2a78f4d6aba11fb555cf"
+    },
+    "current_retry": {
+      "result": "ERROR: both metadata-dependent cases timed out during TLS setup before HTTP response; no new subset evidence",
+      "report": "docs/gates/P03/local-live-retry.xml",
+      "sha256": "89f5af9000ace86f2f4fa6231195f145f9ea9ecd6fc9841da0dfd9555892d3b5"
+    },
+    "interpretation": "The saved passing run establishes an actual bounded source retrieval; the current retry shows availability is intermittent and does not replace that evidence. Neither run establishes scientific method validity."
+  },
+  "gate_blockers": [
+    "G02 source-hash prerequisite must be revalidated against current development inputs",
+    "Oracle worker deployment and remote recovery acceptance are deferred by the user's repository agreement",
+    "Final consolidated gate report and scientific method/QC acceptance remain open"
+  ],
+  "gate_pass_claimed": false
+}

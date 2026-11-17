@@ -1,10 +1,16 @@
 {
   "date": "2026-11-06",
   "authority": "User requested deferring baseline work and continuing remaining implementation.",
-  "decision": "Pause baseline acquisition and continue independent P03 implementation.",
+  "decision": "Historical baseline deferral retained for audit. It is no longer active after the user designated main_implementation plan.md as authority and instructed completion of the full plan. Baseline input compatibility has since been verified; scientific method validity remains unverified.",
   "g03_status": "INCOMPLETE",
   "scientific_readiness": "NOT_VERIFIED",
   "baseline_waived_as_scientific_requirement": false,
-  "next_work": "Snapshot ingestion and manifests, followed by remaining catalog workflow APIs and gates.",
-  "references": ["research-only guide sections 5.1-5.3 and 8.1", "main implementation plan P03.3-P03.5"]
+  "next_work": "Complete scientific method/QC validation and G03 named/operational acceptance; do not treat the earlier deferral as a waiver.",
+  "references": [
+    "research-only guide sections 5.1-5.3 and 8.1",
+    "main implementation plan P03.3-P03.5"
+  ],
+  "status": "SUPERSEDED_HISTORICAL_DECISION",
+  "superseded_on": "2026-11-14",
+  "superseded_by": "docs/decisions/full-platform-plan-authority.json"
 }
