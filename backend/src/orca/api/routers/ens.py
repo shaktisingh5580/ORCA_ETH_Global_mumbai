@@ -11,6 +11,15 @@ from orca.contracts.ens import ENSResolutionSnapshot, ResolveENSRequest
 from orca.infrastructure.federation.ens_observation import inspect_name
 
 router = APIRouter(prefix="/v1/identity/ens", tags=["ENS identity"])
+_RECORD_KEYS = frozenset(
+    {
+        "org.orca.endpoint",
+        "org.orca.cardDigest",
+        "org.orca.serviceKey",
+        "org.orca.arkivWallet",
+        "org.orca.manifestDigest",
+    }
+)
 
 
 @router.post("/resolutions", response_model=ENSResolutionSnapshot)
@@ -35,14 +44,23 @@ def resolve_ens(
         ) from error
     records = observation.get("records")
     if not isinstance(records, dict) or not all(
-        isinstance(key, str) and isinstance(value, str) for key, value in records.items()
+        key in _RECORD_KEYS and isinstance(value, str) for key, value in records.items()
     ):
         raise HTTPException(503, "ENS observation has invalid records")
+    hierarchy = observation.get("hierarchy")
+    leaf = hierarchy[-1] if isinstance(hierarchy, list) and hierarchy else None
+    active = observation.get("status") == "NAME_OBSERVED_NOT_AUTHORIZED" and isinstance(leaf, dict)
+    leaf_records = leaf if isinstance(leaf, dict) else {}
     return ENSResolutionSnapshot(
         name=body.name,
         status=observation.get("status", "observed_unverified"),
         records=records,
+        name_active=active,
+        controller=leaf_records.get("owner") if active else None,
+        resolver=leaf_records.get("resolver") if active else None,
         observed_block=observation.get("block_number"),
+        block_hash=observation.get("block_hash"),
+        source_revision=observation.get("source_revision"),
         finalized=True
         if observation.get("block_number") and observation.get("block_hash")
         else None,

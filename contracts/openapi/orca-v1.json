@@ -1378,6 +1378,28 @@
             "title": "Authority Verified",
             "type": "boolean"
           },
+          "block_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block Hash"
+          },
+          "controller": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Controller"
+          },
           "ens_chain_id": {
             "const": 11155111,
             "default": 11155111,
@@ -1405,6 +1427,11 @@
             "title": "Name",
             "type": "string"
           },
+          "name_active": {
+            "default": false,
+            "title": "Name Active",
+            "type": "boolean"
+          },
           "observed_block": {
             "anyOf": [
               {
@@ -1428,6 +1455,28 @@
             "default": false,
             "title": "Research Dispatch Enabled",
             "type": "boolean"
+          },
+          "resolver": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolver"
+          },
+          "source_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision"
           },
           "status": {
             "title": "Status",

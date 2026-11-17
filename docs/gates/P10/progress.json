@@ -3,10 +3,10 @@
   "status": "development_in_progress",
   "acceptance": "not_passed",
   "implemented": [
-    "P10.4 initial read-only ENS resolution route uses the existing pinned Sepolia finalized-state verifier under organization identity scope and never promotes text records into research or institutional authority"
+    "P10.4 read-only ENS resolution route uses the pinned Sepolia finalized-state verifier under organization identity scope, exposes name activity, controller, resolver and finalized block evidence, and never promotes text records into research or institutional authority"
   ],
   "verified": [
-    "9 focused ENS HTTP and generated OpenAPI contract tests passed; Ruff, mypy and file-header checks passed. No live chain transaction, registration, delegation or wallet-binding acceptance is claimed."
+    "Live finalized Sepolia inspection of analyst.orca-research-lab.eth observed an active name controlled by 0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8 at block 12156525; all five ORCA text records are empty, so authority and research dispatch remain unverified. Public readback: docs/gates/P10/live-name-inspection.json. No live registration, delegation, revocation or wallet-binding acceptance is claimed."
   ],
   "remaining": [
     "P10.1 dedicated protocol adapter, supported deployment and live namespace readback",

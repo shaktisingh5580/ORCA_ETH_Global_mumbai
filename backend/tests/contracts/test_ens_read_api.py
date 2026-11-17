@@ -38,6 +38,7 @@ def test_unverified_identity_not_accepted(monkeypatch: pytest.MonkeyPatch) -> No
             "records": {"org.orca.endpoint": "https://example.org/a2a"},
             "block_number": "123",
             "block_hash": "0xabc",
+            "hierarchy": [{"owner": "0xabc", "resolver": "0xdef"}],
             "authority_verified": False,
         },
     )
@@ -52,6 +53,8 @@ def test_unverified_identity_not_accepted(monkeypatch: pytest.MonkeyPatch) -> No
         assert allowed.status_code == 200
         assert allowed.json()["observed_block"] == 123
         assert allowed.json()["finalized"] is True
+        assert allowed.json()["name_active"] is True
+        assert allowed.json()["controller"] == "0xabc"
         assert allowed.json()["authority_verified"] is False
         assert allowed.json()["research_dispatch_enabled"] is False
         assert client.post(url, json={**body, "ens_chain_id": 1}).status_code == 422

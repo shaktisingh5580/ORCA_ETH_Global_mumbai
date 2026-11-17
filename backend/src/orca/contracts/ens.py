@@ -22,7 +22,12 @@ class ENSResolutionSnapshot(Contract):
     ens_chain_id: Literal[11155111] = 11155111
     status: str
     records: dict[str, str]
+    name_active: bool = False
+    controller: str | None = None
+    resolver: str | None = None
     observed_block: int | None = None
+    block_hash: str | None = None
+    source_revision: str | None = None
     finalized: bool | None = None
     authority_verified: Literal[False] = False
     institutional_affiliation_verified: Literal[False] = False
