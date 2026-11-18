@@ -1516,6 +1516,118 @@
         "title": "EphemeralDownload",
         "type": "object"
       },
+      "FederatedAgentDetail": {
+        "additionalProperties": false,
+        "description": "Expose public registration claims while keeping trust decisions explicit.",
+        "properties": {
+          "capability": {
+            "title": "Capability",
+            "type": "string"
+          },
+          "card_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Card Digest",
+            "type": "string"
+          },
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "ens_verified": {
+            "const": false,
+            "default": false,
+            "title": "Ens Verified",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "institutional_affiliation_verified": {
+            "const": false,
+            "default": false,
+            "title": "Institutional Affiliation Verified",
+            "type": "boolean"
+          },
+          "key_id": {
+            "title": "Key Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "provider_mode": {
+            "enum": [
+              "team_controlled",
+              "self_declared_external"
+            ],
+            "title": "Provider Mode",
+            "type": "string"
+          },
+          "public_key": {
+            "title": "Public Key",
+            "type": "string"
+          },
+          "qualification_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualification Expires At"
+          },
+          "research_dispatch_enabled": {
+            "const": false,
+            "default": false,
+            "title": "Research Dispatch Enabled",
+            "type": "boolean"
+          },
+          "service_eligible": {
+            "title": "Service Eligible",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "verification_pending",
+              "verified",
+              "qualified",
+              "active",
+              "suspended",
+              "revoked"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "organization_id",
+          "name",
+          "capability",
+          "provider_mode",
+          "state",
+          "qualification_expires_at",
+          "service_eligible",
+          "endpoint",
+          "key_id",
+          "public_key",
+          "card_digest"
+        ],
+        "title": "FederatedAgentDetail",
+        "type": "object"
+      },
       "FederatedAgentSummary": {
         "additionalProperties": false,
         "description": "Project an existing registration without implying ENS or institutional trust.",
@@ -8371,6 +8483,64 @@
           }
         ],
         "summary": "List Agents",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
+    "/v1/network/agents/{agent_id}": {
+      "get": {
+        "operationId": "get_agent_v1_network_agents__agent_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FederatedAgentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Agent",
         "tags": [
           "federation"
         ]

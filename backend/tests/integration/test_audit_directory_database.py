@@ -12,7 +12,7 @@ from fastapi import HTTPException, Request
 from live_database import prepare_database
 from psycopg.types.json import Jsonb
 
-from orca.api.routers.federation import list_agents
+from orca.api.routers.federation import get_agent, list_agents
 from orca.api.routers.operations import organization_audit_events
 from orca.domain.identity import Principal
 from orca.infrastructure.db.engine import create_runtime_engine
@@ -55,6 +55,9 @@ def test_scoped_audit_and_unverified_directory() -> None:
             "capability": "temperature_summary_v1",
             "operator_mode": "self_declared_external",
             "endpoint": "https://example.org/a2a",
+            "key_id": "test-service",
+            "public_key": "public-test-key",
+            "card_digest": "sha256:" + "a" * 64,
         }
         connection.execute(
             "INSERT INTO federation.registrations"
@@ -99,6 +102,12 @@ def test_scoped_audit_and_unverified_directory() -> None:
         assert [item.id for item in directory.items] == [agent]
         assert not directory.items[0].research_dispatch_enabled
         assert not directory.items[0].institutional_affiliation_verified
+        detail = get_agent(agent, organization, request, principal)
+        assert detail.endpoint == "https://example.org/a2a"
+        assert not detail.research_dispatch_enabled
+        with pytest.raises(HTTPException) as concealed:
+            get_agent(uuid4(), organization, request, principal)
+        assert concealed.value.status_code == 404
         with pytest.raises(HTTPException) as denied:
             organization_audit_events(
                 other_organization,

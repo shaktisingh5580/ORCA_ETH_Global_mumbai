@@ -110,3 +110,12 @@ class FederatedAgentSummary(Contract):
     ens_verified: Literal[False] = False
     institutional_affiliation_verified: Literal[False] = False
     research_dispatch_enabled: Literal[False] = False
+
+
+class FederatedAgentDetail(FederatedAgentSummary):
+    """Expose public registration claims while keeping trust decisions explicit."""
+
+    endpoint: str
+    key_id: str
+    public_key: str
+    card_digest: Digest
