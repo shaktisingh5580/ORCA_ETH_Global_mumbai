@@ -1,0 +1,19 @@
+# Provider research readback
+
+Enable this path on an onboarded institutional provider by adding
+`research_binding_version` and `research_plans` to its private `provider.json`.
+Use the registration's current binding UUID. Key each plan entry by its approved
+plan digest and supply `organization_id`, `project_id`, `dataset_ids` (in grant
+order), `values` and `unit`. The provider supports `arithmetic_mean/1.0` on up
+to 1,000 finite values in Celsius or Kelvin. The operator supplies the approved
+values before execution. Keep the provider directory on durable private storage.
+
+Start the provider with `python -m orca.institution_provider serve --directory <provider-directory>`.
+For live reconciliation ORCA must reach the pinned public HTTPS Agent Card and
+A2A endpoint. The local test runs both SDK endpoints in process.
+
+Run `python -m orca.workers.remote_dispatch --tenant <tenant-id> --project <project-id> --reconcile <dispatch-id>`
+with the worker's usual runtime database and coordinator settings. The provider
+accepts a readback credential for one `tasks/get` request target. It can resolve
+the grant UUID to the original SDK task even when ORCA missed the send response.
+If no matching signed result is available, the command returns `unresolved`.

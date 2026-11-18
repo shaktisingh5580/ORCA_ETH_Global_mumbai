@@ -24,11 +24,11 @@ from orca.infrastructure.federation.research_a2a_client import (
     read_research_result,
 )
 from orca.infrastructure.federation.signing import b64, canonical, digest
-from orca.institution_provider import card
+from orca.institution_provider import card, create_provider
 
 
 @pytest.mark.enable_socket
-def test_scoped_research_task_uses_official_a2a_wire() -> None:
+def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
     async def run() -> None:
         now = datetime.now(timezone.utc)
         coordinator_key, provider_key = Ed25519PrivateKey.generate(), Ed25519PrivateKey.generate()
@@ -214,6 +214,83 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
                 transport=httpx.MockTransport(handler),
             )
         assert methods.count("tasks/cancel") == 1
+        config = {
+            "name": "Wire test",
+            "endpoint": endpoint,
+            "key_id": "provider-v1",
+            "private_key": private(provider_key),
+            "agent_id": str(grant.audience_agent_id),
+            "research_binding_version": str(grant.binding_version),
+            "coordinator": coordinator.public_descriptor(),
+            "research_plans": {
+                grant.approved_plan_digest: {
+                    "organization_id": str(grant.organization_id),
+                    "project_id": str(grant.project_id),
+                    "dataset_ids": [str(dataset) for dataset in grant.dataset_ids],
+                    "values": [26, 28],
+                    "unit": "C",
+                },
+            },
+        }
+        dispatched = await dispatch_research_task(
+            signed,
+            agent,
+            scope,
+            coordinator.id,
+            coordinator.public_key,
+            coordinator.private_key,
+            coordinator.key_id,
+            transport=httpx.ASGITransport(app=create_provider(config, tmp_path)),
+        )
+        assert dispatched["artifact"]["result"]["mean_celsius"] == 27
+        recovered = await read_research_result(
+            signed,
+            agent["registration"],
+            coordinator,
+            None,
+            transport=httpx.ASGITransport(app=create_provider(config, tmp_path)),
+        )
+        assert recovered == dispatched
+        assert recovered["a2a_task_id"] != str(grant.task_id)
+        target = str(grant.task_id)
+        read_token = jwt.encode(
+            {
+                "iss": str(coordinator.id),
+                "aud": str(grant.audience_agent_id),
+                "iat": int(now.timestamp()),
+                "exp": int(now.timestamp()) + 90,
+                "jti": target,
+                "scope": "research:readback",
+                "remote_task_id": target,
+                "grant_digest": signed.grant_digest,
+                "request_digest": digest(
+                    {
+                        "method": "tasks/get",
+                        "id": target,
+                        "grant_digest": signed.grant_digest,
+                    }
+                ),
+            },
+            coordinator_key,
+            algorithm="EdDSA",
+            headers={"kid": coordinator.key_id},
+        )
+        async with httpx.AsyncClient(
+            base_url=endpoint,
+            transport=httpx.ASGITransport(app=create_provider(config, tmp_path)),
+            headers={"Authorization": "Bearer " + read_token},
+        ) as http:
+            for method, identifier in (("tasks/cancel", target), ("tasks/get", str(uuid4()))):
+                denied = await http.post(
+                    "/a2a",
+                    json={
+                        "jsonrpc": "2.0",
+                        "id": "denied",
+                        "method": method,
+                        "params": {"id": identifier},
+                    },
+                )
+                assert denied.status_code == 401
         grant = grant.model_copy(update={"expires_at": now - timedelta(seconds=1)})
         signed = sign_grant(grant, private(coordinator_key), "coordinator-v1")
         remote_state = TaskState.completed

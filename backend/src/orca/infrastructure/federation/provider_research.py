@@ -1,0 +1,100 @@
+"""Purpose: bind provider execution and A2A readback to one signed research grant.
+Behavior: match operator-approved local inputs and persist the result before acknowledging it.
+Refs: main_implementation plan.md P09.2–P09.3; api design.md §17.1; Phase: P09.
+"""
+
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+from uuid import UUID
+
+from a2a.server.context import ServerCallContext
+from a2a.types import Task
+
+from orca.agent_provider import DurableTasks
+from orca.application.federation import SignedResearchGrant, verify_grant
+from orca.infrastructure.federation.signing import digest
+
+
+class ResearchTasks(DurableTasks):
+    def __init__(self, directory: Path) -> None:
+        super().__init__(directory)
+        with self.connection() as db:
+            db.execute("""CREATE TABLE IF NOT EXISTS research_results(
+              operation TEXT PRIMARY KEY, grant_digest TEXT NOT NULL,
+              task_id TEXT NOT NULL UNIQUE, data TEXT NOT NULL)""")
+
+    async def save(self, task: Task, context: ServerCallContext | None = None) -> None:
+        if context and context.state["authorization"].get("scope") in {
+            "research:dispatch",
+            "research:readback",
+        }:
+            return  # Research results are written only by complete(), under the original grant.
+        await super().save(task, context)
+
+    async def get(self, task_id: str, context: ServerCallContext | None = None) -> Task | None:
+        auth = context.state["authorization"] if context else {}
+        if auth.get("scope") not in {"research:readback", "research:dispatch"}:
+            return await super().get(task_id, context)
+        if auth["scope"] == "research:readback" and task_id != auth["remote_task_id"]:
+            return None
+        with self.connection() as db:
+            row = db.execute(
+                """SELECT grant_digest,data FROM research_results WHERE operation=?
+                  AND (task_id=? OR operation=?)""",
+                (auth["jti"], task_id, task_id),
+            ).fetchone()
+        if row is None or row[0] != auth.get("grant_digest"):
+            return None
+        return Task.model_validate_json(row[1])
+
+    def complete(self, signed: SignedResearchGrant, task: Task) -> None:
+        with self.connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            operation = str(signed.grant.task_id)
+            if db.execute(
+                "SELECT 1 FROM research_results WHERE operation=?", (operation,)
+            ).fetchone():
+                raise ValueError("Research task already completed; use task readback")
+            db.execute(
+                "INSERT INTO research_results VALUES (?,?,?,?)",
+                (operation, signed.grant_digest, task.id, task.model_dump_json(by_alias=True)),
+            )
+
+
+def approved_inputs(
+    data: dict[str, Any], auth: dict[str, Any], config: dict[str, Any]
+) -> tuple[SignedResearchGrant, dict[str, Any]]:
+    if (
+        set(data) != {"schema_version", "grant"}
+        or data["schema_version"] != "orca.scientific_task/1.0"
+        or digest(data) != auth["request_digest"]
+    ):
+        raise ValueError("Invalid research request")
+    signed = SignedResearchGrant.model_validate(data["grant"])
+    coordinator = config["coordinator"]
+    grant = verify_grant(signed, coordinator["public_key"], coordinator["key_id"])
+    now = datetime.now(timezone.utc)
+    if (
+        grant.audience_agent_id != UUID(config["agent_id"])
+        or grant.binding_version != UUID(config["research_binding_version"])
+        or str(grant.task_id) != auth["jti"]
+        or signed.grant_digest != auth["grant_digest"]
+        or not now < grant.expires_at
+        or grant.capability_id != "temperature_summary_v1"
+        or grant.method_id != "arithmetic_mean/1.0"
+    ):
+        raise ValueError("Grant is outside this provider's scope")
+    entry = config["research_plans"][grant.approved_plan_digest]
+    if (
+        entry["organization_id"] != str(grant.organization_id)
+        or entry["project_id"] != str(grant.project_id)
+        or entry["dataset_ids"] != [str(item) for item in grant.dataset_ids]
+    ):
+        raise ValueError("Grant differs from operator-approved inputs")
+    return signed, {
+        "schema_version": "orca.provider-qualification/1.0",
+        "operation_id": str(grant.task_id),
+        "values": entry["values"],
+        "unit": entry["unit"],
+    }

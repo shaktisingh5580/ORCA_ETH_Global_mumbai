@@ -37,7 +37,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from orca.agent_provider import Context, DurableTasks
+from orca.agent_provider import Context
+from orca.infrastructure.federation.provider_research import ResearchTasks, approved_inputs
 from orca.infrastructure.federation.signing import b64, canonical, digest, strict_json, unb64
 
 
@@ -100,7 +101,7 @@ def compute(data: dict[str, Any]) -> dict[str, Any]:
 
 
 class QualificationAgent(AgentExecutor):
-    def __init__(self, config: dict[str, Any], store: DurableTasks):
+    def __init__(self, config: dict[str, Any], store: ResearchTasks):
         self.config, self.store = config, store
 
     def process(self, data: dict[str, Any], auth: dict[str, Any]) -> dict[str, Any]:
@@ -146,11 +147,37 @@ class QualificationAgent(AgentExecutor):
                 context.message.parts[0].root, DataPart
             ):
                 raise ValueError("One structured message required")
-            result = await asyncio.to_thread(
-                self.process,
-                context.message.parts[0].root.data,
-                context.call_context.state["authorization"],
-            )
+            data = context.message.parts[0].root.data
+            auth = context.call_context.state["authorization"]
+            signed = None
+            if auth["scope"] == "research:dispatch":
+                signed, inputs = approved_inputs(data, auth, self.config)
+                grant = signed.grant
+                summary = compute(inputs)
+                summary["source_mode"] = "operator_approved_values"
+                payload = {
+                    "schema_version": "orca.scientific_artifact/1.0",
+                    "grant_digest": signed.grant_digest,
+                    "task_id": str(grant.task_id),
+                    "run_id": str(grant.run_id),
+                    "approved_plan_digest": grant.approved_plan_digest,
+                    "method_id": grant.method_id,
+                    "dataset_ids": [str(item) for item in grant.dataset_ids],
+                    "a2a_task_id": context.task_id,
+                    "a2a_context_id": context.context_id,
+                    "result": summary,
+                }
+                result = {
+                    "payload": payload,
+                    "key_id": self.config["key_id"],
+                    "signature": b64(
+                        Ed25519PrivateKey.from_private_bytes(
+                            unb64(self.config["private_key"])
+                        ).sign(canonical(payload))
+                    ),
+                }
+            else:
+                result = await asyncio.to_thread(self.process, data, auth)
             task = Task(
                 id=context.task_id,
                 context_id=context.context_id,
@@ -159,7 +186,9 @@ class QualificationAgent(AgentExecutor):
                     Artifact(artifact_id=digest(result), parts=[Part(root=DataPart(data=result))])
                 ],
             )
-        except (ValueError, OverflowError):
+            if signed is not None:
+                await asyncio.to_thread(self.store.complete, signed, task)
+        except (KeyError, TypeError, ValueError, OverflowError):
             task = Task(
                 id=context.task_id,
                 context_id=context.context_id,
@@ -218,10 +247,51 @@ class Authentication:
                 issuer=coordinator["id"],
                 options={"require": ["iss", "aud", "iat", "exp", "jti", "scope", "request_digest"]},
             )
-            if auth["scope"] != "agent:qualify" or not 0 < auth["exp"] - auth["iat"] <= 120:
+            window = auth["exp"] - auth["iat"]
+            lifetime = {"agent:qualify": 120, "research:dispatch": 300, "research:readback": 90}
+            if not 0 < window <= lifetime[auth["scope"]]:
                 raise ValueError()
+            if auth["scope"] != "agent:qualify" and not self.config.get("research_plans"):
+                raise ValueError()
+            if auth["scope"] == "research:readback":
+                chunks = bytearray()
+                while True:
+                    message = await receive()
+                    if message["type"] != "http.request":
+                        return
+                    chunks.extend(message.get("body", b""))
+                    if len(chunks) > 4096:
+                        raise ValueError()
+                    if not message.get("more_body", False):
+                        break
+                rpc = strict_json(bytes(chunks))
+                target = auth["remote_task_id"]
+                if (
+                    scope.get("path") != "/a2a"
+                    or not isinstance(rpc, dict)
+                    or rpc.get("method") != "tasks/get"
+                    or not isinstance(target, str)
+                    or not 1 <= len(target) <= 256
+                    or rpc.get("params") != {"id": target}
+                    or digest(
+                        {"method": "tasks/get", "id": target, "grant_digest": auth["grant_digest"]}
+                    )
+                    != auth["request_digest"]
+                ):
+                    raise ValueError()
+                original_receive = receive
+                pending = True
+
+                async def replay() -> Any:
+                    nonlocal pending
+                    if pending:
+                        pending = False
+                        return {"type": "http.request", "body": bytes(chunks), "more_body": False}
+                    return await original_receive()
+
+                receive = replay
             scope.setdefault("state", {})["authorization"] = auth
-        except (KeyError, ValueError, jwt.InvalidTokenError):
+        except (KeyError, TypeError, ValueError, jwt.InvalidTokenError):
             await JSONResponse(
                 {"detail": "Operator-approved scoped token required"}, status_code=401
             )(scope, receive, send)
@@ -230,7 +300,7 @@ class Authentication:
 
 
 def create_provider(config: dict[str, Any], directory: Path) -> ASGIApp:
-    store = DurableTasks(directory)
+    store = ResearchTasks(directory)
     os.chmod(directory, 0o700)
     os.chmod(store.path, 0o600)
     handler = DefaultRequestHandler(

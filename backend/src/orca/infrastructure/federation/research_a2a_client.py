@@ -131,6 +131,7 @@ async def _research_client(
         "jti": str(grant.task_id),
         "scope": "research:dispatch",
         "request_digest": digest(data),
+        "grant_digest": signed.grant_digest,
     }
     if readback_task_id is not None:
         claims.update(
@@ -287,6 +288,6 @@ async def read_research_result(
         )
         body = reply.model_dump(mode="json", by_alias=True)
         actual_ref = _task_ref(body)
-        if actual_ref[0] != task_id or (remote_ref is not None and actual_ref != remote_ref):
+        if remote_ref is not None and actual_ref != remote_ref:
             raise ValueError("Remote readback task reference changed")
         return verified_artifact(body, signed, registration)
