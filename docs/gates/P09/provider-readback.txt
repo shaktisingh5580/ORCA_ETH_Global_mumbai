@@ -17,3 +17,13 @@ with the worker's usual runtime database and coordinator settings. The provider
 accepts a readback credential for one `tasks/get` request target. It can resolve
 the grant UUID to the original SDK task even when ORCA missed the send response.
 If no matching signed result is available, the command returns `unresolved`.
+
+To check a completed temperature summary offline, run
+`python -m orca.workers.verify_remote_summary <review-bundle.json>`.
+The bundle contains `signed_grant`, independently pinned `coordinator_public`
+and `provider_public` entries with their public keys and key IDs,
+`verified_response`, and locally supplied `inputs` with `dataset_ids`,
+`unit` and `values`. Keep the bundle private. The verifier prints a JSON
+comparison with input and result digests and returns a nonzero exit status on
+disagreement. The numerical check uses a fixed tolerance of 1e-9 degrees Celsius
+for this arithmetic summary only.

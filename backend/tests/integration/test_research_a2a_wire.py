@@ -5,6 +5,8 @@ Refs: main_implementation plan.md P09.2-P09.3; api design.md §17.1; Phase: P09.
 
 import asyncio
 import json
+import subprocess
+import sys
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
@@ -25,6 +27,7 @@ from orca.infrastructure.federation.research_a2a_client import (
 )
 from orca.infrastructure.federation.signing import b64, canonical, digest
 from orca.institution_provider import card, create_provider
+from orca.workers.verify_remote_summary import verify_summary
 
 
 @pytest.mark.enable_socket
@@ -243,6 +246,47 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
             transport=httpx.ASGITransport(app=create_provider(config, tmp_path)),
         )
         assert dispatched["artifact"]["result"]["mean_celsius"] == 27
+        supplied = {
+            "dataset_ids": [str(item) for item in grant.dataset_ids],
+            "values": [26, 28],
+            "unit": "C",
+        }
+        provider_public = agent["registration"]
+        outcome = verify_summary(
+            signed, coordinator.public_descriptor(), provider_public, dispatched, supplied
+        )
+        assert outcome["verdict"] == "matched"
+        assert (
+            verify_summary(
+                signed,
+                coordinator.public_descriptor(),
+                provider_public,
+                dispatched,
+                {**supplied, "values": [20, 34]},
+            )["verdict"]
+            == "challenged"
+        )  # Same mean, different input bytes.
+        bundle = tmp_path / "review.json"
+        bundle.write_text(
+            json.dumps(
+                {
+                    "signed_grant": signed.model_dump(mode="json"),
+                    "coordinator_public": coordinator.public_descriptor(),
+                    "provider_public": provider_public,
+                    "verified_response": dispatched,
+                    "inputs": supplied,
+                }
+            ),
+            encoding="utf-8",
+        )
+        process = subprocess.run(
+            [sys.executable, "-m", "orca.workers.verify_remote_summary", str(bundle)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
+        )
+        assert json.loads(process.stdout)["verdict"] == "matched"
         recovered = await read_research_result(
             signed,
             agent["registration"],
