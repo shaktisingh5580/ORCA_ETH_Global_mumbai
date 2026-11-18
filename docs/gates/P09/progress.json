@@ -9,7 +9,8 @@
     "P09.1 tenant-scoped GET /v1/network/agents/{agent_id} reads the current registration and qualification expiry while exposing public endpoint and signing metadata with research and ENS trust still disabled",
     "P09.1 capability and endpoint reads project the current immutable registration binding and label self-declared claims, service qualification and research dispatch separately. PATCH /v1/network/agents/{agent_id} replaces the binding through the existing versioned onboarding flow, resetting it to draft so proof and qualification must be repeated.",
     "Earlier H04/F02 work includes an official A2A 0.3.0 SDK client, provider servers, scoped signed requests, durable provider tasks and cancellation; these are reusable foundations for P09.2, not a P09 gate pass",
-    "P09.3 signed research-grant policy binds one agent and immutable binding to organization, project, run, task, approved plan/method, dataset allowlist, reserved-budget ceiling and a maximum five-minute lifetime; policy rejects research dispatch unless separately enabled"
+    "P09.3 signed research-grant policy binds one agent and immutable binding to organization, project, run, task, approved plan/method, dataset allowlist, reserved-budget ceiling and a maximum five-minute lifetime; policy rejects research dispatch unless separately enabled",
+    "P09.2/P09.3 research A2A client now uses the official SDK with the existing pinned-public-HTTPS transport, checks the current provider binding, registered Agent Card digest, bearer request digest, completed task, provider-signed grant-bound artifact and task readback. This client is not yet wired to durable run jobs or enabled for production dispatch."
   ],
   "verified": [
     "9 focused P08/P09 HTTP contract tests passed and one disposable PostgreSQL test verified tenant isolation, expired qualification, role/token scope and no automatic research trust escalation",
@@ -18,12 +19,13 @@
     "Three focused coordinator/card unit tests, nine API/directory and generated-contract tests, Ruff, mypy, file headers and generated OpenAPI check passed for the full-profile runtime separation. The full-profile onboarding/proof/qualification/activation/revision/authorization lifecycle passed against the disposable PostgreSQL container with no prototype network runtime in the API.",
     "The P09 agent detail read passed one disposable PostgreSQL tenant-scope test plus nine affected HTTP/OpenAPI contracts, Ruff, mypy and purpose-header checks. Missing detail is concealed as 404; no external identity trust was inferred.",
     "Capability/endpoint read and binding revision passed the focused disposable PostgreSQL test, including revision reset to draft, plus nine affected API/OpenAPI contracts, generated spec check, Ruff and mypy.",
-    "The standalone P09.3 signed-grant scope and forgery security test passed, as did focused Ruff and mypy checks; no remote research dispatch or grant persistence is claimed."
+    "The standalone P09.3 signed-grant scope and forgery security test passed, as did focused Ruff and mypy checks; no remote research dispatch or grant persistence is claimed.",
+    "The official A2A research client passed an in-process wire exchange with a signed artifact and task readback; stale binding and artifact substitution were rejected in focused tests. This is not a separately operated live provider test."
   ],
   "remaining": [
     "P09.1 multi-capability and multi-endpoint CRUD, dedicated endpoint checks, independent verification and revocation",
     "P09.2 complete official A2A task/artifact/status/cancel interoperability with separately keyed external provider processes and live wire evidence",
-    "P09.3 wire the signed grant into durable budget-reserved research jobs and the official A2A client/server, add revocation/replay controls, SSRF-safe transport, timeout and fallback behavior",
+    "P09.3 wire the signed grant and A2A client into durable budget-reserved research jobs and a real research-capable provider; add revocation/replay/cancellation fences, timeout and fallback behavior",
     "P09.4 independent reproducer and correlation ledger",
     "G08 prerequisite acceptance and all G09 live external process evidence"
   ],

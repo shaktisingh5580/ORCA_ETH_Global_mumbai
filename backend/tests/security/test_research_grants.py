@@ -12,10 +12,14 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from orca.application.federation import (
+    ResearchDispatchScope,
     ResearchGrant,
     sign_grant,
     validate_scope,
     verify_grant,
+)
+from orca.infrastructure.federation.research_a2a_client import (
+    verified_artifact,
 )
 from orca.infrastructure.federation.signing import b64
 
@@ -93,3 +97,77 @@ def test_signed_grant_scope() -> None:
         )
     with pytest.raises(ValueError):
         verify_grant(signed, public, "other-key")
+
+    scope_contract = ResearchDispatchScope(
+        **{key: value for key, value in scope.items() if key != "now"}
+    )
+    inactive = scope_contract.model_copy(update={"research_dispatch_enabled": False})
+    with pytest.raises(PermissionError):
+        validate_scope(grant, **inactive.model_dump(), now=now)
+
+
+def test_remote_artifact_requires_pinned_signature_and_task_linkage() -> None:
+    now = datetime.now(timezone.utc)
+    grant = ResearchGrant(
+        audience_agent_id=uuid4(),
+        binding_version=uuid4(),
+        organization_id=uuid4(),
+        project_id=uuid4(),
+        run_id=uuid4(),
+        task_id=uuid4(),
+        capability_id="sst_reproduction",
+        approved_plan_digest="sha256:" + "d" * 64,
+        method_id="sst.seasonal_anomaly/1.0",
+        dataset_ids=[uuid4()],
+        max_cost_usd=Decimal("1.00"),
+        expires_at=now + timedelta(minutes=2),
+    )
+    key = Ed25519PrivateKey.generate()
+    private = b64(
+        key.private_bytes(
+            serialization.Encoding.Raw,
+            serialization.PrivateFormat.Raw,
+            serialization.NoEncryption(),
+        )
+    )
+    public = b64(
+        key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+    )
+    signed = sign_grant(grant, private, "coordinator-v1")
+    payload = {
+        "schema_version": "orca.scientific_artifact/1.0",
+        "grant_digest": signed.grant_digest,
+        "task_id": str(grant.task_id),
+        "run_id": str(grant.run_id),
+        "approved_plan_digest": grant.approved_plan_digest,
+        "method_id": grant.method_id,
+        "dataset_ids": [str(item) for item in grant.dataset_ids],
+        "a2a_task_id": "remote-task",
+        "a2a_context_id": "remote-context",
+        "result": {"status": "insufficient_evidence"},
+    }
+    from orca.infrastructure.federation.signing import canonical, digest
+
+    envelope = {
+        "payload": payload,
+        "key_id": "provider-v1",
+        "signature": b64(key.sign(canonical(payload))),
+    }
+    response = {
+        "result": {
+            "kind": "task",
+            "id": "remote-task",
+            "contextId": "remote-context",
+            "status": {"state": "completed"},
+            "artifacts": [{"parts": [{"kind": "data", "data": envelope}]}],
+        }
+    }
+    registration = {"key_id": "provider-v1", "public_key": public}
+    assert verified_artifact(response, signed, registration)["artifact_digest"] == digest(payload)
+    response["result"]["id"] = "substituted-task"
+    with pytest.raises(ValueError, match="not bound"):
+        verified_artifact(response, signed, registration)
+    response["result"]["id"] = "remote-task"
+    payload["result"] = {"status": "supported"}
+    with pytest.raises(ValueError, match="signature"):
+        verified_artifact(response, signed, registration)

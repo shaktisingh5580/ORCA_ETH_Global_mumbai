@@ -41,6 +41,24 @@ class SignedResearchGrant(Contract):
     signature: str
 
 
+class ResearchDispatchScope(Contract):
+    """Current authorization facts loaded from durable run and provider state."""
+
+    agent_id: UUID
+    binding_version: UUID
+    organization_id: UUID
+    project_id: UUID
+    run_id: UUID
+    task_id: UUID
+    capability_id: str
+    approved_plan_digest: Digest
+    approved_method_id: str
+    permitted_dataset_ids: set[UUID]
+    available_budget_usd: Decimal
+    service_eligible: bool
+    research_dispatch_enabled: bool
+
+
 def _payload(grant: ResearchGrant) -> dict[str, object]:
     return grant.model_dump(mode="json")
 

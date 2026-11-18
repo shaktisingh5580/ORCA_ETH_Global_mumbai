@@ -1,0 +1,174 @@
+"""Purpose: exchange a scoped P09 research grant with a pinned external A2A service.
+Behavior: use safe HTTPS egress and verify the returned task and service-signed artifact.
+Refs: main_implementation plan.md P09.2-P09.3; api design.md §17.1; Phase: P09.
+"""
+
+from datetime import datetime, timezone
+from typing import Any
+from uuid import UUID, uuid4
+
+import httpx
+import jwt
+from a2a.client import A2AClient
+from a2a.types import (
+    AgentCard,
+    DataPart,
+    GetTaskRequest,
+    Message,
+    MessageSendParams,
+    Part,
+    Role,
+    SendMessageRequest,
+    TaskQueryParams,
+)
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+
+from orca.application.federation import (
+    ResearchDispatchScope,
+    SignedResearchGrant,
+    validate_scope,
+    verify_grant,
+)
+from orca.infrastructure.federation.https_egress import PublicProviderTransport, endpoint_origin
+from orca.infrastructure.federation.signing import canonical, digest, unb64
+
+
+def verified_artifact(
+    response: dict[str, Any], signed: SignedResearchGrant, registration: dict[str, Any]
+) -> dict[str, Any]:
+    """Accept one completed task and one exact, service-signed grant-bound artifact."""
+    if "error" in response or not isinstance(response.get("result"), dict):
+        raise ValueError("A2A request failed")
+    task = response["result"]
+    if task.get("kind") != "task" or task.get("status", {}).get("state") != "completed":
+        raise ValueError("A2A task did not complete")
+    if not isinstance(task.get("id"), str) or not isinstance(task.get("contextId"), str):
+        raise ValueError("A2A task identity missing")
+    artifacts = task.get("artifacts")
+    if not isinstance(artifacts, list) or len(artifacts) != 1:
+        raise ValueError("Expected one A2A artifact")
+    parts = artifacts[0].get("parts")
+    if not isinstance(parts, list) or len(parts) != 1 or parts[0].get("kind") != "data":
+        raise ValueError("Expected one structured A2A artifact")
+    envelope = parts[0].get("data")
+    if not isinstance(envelope, dict) or set(envelope) != {"payload", "key_id", "signature"}:
+        raise ValueError("Signed artifact envelope is malformed")
+    payload = envelope["payload"]
+    grant = signed.grant
+    if (
+        not isinstance(payload, dict)
+        or envelope["key_id"] != registration["key_id"]
+        or payload.get("schema_version") != "orca.scientific_artifact/1.0"
+        or payload.get("grant_digest") != signed.grant_digest
+        or payload.get("task_id") != str(grant.task_id)
+        or payload.get("run_id") != str(grant.run_id)
+        or payload.get("approved_plan_digest") != grant.approved_plan_digest
+        or payload.get("method_id") != grant.method_id
+        or payload.get("dataset_ids") != [str(item) for item in grant.dataset_ids]
+        or payload.get("a2a_task_id") != task["id"]
+        or payload.get("a2a_context_id") != task["contextId"]
+    ):
+        raise ValueError("Artifact is not bound to the approved task")
+    try:
+        Ed25519PublicKey.from_public_bytes(unb64(registration["public_key"])).verify(
+            unb64(envelope["signature"]), canonical(payload)
+        )
+    except (InvalidSignature, ValueError) as error:
+        raise ValueError("Artifact signature differs from pinned service key") from error
+    if len(canonical(payload)) > 256_000:
+        raise ValueError("Artifact exceeds the response bound")
+    return {
+        "a2a_task_id": task["id"],
+        "a2a_context_id": task["contextId"],
+        "artifact_digest": digest(payload),
+        "artifact": payload,
+    }
+
+
+async def dispatch_research_task(
+    signed: SignedResearchGrant,
+    agent: dict[str, Any],
+    scope: ResearchDispatchScope,
+    coordinator_id: UUID,
+    coordinator_public_key: str,
+    coordinator_private_key: str,
+    coordinator_key_id: str,
+    *,
+    transport: httpx.AsyncBaseTransport | None = None,
+) -> dict[str, Any]:
+    """Send one bounded official A2A message using current durable authorization facts."""
+    grant = verify_grant(signed, coordinator_public_key, coordinator_key_id)
+    now = datetime.now(timezone.utc)
+    validate_scope(grant, **scope.model_dump(), now=now)
+    registration = agent["registration"]
+    if (
+        agent["id"] != grant.audience_agent_id
+        or agent["binding_version"] != grant.binding_version
+        or agent["organization_id"] != grant.organization_id
+        or agent["state"] != "active"
+        or agent["qualification_expires_at"] <= now
+        or not agent["research_dispatch_enabled"]
+        or registration["capability"] != grant.capability_id
+    ):
+        raise PermissionError("Current provider binding is not authorized for this research task")
+    origin = endpoint_origin(registration["endpoint"])
+    data = {"schema_version": "orca.scientific_task/1.0", "grant": signed.model_dump(mode="json")}
+    token = jwt.encode(
+        {
+            "iss": str(coordinator_id),
+            "aud": str(grant.audience_agent_id),
+            "iat": int(now.timestamp()),
+            "exp": int(grant.expires_at.timestamp()),
+            "jti": str(grant.task_id),
+            "scope": "research:dispatch",
+            "request_digest": digest(data),
+        },
+        Ed25519PrivateKey.from_private_bytes(unb64(coordinator_private_key)),
+        algorithm="EdDSA",
+        headers={"kid": coordinator_key_id},
+    )
+    async with httpx.AsyncClient(
+        transport=transport or PublicProviderTransport(),
+        timeout=25,
+        trust_env=False,
+        follow_redirects=False,
+        headers={"Authorization": "Bearer " + token},
+    ) as http:
+        response = await http.get(origin + "/.well-known/agent-card.json")
+        response.raise_for_status()
+        if len(response.content) > 32768:
+            raise ValueError("Agent Card exceeds the response bound")
+        raw = response.json()
+        if digest(raw) != registration["card_digest"]:
+            raise ValueError("Agent Card changed since registration")
+        card = AgentCard.model_validate(raw)
+        if (
+            card.url != registration["endpoint"]
+            or card.protocol_version != "0.3.0"
+            or grant.capability_id not in {skill.id for skill in card.skills}
+        ):
+            raise ValueError("Agent Card does not match the approved binding")
+        client = A2AClient(http, agent_card=card)
+        reply = await client.send_message(
+            SendMessageRequest(
+                id=str(uuid4()),
+                params=MessageSendParams(
+                    message=Message(
+                        message_id=str(grant.task_id),
+                        role=Role.user,
+                        parts=[Part(root=DataPart(data=data))],
+                    )
+                ),
+            )
+        )
+        sent = reply.model_dump(mode="json", by_alias=True)
+        result = verified_artifact(sent, signed, registration)
+        readback = await client.get_task(
+            GetTaskRequest(id=str(uuid4()), params=TaskQueryParams(id=result["a2a_task_id"]))
+        )
+        stored = readback.model_dump(mode="json", by_alias=True)
+        recorded = verified_artifact(stored, signed, registration)
+        if recorded != result:
+            raise ValueError("Stored A2A task differs from the signed response")
+        return result
