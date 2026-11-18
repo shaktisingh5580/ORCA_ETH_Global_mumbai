@@ -4946,7 +4946,6 @@
             "type": "string"
           },
           "remote_cancellation_confirmed": {
-            "const": false,
             "default": false,
             "title": "Remote Cancellation Confirmed",
             "type": "boolean"

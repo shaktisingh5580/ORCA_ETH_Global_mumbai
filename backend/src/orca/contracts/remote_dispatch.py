@@ -39,4 +39,4 @@ class RemoteDispatchView(Contract):
     created_at: UTCDateTime
     updated_at: UTCDateTime
     scientific_acceptance: Literal["not_evaluated"] = "not_evaluated"
-    remote_cancellation_confirmed: Literal[False] = False
+    remote_cancellation_confirmed: bool = False

@@ -25,6 +25,7 @@ from orca.application.workspace_access import authorize_project
 from orca.domain.identity import Principal
 from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.research_a2a_client import (
+    cancel_research_task,
     dispatch_research_task,
     verified_artifact,
 )
@@ -57,10 +58,14 @@ class RemoteDispatchWorker:
     ) -> None:
         self.tenant, self.project = tenant, project
         self.transaction, self.coordinator = transaction, coordinator
-        self.exchange = exchange or self._exchange
+        self.exchange = exchange
 
     async def _exchange(
-        self, signed: SignedResearchGrant, agent: dict[str, Any], scope: ResearchDispatchScope
+        self,
+        signed: SignedResearchGrant,
+        agent: dict[str, Any],
+        scope: ResearchDispatchScope,
+        checkpoint: Callable[[str, str], None],
     ) -> dict[str, Any]:
         return await dispatch_research_task(
             signed,
@@ -70,7 +75,87 @@ class RemoteDispatchWorker:
             self.coordinator.public_key,
             self.coordinator.private_key,
             self.coordinator.key_id,
+            checkpoint=checkpoint,
         )
+
+    def _checkpoint(self, lease: LeasedDispatch, task_id: str, context_id: str) -> None:
+        with self.transaction() as session:
+            session.execute(
+                text("""UPDATE federation.research_dispatches SET remote_task_id=:task,
+                  remote_context_id=:context,updated_at=clock_timestamp()
+                  WHERE tenant_id=:tenant AND project_id=:project AND id=:id
+                    AND remote_task_id IS NULL AND (
+                      (state='leased' AND generation=:generation AND lease_token=:token
+                        AND lease_until>clock_timestamp())
+                      OR (state='cancelled' AND generation=:generation+1))"""),
+                {
+                    **self._params(lease.id),
+                    "task": task_id,
+                    "context": context_id,
+                    "generation": lease.generation,
+                    "token": lease.token,
+                },
+            )
+
+    def _cancel_once(self) -> bool:
+        with self.transaction() as session:
+            row = (
+                session.execute(
+                    text("""WITH candidate AS (
+                  SELECT d.id,v.registration FROM federation.research_dispatches d
+                  JOIN federation.registration_versions v ON v.tenant_id=d.tenant_id
+                    AND v.id=d.binding_version AND v.agent_id=d.agent_id
+                  WHERE d.tenant_id=:tenant AND d.project_id=:project AND d.state='cancelled'
+                    AND d.remote_task_id IS NOT NULL AND d.signed_grant IS NOT NULL
+                    AND d.remote_cancel_attempted_at IS NULL
+                  ORDER BY d.updated_at,d.id LIMIT 1 FOR UPDATE OF d SKIP LOCKED)
+                  UPDATE federation.research_dispatches d
+                  SET remote_cancel_attempted_at=clock_timestamp(),updated_at=clock_timestamp()
+                  FROM candidate c WHERE d.id=c.id
+                  RETURNING d.id,d.agent_id,d.binding_version,d.generation,d.signed_grant,
+                    d.grant_digest,d.remote_task_id,d.remote_context_id,c.registration"""),
+                    {"tenant": self.tenant, "project": self.project},
+                )
+                .mappings()
+                .one_or_none()
+            )
+        if row is None:
+            return False
+        signed = SignedResearchGrant.model_validate(row["signed_grant"])
+        if (
+            signed.grant.task_id != row["id"]
+            or signed.grant.project_id != self.project
+            or signed.grant.audience_agent_id != row["agent_id"]
+            or signed.grant.binding_version != row["binding_version"]
+            or signed.grant_digest != row["grant_digest"]
+        ):
+            return True
+
+        async def cancel() -> bool:
+            async with asyncio.timeout(90):
+                return await cancel_research_task(
+                    signed,
+                    row["registration"],
+                    self.coordinator,
+                    (row["remote_task_id"], row["remote_context_id"]),
+                )
+
+        try:
+            confirmed = asyncio.run(cancel())
+        except Exception:
+            # An attempted request may have reached the provider. Preserve the unknown outcome.
+            return True
+        if confirmed:
+            with self.transaction() as session:
+                session.execute(
+                    text("""UPDATE federation.research_dispatches
+                      SET remote_cancel_confirmed_at=clock_timestamp(),error_code=NULL,
+                        updated_at=clock_timestamp()
+                      WHERE tenant_id=:tenant AND project_id=:project AND id=:id
+                        AND state='cancelled' AND generation=:generation"""),
+                    {**self._params(row["id"]), "generation": row["generation"]},
+                )
+        return True
 
     def _params(self, identifier: UUID) -> dict[str, UUID]:
         return {"tenant": self.tenant, "project": self.project, "id": identifier}
@@ -287,8 +372,17 @@ class RemoteDispatchWorker:
 
     def run_once(
         self,
-    ) -> Literal["idle", "completed", "rejected", "reconciliation_required", "lease_lost"]:
+    ) -> Literal[
+        "idle",
+        "completed",
+        "rejected",
+        "reconciliation_required",
+        "lease_lost",
+        "remote_cancel_attempted",
+    ]:
         """Never replay an expired remote lease: the provider may have completed it."""
+        if self._cancel_once():
+            return "remote_cancel_attempted"
         with self.transaction() as session:
             self._lock_project(session)
             expired = session.execute(
@@ -325,7 +419,14 @@ class RemoteDispatchWorker:
             async def exchange_once() -> dict[str, Any]:
                 assert lease.signed is not None
                 async with asyncio.timeout(90):
-                    return await self.exchange(lease.signed, agent, scope)
+                    if self.exchange is not None:
+                        return await self.exchange(lease.signed, agent, scope)
+                    return await self._exchange(
+                        lease.signed,
+                        agent,
+                        scope,
+                        lambda task, context: self._checkpoint(lease, task, context),
+                    )
 
             result = asyncio.run(exchange_once())
         except Exception:

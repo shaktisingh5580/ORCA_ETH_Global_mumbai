@@ -43,7 +43,8 @@ class RemoteDispatches:
             self.session.execute(
                 text("""SELECT id,run_id,agent_id,binding_version,capability_id,method_id,
               plan_digest,dataset_ids,budget_usd::text AS budget_usd,state,generation,grant_digest,result_digest,
-              verified_response,error_code,created_at,updated_at
+              verified_response,error_code,created_at,updated_at,
+              remote_cancel_confirmed_at IS NOT NULL AS remote_cancellation_confirmed
               FROM federation.research_dispatches WHERE tenant_id=:tenant AND project_id=:project
                 AND run_id=:run AND id=:id"""),
                 {"tenant": self.tenant, "project": self.project, "run": run_id, "id": dispatch_id},

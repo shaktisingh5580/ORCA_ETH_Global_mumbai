@@ -35,7 +35,9 @@ from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
 
 @pytest.mark.live
 @pytest.mark.enable_socket
-def test_remote_dispatch_requires_current_authority_and_reserved_budget() -> None:
+def test_remote_dispatch_requires_current_authority_and_reserved_budget(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     admin, runtime, tenant, _, project, _ = prepare_database()
     subject = str(uuid4())
     agent_id, binding, snapshot, version, product = [uuid4() for _ in range(5)]
@@ -332,9 +334,15 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget() -> Non
 
         async def cancel_during_call(signed, agent, scope):
             with TenantUnitOfWork(db, tenant) as session:
+                row = cancelling_worker._row(session, signed.grant.task_id)
+                assert row is not None
+                lease = LeasedDispatch(
+                    row["id"], row["run_id"], row["lease_token"], row["generation"], signed
+                )
                 assert RemoteDispatches(session, tenant, project, principal).cancel(
                     run.run_id, signed.grant.task_id
                 )
+            cancelling_worker._checkpoint(lease, "remote-task-1", "remote-context-1")
             return await respond(signed, agent, scope)
 
         with TenantUnitOfWork(db, tenant) as session:
@@ -351,11 +359,26 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget() -> Non
             tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, cancel_during_call
         )
         assert cancelling_worker.run_once() == "lease_lost"
+        cancellation_requests = []
+
+        async def confirm_cancellation(signed, registration, identity, remote_ref):
+            assert signed.grant.task_id == in_flight.id
+            assert identity == coordinator
+            assert registration["endpoint"] == "https://provider.example/a2a"
+            cancellation_requests.append(remote_ref)
+            return True
+
+        monkeypatch.setattr(
+            "orca.application.remote_dispatch_worker.cancel_research_task", confirm_cancellation
+        )
+        assert cancelling_worker.run_once() == "remote_cancel_attempted"
+        assert cancelling_worker.run_once() == "idle"
+        assert cancellation_requests == [("remote-task-1", "remote-context-1")]
         with TenantUnitOfWork(db, tenant) as session:
             service = RemoteDispatches(session, tenant, project, principal)
             view = service.get(run.run_id, in_flight.id)
             assert view["state"] == "cancelled" and view["verified_response"] is None
-            assert view["error_code"] == "LOCAL_CANCELLED_REMOTE_UNCONFIRMED"
+            assert view["remote_cancellation_confirmed"] is True
             with pytest.raises(ValueError, match="reserved run budget"):
                 service.enqueue(
                     run.run_id,

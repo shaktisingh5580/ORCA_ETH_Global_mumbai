@@ -17,7 +17,11 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from orca.application.federation import ResearchDispatchScope, ResearchGrant, sign_grant
-from orca.infrastructure.federation.research_a2a_client import dispatch_research_task
+from orca.infrastructure.federation.coordinator import FederationCoordinator
+from orca.infrastructure.federation.research_a2a_client import (
+    cancel_research_task,
+    dispatch_research_task,
+)
 from orca.infrastructure.federation.signing import b64, canonical, digest
 from orca.institution_provider import card
 
@@ -93,14 +97,22 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
             },
         }
         calls: list[str] = []
+        methods: list[str] = []
+        checkpoint: list[tuple[str, str]] = []
+        remote_state = TaskState.completed
 
         def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal remote_state
             calls.append(request.url.path)
             if request.method == "GET":
                 return httpx.Response(200, json=card_data)
             body = json.loads(request.content)
             assert request.url.path == "/a2a"
-            assert body["method"] in {"message/send", "tasks/get"}
+            methods.append(body["method"])
+            assert body["method"] in {"message/send", "tasks/get", "tasks/cancel"}
+            if body["method"] == "tasks/cancel":
+                assert body["params"]["id"] == "remote-task"
+                remote_state = TaskState.canceled
             data = (
                 body["params"]["message"]["parts"][0]["data"]
                 if body["method"] == "message/send"
@@ -137,7 +149,7 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
             task = Task(
                 id="remote-task",
                 context_id="remote-context",
-                status=TaskStatus(state=TaskState.completed),
+                status=TaskStatus(state=remote_state),
                 artifacts=[
                     Artifact(
                         artifact_id=digest(payload), parts=[Part(root=DataPart(data=envelope))]
@@ -153,18 +165,41 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
                 },
             )
 
+        coordinator = FederationCoordinator(
+            uuid4(), "coordinator-v1", public(coordinator_key), private(coordinator_key)
+        )
         result = await dispatch_research_task(
             signed,
             agent,
             scope,
-            uuid4(),
+            coordinator.id,
             public(coordinator_key),
             private(coordinator_key),
             "coordinator-v1",
             transport=httpx.MockTransport(handler),
+            checkpoint=lambda task, context: checkpoint.append((task, context)),
         )
         assert result["a2a_task_id"] == "remote-task"
         assert calls == ["/.well-known/agent-card.json", "/a2a", "/a2a"]
+        assert checkpoint == [("remote-task", "remote-context")]
+        remote_state = TaskState.working
+        assert await cancel_research_task(
+            signed,
+            agent["registration"],
+            coordinator,
+            checkpoint[0],
+            transport=httpx.MockTransport(handler),
+        )
+        assert methods[-3:] == ["tasks/get", "tasks/cancel", "tasks/get"]
+        with pytest.raises(ValueError, match="reference changed"):
+            await cancel_research_task(
+                signed,
+                agent["registration"],
+                coordinator,
+                ("remote-task", "different-context"),
+                transport=httpx.MockTransport(handler),
+            )
+        assert methods.count("tasks/cancel") == 1
         agent["binding_version"] = uuid4()
         with pytest.raises(PermissionError):
             await dispatch_research_task(

@@ -3,6 +3,8 @@ Behavior: use safe HTTPS egress and verify the returned task and service-signed 
 Refs: main_implementation plan.md P09.2-P09.3; api design.md §17.1; Phase: P09.
 """
 
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
@@ -12,6 +14,7 @@ import jwt
 from a2a.client import A2AClient
 from a2a.types import (
     AgentCard,
+    CancelTaskRequest,
     DataPart,
     GetTaskRequest,
     Message,
@@ -19,6 +22,7 @@ from a2a.types import (
     Part,
     Role,
     SendMessageRequest,
+    TaskIdParams,
     TaskQueryParams,
 )
 from cryptography.exceptions import InvalidSignature
@@ -30,6 +34,7 @@ from orca.application.federation import (
     validate_scope,
     verify_grant,
 )
+from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.https_egress import PublicProviderTransport, endpoint_origin
 from orca.infrastructure.federation.signing import canonical, digest, unb64
 
@@ -87,6 +92,73 @@ def verified_artifact(
     }
 
 
+def _task_ref(response: dict[str, Any]) -> tuple[str, str]:
+    task = response.get("result")
+    if not isinstance(task, dict) or task.get("kind") != "task":
+        raise ValueError("A2A response did not identify a task")
+    task_id, context_id = task.get("id"), task.get("contextId")
+    if any(
+        not isinstance(value, str)
+        or not 1 <= len(value) <= 256
+        or any(ord(char) < 32 for char in value)
+        for value in (task_id, context_id)
+    ):
+        raise ValueError("Invalid A2A task reference")
+    assert isinstance(task_id, str) and isinstance(context_id, str)
+    return task_id, context_id
+
+
+@asynccontextmanager
+async def _research_client(
+    signed: SignedResearchGrant,
+    registration: dict[str, Any],
+    coordinator: FederationCoordinator,
+    transport: httpx.AsyncBaseTransport | None,
+) -> AsyncIterator[tuple[A2AClient, dict[str, Any]]]:
+    grant = verify_grant(signed, coordinator.public_key, coordinator.key_id)
+    now = datetime.now(timezone.utc)
+    if not now < grant.expires_at:
+        raise PermissionError("Research grant expired")
+    origin = endpoint_origin(registration["endpoint"])
+    data = {"schema_version": "orca.scientific_task/1.0", "grant": signed.model_dump(mode="json")}
+    token = jwt.encode(
+        {
+            "iss": str(coordinator.id),
+            "aud": str(grant.audience_agent_id),
+            "iat": int(now.timestamp()),
+            "exp": int(grant.expires_at.timestamp()),
+            "jti": str(grant.task_id),
+            "scope": "research:dispatch",
+            "request_digest": digest(data),
+        },
+        Ed25519PrivateKey.from_private_bytes(unb64(coordinator.private_key)),
+        algorithm="EdDSA",
+        headers={"kid": coordinator.key_id},
+    )
+    async with httpx.AsyncClient(
+        transport=transport or PublicProviderTransport(),
+        timeout=25,
+        trust_env=False,
+        follow_redirects=False,
+    ) as http:
+        response = await http.get(origin + "/.well-known/agent-card.json")
+        response.raise_for_status()
+        if len(response.content) > 32768:
+            raise ValueError("Agent Card exceeds the response bound")
+        raw = response.json()
+        if digest(raw) != registration["card_digest"]:
+            raise ValueError("Agent Card changed since registration")
+        card = AgentCard.model_validate(raw)
+        if (
+            card.url != registration["endpoint"]
+            or card.protocol_version != "0.3.0"
+            or grant.capability_id not in {skill.id for skill in card.skills}
+        ):
+            raise ValueError("Agent Card does not match the approved binding")
+        http.headers["Authorization"] = "Bearer " + token
+        yield A2AClient(http, agent_card=card), data
+
+
 async def dispatch_research_task(
     signed: SignedResearchGrant,
     agent: dict[str, Any],
@@ -97,6 +169,7 @@ async def dispatch_research_task(
     coordinator_key_id: str,
     *,
     transport: httpx.AsyncBaseTransport | None = None,
+    checkpoint: Callable[[str, str], None] | None = None,
 ) -> dict[str, Any]:
     """Send one bounded official A2A message using current durable authorization facts."""
     grant = verify_grant(signed, coordinator_public_key, coordinator_key_id)
@@ -113,44 +186,10 @@ async def dispatch_research_task(
         or registration["capability"] != grant.capability_id
     ):
         raise PermissionError("Current provider binding is not authorized for this research task")
-    origin = endpoint_origin(registration["endpoint"])
-    data = {"schema_version": "orca.scientific_task/1.0", "grant": signed.model_dump(mode="json")}
-    token = jwt.encode(
-        {
-            "iss": str(coordinator_id),
-            "aud": str(grant.audience_agent_id),
-            "iat": int(now.timestamp()),
-            "exp": int(grant.expires_at.timestamp()),
-            "jti": str(grant.task_id),
-            "scope": "research:dispatch",
-            "request_digest": digest(data),
-        },
-        Ed25519PrivateKey.from_private_bytes(unb64(coordinator_private_key)),
-        algorithm="EdDSA",
-        headers={"kid": coordinator_key_id},
+    coordinator = FederationCoordinator(
+        coordinator_id, coordinator_key_id, coordinator_public_key, coordinator_private_key
     )
-    async with httpx.AsyncClient(
-        transport=transport or PublicProviderTransport(),
-        timeout=25,
-        trust_env=False,
-        follow_redirects=False,
-        headers={"Authorization": "Bearer " + token},
-    ) as http:
-        response = await http.get(origin + "/.well-known/agent-card.json")
-        response.raise_for_status()
-        if len(response.content) > 32768:
-            raise ValueError("Agent Card exceeds the response bound")
-        raw = response.json()
-        if digest(raw) != registration["card_digest"]:
-            raise ValueError("Agent Card changed since registration")
-        card = AgentCard.model_validate(raw)
-        if (
-            card.url != registration["endpoint"]
-            or card.protocol_version != "0.3.0"
-            or grant.capability_id not in {skill.id for skill in card.skills}
-        ):
-            raise ValueError("Agent Card does not match the approved binding")
-        client = A2AClient(http, agent_card=card)
+    async with _research_client(signed, registration, coordinator, transport) as (client, data):
         reply = await client.send_message(
             SendMessageRequest(
                 id=str(uuid4()),
@@ -164,6 +203,9 @@ async def dispatch_research_task(
             )
         )
         sent = reply.model_dump(mode="json", by_alias=True)
+        remote_ref = _task_ref(sent)
+        if checkpoint:
+            checkpoint(*remote_ref)
         result = verified_artifact(sent, signed, registration)
         readback = await client.get_task(
             GetTaskRequest(id=str(uuid4()), params=TaskQueryParams(id=result["a2a_task_id"]))
@@ -173,3 +215,34 @@ async def dispatch_research_task(
         if recorded != result:
             raise ValueError("Stored A2A task differs from the signed response")
         return result
+
+
+async def cancel_research_task(
+    signed: SignedResearchGrant,
+    registration: dict[str, Any],
+    coordinator: FederationCoordinator,
+    remote_ref: tuple[str, str],
+    *,
+    transport: httpx.AsyncBaseTransport | None = None,
+) -> bool:
+    """Confirm provider cancellation by reading the same task after requesting cancellation."""
+    async with _research_client(signed, registration, coordinator, transport) as (client, _):
+
+        async def read() -> dict[str, Any]:
+            reply = await client.get_task(
+                GetTaskRequest(id=str(uuid4()), params=TaskQueryParams(id=remote_ref[0]))
+            )
+            body = reply.model_dump(mode="json", by_alias=True)
+            if _task_ref(body) != remote_ref:
+                raise ValueError("Remote cancellation task reference changed")
+            return dict(body["result"])
+
+        current = (await read())["status"]["state"]
+        if current == "canceled":
+            return True
+        if current in {"completed", "failed", "rejected"}:
+            return False
+        await client.cancel_task(
+            CancelTaskRequest(id=str(uuid4()), params=TaskIdParams(id=remote_ref[0]))
+        )
+        return (await read())["status"]["state"] == "canceled"
