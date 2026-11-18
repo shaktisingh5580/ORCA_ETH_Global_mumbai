@@ -10860,6 +10860,56 @@
         ]
       }
     },
+    "/v1/research/artifacts/{artifact_id}/reference-export": {
+      "get": {
+        "description": "Download verified evidence references under current project and source permissions.",
+        "operationId": "download_reference_export_v1_research_artifacts__artifact_id__reference_export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Download Reference Export",
+        "tags": [
+          "evidence"
+        ]
+      }
+    },
     "/v1/research/artifacts/{artifact_id}/review-grants": {
       "post": {
         "operationId": "grant_review_v1_research_artifacts__artifact_id__review_grants_post",

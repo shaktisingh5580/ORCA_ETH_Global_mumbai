@@ -7,11 +7,14 @@ from typing import Annotated, Any, cast
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import Response
 from sqlalchemy import text
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.investigations import investigation_context
 from orca.api.routers.projects import engine
+from orca.application.exports import ExportInput, build_evidence_export
+from orca.application.snapshots import SnapshotRepository
 from orca.application.workspace_access import authorize_project
 from orca.contracts.common import Page
 from orca.contracts.evidence import ArtifactView
@@ -195,3 +198,60 @@ def get_artifact_lineage(
         "method_code_digest": manifest.method_code_digest,
         "inputs": [item.model_dump(mode="json") for item in manifest.inputs],
     }
+
+
+@router.get(
+    "/artifacts/{artifact_id}/reference-export",
+    response_class=Response,
+    responses={
+        200: {"content": {"application/zip": {"schema": {"type": "string", "format": "binary"}}}}
+    },
+)
+def download_reference_export(
+    artifact_id: UUID, request: Request, principal: CurrentPrincipal
+) -> Response:
+    """Download verified evidence references under current project and source permissions."""
+    db = engine(request)
+    tenant = _artifact_context(request, principal, artifact_id)
+    with TenantUnitOfWork(db, tenant) as session:
+        row = _artifact_row(session, tenant, artifact_id)
+        project = row["project_id"]
+        _authorize(session, tenant, project, principal)
+        manifest, _ = _verified(row)
+        repository = SnapshotRepository(session, tenant)
+        references: list[ExportInput] = []
+        for source in manifest.inputs:
+            granted = session.execute(
+                text("""SELECT 1 FROM research.snapshot_project_grants
+                  WHERE tenant_id=:tenant AND project_id=:project AND snapshot_id=:id
+                    AND (expires_at IS NULL OR expires_at>clock_timestamp()) FOR SHARE"""),
+                {"tenant": tenant, "project": project, "id": source.snapshot_id},
+            ).scalar_one_or_none()
+            if granted is None:
+                raise HTTPException(403, "Source access is no longer available")
+            snapshot = repository.get(source.snapshot_id)
+            if (
+                snapshot is None
+                or snapshot.raw_content_digest != source.raw_content_digest
+                or snapshot.byte_count != source.byte_count
+                or not snapshot.product_version.license.license_ref
+            ):
+                raise HTTPException(409, "Verified source provenance is unavailable")
+            references.append(
+                ExportInput(
+                    source.snapshot_id,
+                    snapshot.product_version.license.license_ref,
+                    may_redistribute=False,
+                    content=None,
+                    object_version_id=source.object_version_id,
+                )
+            )
+        package = build_evidence_export(manifest, tuple(references))
+    return Response(
+        package.archive,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="orca-evidence-{artifact_id}.zip"',
+            "Cache-Control": "private, no-store",
+        },
+    )

@@ -9,12 +9,14 @@
     "P06.3 portable manifest and ZIP assembler with exact input-byte, object-version and redistribution-rights checks",
     "P06 read-only published artifact list/detail/manifest/lineage routes with project authorization",
     "P06 revisioned evidence-bound reports with guarded JSON/HTML/PDF downloads, byte ranges, and source-rights publication gate",
-    "P06 export ZIP assembly now uses fixed metadata and sorted entries for byte-identical archives across equivalent requests"
+    "P06 export ZIP assembly now uses fixed metadata and sorted entries for byte-identical archives across equivalent requests",
+    "P06.3 protected artifact reference ZIP verifies the published manifest, checks current project and snapshot permissions and includes license references and input digests. It exports manifest metadata without original input bytes."
   ],
   "verified": [
     "11 focused contract/integration tests passed",
     "ruff and mypy passed for changed P05/P06 source files",
-    "7 focused report/export tests passed; 0027 report migration rendered offline but was not applied to a live database"
+    "7 focused report/export tests passed; 0027 report migration rendered offline but was not applied to a live database",
+    "The reference export contract test verified the manifest-only ZIP, no-store cache policy and access denial after a source grant was removed."
   ],
   "remaining": [
     "P05 real-source to approved-method to immutable run evidence pipeline",
