@@ -3,6 +3,7 @@ Behavior: assert tenant isolation, event redaction and unverified service status
 Refs: main_implementation plan.md P08.1/P09.1; api design.md §§3.9–3.10; Phase: P08/P09.
 """
 
+import base64
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -12,8 +13,15 @@ from fastapi import HTTPException, Request
 from live_database import prepare_database
 from psycopg.types.json import Jsonb
 
-from orca.api.routers.federation import get_agent, list_agents
+from orca.api.routers.federation import (
+    get_agent,
+    get_capabilities,
+    get_endpoints,
+    list_agents,
+    revise_agent,
+)
 from orca.api.routers.operations import organization_audit_events
+from orca.contracts.agents import AgentDraft, AgentRevision
 from orca.domain.identity import Principal
 from orca.infrastructure.db.engine import create_runtime_engine
 
@@ -75,7 +83,9 @@ def test_scoped_audit_and_unverified_directory() -> None:
         request = Request(
             {"type": "http", "app": SimpleNamespace(state=SimpleNamespace(runtime_engine=database))}
         )
-        principal = Principal(subject, "test", frozenset({"audit:read", "network:read"}))
+        principal = Principal(
+            subject, "test", frozenset({"audit:read", "network:read", "org:read", "org:write"})
+        )
         audit = organization_audit_events(
             organization,
             request,
@@ -105,6 +115,34 @@ def test_scoped_audit_and_unverified_directory() -> None:
         detail = get_agent(agent, organization, request, principal)
         assert detail.endpoint == "https://example.org/a2a"
         assert not detail.research_dispatch_enabled
+        capabilities = get_capabilities(agent, organization, request, principal)
+        assert capabilities.items[0].capability_id == "temperature_summary_v1"
+        assert not capabilities.items[0].approved_scientific_method
+        endpoints = get_endpoints(agent, organization, request, principal)
+        assert endpoints.items[0].card_url == "https://example.org/.well-known/agent-card.json"
+        assert not endpoints.items[0].research_dispatch_enabled
+        revised = revise_agent(
+            agent,
+            organization,
+            AgentRevision(
+                expected_version=detail.version,
+                registration=AgentDraft(
+                    name=detail.name,
+                    endpoint="https://new.example.org/a2a",
+                    public_key=base64.urlsafe_b64encode(bytes(32)).decode().rstrip("="),
+                    key_id="test-service-v2",
+                    card_digest="sha256:" + "b" * 64,
+                    capability="temperature_summary_v1",
+                    operator_mode="self_declared_external",
+                ),
+            ),
+            request,
+            principal,
+        )
+        assert revised.state == "draft"
+        assert revised.version == detail.version + 1
+        assert revised.endpoint == "https://new.example.org/a2a"
+        assert not revised.service_eligible
         with pytest.raises(HTTPException) as concealed:
             get_agent(uuid4(), organization, request, principal)
         assert concealed.value.status_code == 404

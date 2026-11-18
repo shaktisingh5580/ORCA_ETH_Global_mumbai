@@ -11,9 +11,16 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import text
 
 from orca.api.dependencies import CurrentPrincipal
+from orca.api.routers.agents import service as onboarding_service
 from orca.api.routers.projects import engine, resolve_tenant
+from orca.contracts.agents import AgentRevision
 from orca.contracts.common import Page
-from orca.contracts.network import FederatedAgentDetail, FederatedAgentSummary
+from orca.contracts.network import (
+    AgentCapabilityClaim,
+    AgentEndpointClaim,
+    FederatedAgentDetail,
+    FederatedAgentSummary,
+)
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 
 router = APIRouter(prefix="/v1/network/agents", tags=["federation"])
@@ -108,7 +115,7 @@ def get_agent(
     with TenantUnitOfWork(database, tenant) as session:
         row = (
             session.execute(
-                text("""SELECT r.id,r.organization_id,r.state,v.registration,
+                text("""SELECT r.id,r.organization_id,r.state,r.version,v.registration,
               (SELECT max(q.expires_at) FROM federation.agent_qualifications q
                WHERE q.tenant_id=r.tenant_id AND q.agent_id=r.id
                  AND q.binding_version=r.binding_version AND q.report->>'status'='PASS')
@@ -127,8 +134,58 @@ def get_agent(
     registration = row["registration"]
     return FederatedAgentDetail(
         **_summary(dict(row)).model_dump(),
+        version=row["version"],
         endpoint=registration["endpoint"],
         key_id=registration["key_id"],
         public_key=registration["public_key"],
         card_digest=registration["card_digest"],
+    )
+
+
+@router.patch("/{agent_id}", response_model=FederatedAgentDetail)
+def revise_agent(
+    agent_id: UUID,
+    organization_id: UUID,
+    body: AgentRevision,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> FederatedAgentDetail:
+    """Replace the public binding; the onboarding service resets proof and qualification."""
+    with onboarding_service(request, organization_id, principal) as app:
+        app.revise(agent_id, body.expected_version, body.registration)
+    return get_agent(agent_id, organization_id, request, principal)
+
+
+@router.get("/{agent_id}/capabilities", response_model=Page[AgentCapabilityClaim])
+def get_capabilities(
+    agent_id: UUID, organization_id: UUID, request: Request, principal: CurrentPrincipal
+) -> Page[AgentCapabilityClaim]:
+    agent = get_agent(agent_id, organization_id, request, principal)
+    return Page[AgentCapabilityClaim](
+        items=[
+            AgentCapabilityClaim(
+                capability_id=agent.capability, qualified_for_service=agent.service_eligible
+            )
+        ],
+        next_cursor=None,
+        page_size=1,
+    )
+
+
+@router.get("/{agent_id}/endpoints", response_model=Page[AgentEndpointClaim])
+def get_endpoints(
+    agent_id: UUID, organization_id: UUID, request: Request, principal: CurrentPrincipal
+) -> Page[AgentEndpointClaim]:
+    agent = get_agent(agent_id, organization_id, request, principal)
+    return Page[AgentEndpointClaim](
+        items=[
+            AgentEndpointClaim(
+                uri=agent.endpoint,
+                card_url=agent.endpoint.removesuffix("/a2a") + "/.well-known/agent-card.json",
+                card_digest=agent.card_digest,
+                service_eligible=agent.service_eligible,
+            )
+        ],
+        next_cursor=None,
+        page_size=1,
     )

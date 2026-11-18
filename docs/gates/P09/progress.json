@@ -7,6 +7,7 @@
     "P09.1 registration challenge now validates the pinned Agent Card against the official A2A 0.3.0 schema before accepting its endpoint or capability claim",
     "P09.1 institutional onboarding API and worker can use a dedicated coordinator identity without enabling the H04 prototype network; API receives only the public key and the worker validates its separate private key against it. The duplicate H04 /v1/network/agents route was removed so the full-plan paginated directory owns the path.",
     "P09.1 tenant-scoped GET /v1/network/agents/{agent_id} reads the current registration and qualification expiry while exposing public endpoint and signing metadata with research and ENS trust still disabled",
+    "P09.1 capability and endpoint reads project the current immutable registration binding and label self-declared claims, service qualification and research dispatch separately. PATCH /v1/network/agents/{agent_id} replaces the binding through the existing versioned onboarding flow, resetting it to draft so proof and qualification must be repeated.",
     "Earlier H04/F02 work includes an official A2A 0.3.0 SDK client, provider servers, scoped signed requests, durable provider tasks and cancellation; these are reusable foundations for P09.2, not a P09 gate pass"
   ],
   "verified": [
@@ -14,10 +15,11 @@
     "17 existing provider/cancellation tests passed; the official A2A client emits a deprecation warning but the pinned 0.3.22 SDK tests succeed locally",
     "Malformed pinned Agent Card is rejected by a focused unit test; the affected full onboarding/proof/qualification/revocation integration passed against the disposable local PostgreSQL database on its actual port 15432. Ruff, mypy and purpose headers passed.",
     "Three focused coordinator/card unit tests, nine API/directory and generated-contract tests, Ruff, mypy, file headers and generated OpenAPI check passed for the full-profile runtime separation. The full-profile onboarding/proof/qualification/activation/revision/authorization lifecycle passed against the disposable PostgreSQL container with no prototype network runtime in the API.",
-    "The P09 agent detail read passed one disposable PostgreSQL tenant-scope test plus nine affected HTTP/OpenAPI contracts, Ruff, mypy and purpose-header checks. Missing detail is concealed as 404; no external identity trust was inferred."
+    "The P09 agent detail read passed one disposable PostgreSQL tenant-scope test plus nine affected HTTP/OpenAPI contracts, Ruff, mypy and purpose-header checks. Missing detail is concealed as 404; no external identity trust was inferred.",
+    "Capability/endpoint read and binding revision passed the focused disposable PostgreSQL test, including revision reset to draft, plus nine affected API/OpenAPI contracts, generated spec check, Ruff and mypy."
   ],
   "remaining": [
-    "P09.1 full registry/capability/endpoint CRUD, independent verification and revocation",
+    "P09.1 multi-capability and multi-endpoint CRUD, dedicated endpoint checks, independent verification and revocation",
     "P09.2 complete official A2A task/artifact/status/cancel interoperability with separately keyed external provider processes and live wire evidence",
     "P09.3 scoped remote delegation, limits, SSRF controls and fallback behavior",
     "P09.4 independent reproducer and correlation ledger",

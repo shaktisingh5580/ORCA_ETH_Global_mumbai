@@ -123,6 +123,173 @@
         "title": "AddProjectMember",
         "type": "object"
       },
+      "AgentCapabilityClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "approved_scientific_method": {
+            "const": false,
+            "default": false,
+            "title": "Approved Scientific Method",
+            "type": "boolean"
+          },
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "declaration": {
+            "const": "self_declared",
+            "default": "self_declared",
+            "title": "Declaration",
+            "type": "string"
+          },
+          "qualified_for_service": {
+            "title": "Qualified For Service",
+            "type": "boolean"
+          },
+          "research_dispatch_enabled": {
+            "const": false,
+            "default": false,
+            "title": "Research Dispatch Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "capability_id",
+          "qualified_for_service"
+        ],
+        "title": "AgentCapabilityClaim",
+        "type": "object"
+      },
+      "AgentDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "capability": {
+            "const": "temperature_summary_v1",
+            "default": "temperature_summary_v1",
+            "title": "Capability",
+            "type": "string"
+          },
+          "card_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Card Digest",
+            "type": "string"
+          },
+          "disclosure_policy": {
+            "const": "task_inputs_only",
+            "default": "task_inputs_only",
+            "title": "Disclosure Policy",
+            "type": "string"
+          },
+          "discoverable": {
+            "default": false,
+            "title": "Discoverable",
+            "type": "boolean"
+          },
+          "endpoint": {
+            "maxLength": 500,
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "key_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_.-]+$",
+            "title": "Key Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "operator_mode": {
+            "enum": [
+              "self_declared_external",
+              "team_controlled"
+            ],
+            "title": "Operator Mode",
+            "type": "string"
+          },
+          "public_key": {
+            "maxLength": 44,
+            "minLength": 43,
+            "title": "Public Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "endpoint",
+          "public_key",
+          "key_id",
+          "card_digest",
+          "operator_mode"
+        ],
+        "title": "AgentDraft",
+        "type": "object"
+      },
+      "AgentEndpointClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "card_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Card Digest",
+            "type": "string"
+          },
+          "card_url": {
+            "title": "Card Url",
+            "type": "string"
+          },
+          "research_dispatch_enabled": {
+            "const": false,
+            "default": false,
+            "title": "Research Dispatch Enabled",
+            "type": "boolean"
+          },
+          "service_eligible": {
+            "title": "Service Eligible",
+            "type": "boolean"
+          },
+          "transport": {
+            "const": "a2a-jsonrpc/0.3.0",
+            "default": "a2a-jsonrpc/0.3.0",
+            "title": "Transport",
+            "type": "string"
+          },
+          "uri": {
+            "title": "Uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uri",
+          "card_url",
+          "card_digest",
+          "service_eligible"
+        ],
+        "title": "AgentEndpointClaim",
+        "type": "object"
+      },
+      "AgentRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "registration": {
+            "$ref": "#/components/schemas/AgentDraft"
+          }
+        },
+        "required": [
+          "expected_version",
+          "registration"
+        ],
+        "title": "AgentRevision",
+        "type": "object"
+      },
       "ApprovePlan": {
         "additionalProperties": false,
         "description": "Exact plan acknowledgement; the digest prevents approval drift.",
@@ -1609,6 +1776,10 @@
             ],
             "title": "State",
             "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
@@ -1620,6 +1791,7 @@
           "state",
           "qualification_expires_at",
           "service_eligible",
+          "version",
           "endpoint",
           "key_id",
           "public_key",
@@ -2846,6 +3018,78 @@
           "next_cursor"
         ],
         "title": "Page[AccessGrant]",
+        "type": "object"
+      },
+      "Page_AgentCapabilityClaim_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AgentCapabilityClaim"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[AgentCapabilityClaim]",
+        "type": "object"
+      },
+      "Page_AgentEndpointClaim_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AgentEndpointClaim"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "page_size": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[AgentEndpointClaim]",
         "type": "object"
       },
       "Page_ArtifactView_": {
@@ -8541,6 +8785,189 @@
           }
         ],
         "summary": "Get Agent",
+        "tags": [
+          "federation"
+        ]
+      },
+      "patch": {
+        "description": "Replace the public binding; the onboarding service resets proof and qualification.",
+        "operationId": "revise_agent_v1_network_agents__agent_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentRevision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FederatedAgentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Revise Agent",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
+    "/v1/network/agents/{agent_id}/capabilities": {
+      "get": {
+        "operationId": "get_capabilities_v1_network_agents__agent_id__capabilities_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AgentCapabilityClaim_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Capabilities",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
+    "/v1/network/agents/{agent_id}/endpoints": {
+      "get": {
+        "operationId": "get_endpoints_v1_network_agents__agent_id__endpoints_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AgentEndpointClaim_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Endpoints",
         "tags": [
           "federation"
         ]

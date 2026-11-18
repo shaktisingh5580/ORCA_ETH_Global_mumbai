@@ -115,7 +115,25 @@ class FederatedAgentSummary(Contract):
 class FederatedAgentDetail(FederatedAgentSummary):
     """Expose public registration claims while keeping trust decisions explicit."""
 
+    version: int
     endpoint: str
     key_id: str
     public_key: str
     card_digest: Digest
+
+
+class AgentCapabilityClaim(Contract):
+    capability_id: str
+    declaration: Literal["self_declared"] = "self_declared"
+    qualified_for_service: bool
+    approved_scientific_method: Literal[False] = False
+    research_dispatch_enabled: Literal[False] = False
+
+
+class AgentEndpointClaim(Contract):
+    transport: Literal["a2a-jsonrpc/0.3.0"] = "a2a-jsonrpc/0.3.0"
+    uri: str
+    card_url: str
+    card_digest: Digest
+    service_eligible: bool
+    research_dispatch_enabled: Literal[False] = False
