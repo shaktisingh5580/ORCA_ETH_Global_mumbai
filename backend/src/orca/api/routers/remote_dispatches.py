@@ -7,7 +7,7 @@ from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -15,7 +15,11 @@ from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.investigations import investigation_context, raise_service_error
 from orca.api.routers.projects import engine
 from orca.application.remote_dispatches import RemoteDispatches
-from orca.contracts.remote_dispatch import CreateRemoteDispatch, RemoteDispatchView
+from orca.contracts.remote_dispatch import (
+    CreateRemoteDispatch,
+    RemoteDispatchHistory,
+    RemoteDispatchView,
+)
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 
 router = APIRouter(prefix="/v1/research/investigations", tags=["remote-dispatches"])
@@ -120,3 +124,30 @@ def cancel_remote_dispatch(
     except Exception as error:
         raise_service_error(error)
     return _view(row)
+
+
+@router.get(
+    "/{investigation_id}/runs/{run_id}/remote-dispatches/{dispatch_id}/events",
+    response_model=RemoteDispatchHistory,
+)
+def get_remote_dispatch_history(
+    investigation_id: UUID,
+    run_id: UUID,
+    dispatch_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    after: Annotated[int, Query(ge=0, le=2**63 - 1)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> RemoteDispatchHistory:
+    db = engine(request)
+    tenant, project = investigation_context(db, principal, investigation_id)
+    try:
+        with TenantUnitOfWork(db, tenant) as session:
+            _run_in_investigation(session, tenant, project, investigation_id, run_id)
+            return RemoteDispatches(session, tenant, project, principal).history(
+                run_id, dispatch_id, after, limit
+            )
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise_service_error(error)

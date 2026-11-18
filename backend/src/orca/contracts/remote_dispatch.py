@@ -40,3 +40,25 @@ class RemoteDispatchView(Contract):
     updated_at: UTCDateTime
     scientific_acceptance: Literal["not_evaluated"] = "not_evaluated"
     remote_cancellation_confirmed: bool = False
+
+
+class RemoteDispatchEvent(Contract):
+    sequence: int
+    kind: str
+    run_id: UUID
+    agent_id: UUID
+    binding_version: UUID
+    generation: int
+    state: str
+    grant_digest: Digest | None
+    result_digest: Digest | None
+    remote_task_id: str | None
+    remote_context_id: str | None
+    error_code: str | None
+    remote_cancellation_confirmed: bool
+    observed_at: UTCDateTime
+
+
+class RemoteDispatchHistory(Contract):
+    items: list[RemoteDispatchEvent]
+    next_after: int | None

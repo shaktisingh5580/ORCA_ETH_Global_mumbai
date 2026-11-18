@@ -343,6 +343,18 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
             assert stopped.status_code == 200, stopped.text
             assert stopped.json()["error_code"] == "LOCAL_CANCELLED_BEFORE_SEND"
             assert client.post(f"{path}/cancel").json()["generation"] == 1
+            history = client.get(f"{path}/events?limit=1")
+            assert history.status_code == 200, history.text
+            first = history.json()
+            assert [(item["kind"], item["state"]) for item in first["items"]] == [
+                ("created", "queued")
+            ]
+            end = client.get(f"{path}/events?after={first['next_after']}").json()
+            assert [(item["kind"], item["state"]) for item in end["items"]] == [
+                ("state_changed", "cancelled")
+            ]
+            assert end["next_after"] is None
+            assert client.get(f"{foreign}/events").status_code == 404
         with psycopg.connect(admin) as connection:
             assert connection.execute(
                 "SELECT generation,lease_token,verified_response FROM federation.research_dispatches WHERE id=%s",
@@ -445,6 +457,19 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
                 run.run_id, uncertain.id
             )
             assert view["state"] == "completed" and view["result_digest"] is not None
+            service = RemoteDispatches(session, tenant, project, principal)
+            events = service.history(run.run_id, uncertain.id, 0, 100).items
+            assert [event.kind for event in events] == [
+                "created",
+                "state_changed",
+                "grant_persisted",
+                "state_changed",
+                "state_changed",
+            ]
+            assert events[-2].state == "reconciliation_required"
+            assert events[-1].run_id == run.run_id
+            assert events[-1].remote_task_id == "remote-task-1"
+            assert events[-1].result_digest == view["result_digest"]
 
         with TenantUnitOfWork(db, tenant) as session:
             revoked_dispatch = RemoteDispatches(session, tenant, project, principal).enqueue(

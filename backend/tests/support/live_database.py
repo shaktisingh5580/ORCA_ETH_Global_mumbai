@@ -43,7 +43,7 @@ def prepare_database() -> tuple[str, str, UUID, UUID, UUID, UUID]:
     tenant_a, tenant_b, project_a, project_b = uuid4(), uuid4(), uuid4(), uuid4()
     with psycopg.connect(admin) as connection:
         connection.execute(
-            "TRUNCATE federation.research_dispatches,federation.research_authorizations,"
+            "TRUNCATE federation.research_dispatch_events,federation.research_dispatches,federation.research_authorizations,"
             "federation.registration_jobs,federation.registration_events,"
             "federation.agent_qualifications,federation.registration_challenges,"
             "federation.registration_versions,federation.registrations"

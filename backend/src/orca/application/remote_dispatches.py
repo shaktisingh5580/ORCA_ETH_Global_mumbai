@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from orca.application.projects import IdempotencyConflict
 from orca.application.workspace_access import authorize_project
+from orca.contracts.remote_dispatch import RemoteDispatchEvent, RemoteDispatchHistory
 from orca.contracts.research_plans import TypedPlan
 from orca.domain.identity import Principal
 from orca.infrastructure.federation.signing import digest
@@ -55,6 +56,35 @@ class RemoteDispatches:
         if row is None:
             raise LookupError("Remote dispatch not found")
         return dict(row)
+
+    def history(
+        self, run_id: UUID, dispatch_id: UUID, after: int, limit: int
+    ) -> RemoteDispatchHistory:
+        self.get(run_id, dispatch_id)
+        rows = (
+            self.session.execute(
+                text("""SELECT sequence,kind,run_id,agent_id,binding_version,generation,state,
+              grant_digest,result_digest,remote_task_id,remote_context_id,error_code,
+              remote_cancellation_confirmed,observed_at
+              FROM federation.research_dispatch_events
+              WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run
+                AND dispatch_id=:id AND sequence>:after ORDER BY sequence LIMIT :count"""),
+                {
+                    "tenant": self.tenant,
+                    "project": self.project,
+                    "run": run_id,
+                    "id": dispatch_id,
+                    "after": after,
+                    "count": limit + 1,
+                },
+            )
+            .mappings()
+            .all()
+        )
+        items = [RemoteDispatchEvent.model_validate(dict(row)) for row in rows[:limit]]
+        return RemoteDispatchHistory(
+            items=items, next_after=items[-1].sequence if len(rows) > limit else None
+        )
 
     def cancel(self, run_id: UUID, dispatch_id: UUID) -> bool:
         """Fence a local intent; a remote provider may still need separate cancellation."""
