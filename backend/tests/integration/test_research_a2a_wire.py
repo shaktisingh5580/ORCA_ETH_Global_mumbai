@@ -21,6 +21,7 @@ from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.research_a2a_client import (
     cancel_research_task,
     dispatch_research_task,
+    read_research_result,
 )
 from orca.infrastructure.federation.signing import b64, canonical, digest
 from orca.institution_provider import card
@@ -100,6 +101,7 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
         methods: list[str] = []
         checkpoint: list[tuple[str, str]] = []
         remote_state = TaskState.completed
+        remote_id = "remote-task"
 
         def handler(request: httpx.Request) -> httpx.Response:
             nonlocal remote_state
@@ -127,7 +129,19 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
                 algorithms=["EdDSA"],
                 audience=str(grant.audience_agent_id),
             )
-            assert claims["request_digest"] == digest(data)
+            if claims["scope"] == "research:readback":
+                assert body["method"] == "tasks/get"
+                assert claims["remote_task_id"] == body["params"]["id"]
+                assert claims["grant_digest"] == signed.grant_digest
+                assert claims["request_digest"] == digest(
+                    {
+                        "method": "tasks/get",
+                        "id": remote_id,
+                        "grant_digest": signed.grant_digest,
+                    }
+                )
+            else:
+                assert claims["request_digest"] == digest(data)
             assert data["grant"]["grant_digest"] == signed.grant_digest
             payload = {
                 "schema_version": "orca.scientific_artifact/1.0",
@@ -137,7 +151,7 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
                 "approved_plan_digest": grant.approved_plan_digest,
                 "method_id": grant.method_id,
                 "dataset_ids": [str(item) for item in grant.dataset_ids],
-                "a2a_task_id": "remote-task",
+                "a2a_task_id": remote_id,
                 "a2a_context_id": "remote-context",
                 "result": {"status": "insufficient_evidence"},
             }
@@ -147,7 +161,7 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
                 "signature": b64(provider_key.sign(canonical(payload))),
             }
             task = Task(
-                id="remote-task",
+                id=remote_id,
                 context_id="remote-context",
                 status=TaskStatus(state=remote_state),
                 artifacts=[
@@ -200,6 +214,27 @@ def test_scoped_research_task_uses_official_a2a_wire() -> None:
                 transport=httpx.MockTransport(handler),
             )
         assert methods.count("tasks/cancel") == 1
+        grant = grant.model_copy(update={"expires_at": now - timedelta(seconds=1)})
+        signed = sign_grant(grant, private(coordinator_key), "coordinator-v1")
+        remote_state = TaskState.completed
+        recovered = await read_research_result(
+            signed,
+            agent["registration"],
+            coordinator,
+            checkpoint[0],
+            transport=httpx.MockTransport(handler),
+        )
+        assert recovered["a2a_task_id"] == "remote-task"
+        remote_id = str(grant.task_id)
+        recovered = await read_research_result(
+            signed,
+            agent["registration"],
+            coordinator,
+            None,
+            transport=httpx.MockTransport(handler),
+        )
+        assert recovered["a2a_task_id"] == remote_id
+        assert methods[-2:] == ["tasks/get", "tasks/get"]
         agent["binding_version"] = uuid4()
         with pytest.raises(PermissionError):
             await dispatch_research_task(

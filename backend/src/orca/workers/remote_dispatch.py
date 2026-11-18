@@ -24,7 +24,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run ORCA external A2A research dispatches")
     parser.add_argument("--tenant", type=UUID, required=True)
     parser.add_argument("--project", type=UUID, required=True)
-    parser.add_argument("--once", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--once", action="store_true")
+    mode.add_argument("--reconcile", type=UUID, metavar="DISPATCH_ID")
     parser.add_argument("--idle-seconds", type=float, default=2.0)
     arguments = parser.parse_args()
     settings = Settings()  # type: ignore[call-arg]  # Read private runtime settings from env.
@@ -38,6 +40,12 @@ def main() -> None:
             return TenantUnitOfWork(db, arguments.tenant)
 
         worker = RemoteDispatchWorker(arguments.tenant, arguments.project, transaction, coordinator)
+        if arguments.reconcile:
+            outcome = worker.reconcile(arguments.reconcile)
+            print(outcome)
+            if outcome == "unresolved":
+                raise SystemExit(1)
+            return
         if arguments.once:
             worker.run_once()
             return

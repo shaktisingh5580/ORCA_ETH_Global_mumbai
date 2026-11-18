@@ -390,12 +390,52 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
                 )
 
         with TenantUnitOfWork(db, tenant) as session:
+            uncertain = RemoteDispatches(session, tenant, project, principal).enqueue(
+                run.run_id,
+                agent_id,
+                "temperature_summary_v1",
+                "sst.seasonal_anomaly",
+                Decimal("0.10"),
+                "remote-readback",
+            )
+
+        async def lose_response(*_):
+            raise TimeoutError
+
+        recovery_worker = RemoteDispatchWorker(
+            tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, lose_response
+        )
+        assert recovery_worker.run_once() == "reconciliation_required"
+        attempts = []
+
+        async def read_result(signed, registration, identity, reference):
+            assert signed.grant.task_id == uncertain.id
+            assert reference is None
+            attempts.append(signed.grant_digest)
+            if len(attempts) == 1:
+                raise ValueError("Provider could not find the task")
+            return await respond(signed, None, None)
+
+        monkeypatch.setattr(
+            "orca.application.remote_dispatch_worker.read_research_result", read_result
+        )
+        assert recovery_worker.reconcile(uncertain.id) == "unresolved"
+        assert recovery_worker.reconcile(uncertain.id) == "completed"
+        assert recovery_worker.reconcile(uncertain.id) == "unresolved"
+        assert len(attempts) == 2
+        with TenantUnitOfWork(db, tenant) as session:
+            view = RemoteDispatches(session, tenant, project, principal).get(
+                run.run_id, uncertain.id
+            )
+            assert view["state"] == "completed" and view["result_digest"] is not None
+
+        with TenantUnitOfWork(db, tenant) as session:
             revoked_dispatch = RemoteDispatches(session, tenant, project, principal).enqueue(
                 run.run_id,
                 agent_id,
                 "temperature_summary_v1",
                 "sst.seasonal_anomaly",
-                Decimal("0.50"),
+                Decimal("0.40"),
                 "remote-revoke",
             )
 

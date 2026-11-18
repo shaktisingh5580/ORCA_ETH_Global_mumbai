@@ -12,6 +12,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
+import httpx
+from a2a.client.errors import A2AClientError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -27,6 +29,7 @@ from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.research_a2a_client import (
     cancel_research_task,
     dispatch_research_task,
+    read_research_result,
     verified_artifact,
 )
 from orca.infrastructure.federation.signing import digest
@@ -159,6 +162,84 @@ class RemoteDispatchWorker:
 
     def _params(self, identifier: UUID) -> dict[str, UUID]:
         return {"tenant": self.tenant, "project": self.project, "id": identifier}
+
+    def reconcile(self, identifier: UUID) -> Literal["completed", "unresolved"]:
+        """Read an uncertain result once without creating a task or releasing its budget."""
+        with self.transaction() as session:
+            self._lock_project(session)
+            row = self._row(session, identifier)
+            if row is None or row["state"] != "reconciliation_required" or not row["signed_grant"]:
+                return "unresolved"
+            try:
+                _, agent = self._current_context(session, row)
+                signed = SignedResearchGrant.model_validate(row["signed_grant"])
+                if (
+                    signed.grant_digest != row["grant_digest"]
+                    or signed.grant.task_id != identifier
+                    or signed.grant.project_id != self.project
+                    or signed.grant.run_id != row["run_id"]
+                    or signed.grant.organization_id != row["organization_id"]
+                    or signed.grant.audience_agent_id != row["agent_id"]
+                    or signed.grant.binding_version != row["binding_version"]
+                    or signed.grant.approved_plan_digest != row["plan_digest"]
+                    or signed.grant.method_id != row["method_id"]
+                    or signed.grant.capability_id != row["capability_id"]
+                    or signed.grant.dataset_ids != row["dataset_ids"]
+                    or signed.grant.max_cost_usd != row["budget_usd"]
+                ):
+                    return "unresolved"
+            except (LookupError, PermissionError, ValueError):
+                return "unresolved"
+        reference = (
+            (row["remote_task_id"], row["remote_context_id"]) if row["remote_task_id"] else None
+        )
+
+        async def read() -> dict[str, Any]:
+            async with asyncio.timeout(60):
+                return await read_research_result(
+                    signed, agent["registration"], self.coordinator, reference
+                )
+
+        try:
+            result = asyncio.run(read())
+        except (ValueError, OSError, httpx.HTTPError, A2AClientError, KeyError, TypeError):
+            return "unresolved"
+        with self.transaction() as session:
+            self._lock_project(session)
+            current = self._row(session, identifier, lock=True)
+            if current is None or any(
+                current[field] != row[field]
+                for field in (
+                    "state",
+                    "generation",
+                    "signed_grant",
+                    "grant_digest",
+                    "remote_task_id",
+                    "remote_context_id",
+                )
+            ):
+                return "unresolved"
+            try:
+                _, current_agent = self._current_context(session, current)
+            except (LookupError, PermissionError, ValueError):
+                return "unresolved"
+            if current_agent["registration"] != agent["registration"]:
+                return "unresolved"
+            session.execute(
+                text("""UPDATE federation.research_dispatches SET state='completed',
+                  remote_task_id=:task,remote_context_id=:context,
+                  verified_response=CAST(:response AS jsonb),result_digest=:digest,
+                  error_code=NULL,updated_at=clock_timestamp()
+                  WHERE tenant_id=:tenant AND project_id=:project AND id=:id"""),
+                {
+                    **self._params(identifier),
+                    "task": result["a2a_task_id"],
+                    "context": result["a2a_context_id"],
+                    "response": json.dumps(result),
+                    "digest": result["artifact_digest"],
+                },
+            )
+        return "completed"
 
     def _lock_project(self, session: Session) -> None:
         # Match the lock order used by authorize_project in the dispatch API.

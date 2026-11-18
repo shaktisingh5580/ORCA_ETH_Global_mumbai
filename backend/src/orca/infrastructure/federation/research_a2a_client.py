@@ -114,23 +114,40 @@ async def _research_client(
     registration: dict[str, Any],
     coordinator: FederationCoordinator,
     transport: httpx.AsyncBaseTransport | None,
+    *,
+    readback_task_id: str | None = None,
 ) -> AsyncIterator[tuple[A2AClient, dict[str, Any]]]:
     grant = verify_grant(signed, coordinator.public_key, coordinator.key_id)
     now = datetime.now(timezone.utc)
-    if not now < grant.expires_at:
+    if readback_task_id is None and not now < grant.expires_at:
         raise PermissionError("Research grant expired")
     origin = endpoint_origin(registration["endpoint"])
     data = {"schema_version": "orca.scientific_task/1.0", "grant": signed.model_dump(mode="json")}
+    claims = {
+        "iss": str(coordinator.id),
+        "aud": str(grant.audience_agent_id),
+        "iat": int(now.timestamp()),
+        "exp": int(grant.expires_at.timestamp()),
+        "jti": str(grant.task_id),
+        "scope": "research:dispatch",
+        "request_digest": digest(data),
+    }
+    if readback_task_id is not None:
+        claims.update(
+            exp=int(now.timestamp()) + 90,
+            scope="research:readback",
+            request_digest=digest(
+                {
+                    "method": "tasks/get",
+                    "id": readback_task_id,
+                    "grant_digest": signed.grant_digest,
+                }
+            ),
+            remote_task_id=readback_task_id,
+            grant_digest=signed.grant_digest,
+        )
     token = jwt.encode(
-        {
-            "iss": str(coordinator.id),
-            "aud": str(grant.audience_agent_id),
-            "iat": int(now.timestamp()),
-            "exp": int(grant.expires_at.timestamp()),
-            "jti": str(grant.task_id),
-            "scope": "research:dispatch",
-            "request_digest": digest(data),
-        },
+        claims,
         Ed25519PrivateKey.from_private_bytes(unb64(coordinator.private_key)),
         algorithm="EdDSA",
         headers={"kid": coordinator.key_id},
@@ -246,3 +263,30 @@ async def cancel_research_task(
             CancelTaskRequest(id=str(uuid4()), params=TaskIdParams(id=remote_ref[0]))
         )
         return (await read())["status"]["state"] == "canceled"
+
+
+async def read_research_result(
+    signed: SignedResearchGrant,
+    registration: dict[str, Any],
+    coordinator: FederationCoordinator,
+    remote_ref: tuple[str, str] | None,
+    *,
+    transport: httpx.AsyncBaseTransport | None = None,
+) -> dict[str, Any]:
+    """Read one existing task; providers supporting recovery may index it by grant task UUID."""
+    task_id = remote_ref[0] if remote_ref else str(signed.grant.task_id)
+    async with _research_client(
+        signed,
+        registration,
+        coordinator,
+        transport,
+        readback_task_id=task_id,
+    ) as (client, _):
+        reply = await client.get_task(
+            GetTaskRequest(id=str(uuid4()), params=TaskQueryParams(id=task_id))
+        )
+        body = reply.model_dump(mode="json", by_alias=True)
+        actual_ref = _task_ref(body)
+        if actual_ref[0] != task_id or (remote_ref is not None and actual_ref != remote_ref):
+            raise ValueError("Remote readback task reference changed")
+        return verified_artifact(body, signed, registration)
