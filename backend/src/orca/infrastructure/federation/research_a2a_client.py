@@ -83,6 +83,7 @@ def verified_artifact(
         "a2a_context_id": task["contextId"],
         "artifact_digest": digest(payload),
         "artifact": payload,
+        "signed_artifact": envelope,
     }
 
 

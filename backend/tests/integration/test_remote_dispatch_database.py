@@ -9,24 +9,52 @@ from uuid import uuid4
 
 import psycopg
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from live_database import prepare_database
 from psycopg.types.json import Jsonb
 
 from orca.application.investigations import Investigations
+from orca.application.remote_dispatch_worker import LeasedDispatch, RemoteDispatchWorker
 from orca.application.remote_dispatches import RemoteDispatches
 from orca.contracts.investigations import ApprovePlan, CreateInvestigation
 from orca.contracts.research_plans import PlanNode, TypedPlan
 from orca.domain.identity import ROLE_SCOPES, Principal
 from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.federation.coordinator import FederationCoordinator
+from orca.infrastructure.federation.signing import b64, canonical, digest
 from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
 
 
 @pytest.mark.live
+@pytest.mark.enable_socket
 def test_remote_dispatch_requires_current_authority_and_reserved_budget() -> None:
     admin, runtime, tenant, _, project, _ = prepare_database()
     subject = str(uuid4())
     agent_id, binding, snapshot, version, product = [uuid4() for _ in range(5)]
+    provider_key, coordinator_key = Ed25519PrivateKey.generate(), Ed25519PrivateKey.generate()
+    provider_public = b64(
+        provider_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw
+        )
+    )
+    coordinator = FederationCoordinator(
+        uuid4(),
+        "coordinator-1",
+        b64(
+            coordinator_key.public_key().public_bytes(
+                serialization.Encoding.Raw, serialization.PublicFormat.Raw
+            )
+        ),
+        b64(
+            coordinator_key.private_bytes(
+                serialization.Encoding.Raw,
+                serialization.PrivateFormat.Raw,
+                serialization.NoEncryption(),
+            )
+        ),
+    )
     with psycopg.connect(admin) as connection:
         organization = connection.execute(
             "SELECT id FROM iam.organizations WHERE tenant_id=%s", (tenant,)
@@ -74,6 +102,8 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget() -> Non
                     {
                         "capability": "temperature_summary_v1",
                         "endpoint": "https://provider.example/a2a",
+                        "key_id": "provider-1",
+                        "public_key": provider_public,
                     }
                 ),
             ),
@@ -215,11 +245,93 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget() -> Non
                     Decimal("1.00"),
                     "remote-2",
                 )
+
+        async def respond(signed, agent, scope):
+            payload = {
+                "schema_version": "orca.scientific_artifact/1.0",
+                "grant_digest": signed.grant_digest,
+                "task_id": str(signed.grant.task_id),
+                "run_id": str(signed.grant.run_id),
+                "approved_plan_digest": signed.grant.approved_plan_digest,
+                "method_id": signed.grant.method_id,
+                "dataset_ids": [str(item) for item in signed.grant.dataset_ids],
+                "a2a_task_id": "remote-task-1",
+                "a2a_context_id": "remote-context-1",
+                "computed": {"mean_celsius": 28.5},
+            }
+            return {
+                "a2a_task_id": "remote-task-1",
+                "a2a_context_id": "remote-context-1",
+                "artifact_digest": digest(payload),
+                "artifact": payload,
+                "signed_artifact": {
+                    "payload": payload,
+                    "key_id": "provider-1",
+                    "signature": b64(provider_key.sign(canonical(payload))),
+                },
+            }
+
+        worker = RemoteDispatchWorker(
+            tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, respond
+        )
+        assert worker.run_once() == "completed"
         with psycopg.connect(admin) as connection:
+            saved = connection.execute(
+                "SELECT state,generation,grant_digest,signed_grant,verified_response,result_digest "
+                "FROM federation.research_dispatches WHERE id=%s",
+                (dispatch.id,),
+            ).fetchone()
+            assert saved[0] == "completed" and saved[1] == 1
+            assert saved[2] == saved[3]["grant_digest"]
+            assert saved[4]["artifact_digest"] == saved[5]
+        with TenantUnitOfWork(db, tenant) as session:
+            assert not worker._finish(
+                session,
+                LeasedDispatch(dispatch.id, run.run_id, uuid4(), 1, None),
+                "failed",
+                "STALE_WORKER",
+            )
+        with TenantUnitOfWork(db, tenant) as session:
+            revoked_dispatch = RemoteDispatches(session, tenant, project, principal).enqueue(
+                run.run_id,
+                agent_id,
+                "temperature_summary_v1",
+                "sst.seasonal_anomaly",
+                Decimal("0.50"),
+                "remote-revoke",
+            )
+
+        async def revoke_during_call(signed, agent, scope):
+            with psycopg.connect(admin) as connection:
+                connection.execute(
+                    "UPDATE federation.research_authorizations SET revoked_at=clock_timestamp() "
+                    "WHERE tenant_id=%s AND agent_id=%s",
+                    (tenant, agent_id),
+                )
+            return await respond(signed, agent, scope)
+
+        revoked_worker = RemoteDispatchWorker(
+            tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, revoke_during_call
+        )
+        assert revoked_worker.run_once() == "rejected"
+        with psycopg.connect(admin) as connection:
+            assert connection.execute(
+                "SELECT state,verified_response FROM federation.research_dispatches WHERE id=%s",
+                (revoked_dispatch.id,),
+            ).fetchone() == ("failed", None)
             connection.execute(
-                "UPDATE federation.research_authorizations SET revoked_at=clock_timestamp() "
-                "WHERE tenant_id=%s AND agent_id=%s",
-                (tenant, agent_id),
+                "UPDATE federation.research_dispatches SET state='leased',lease_token=%s,"
+                "lease_until=clock_timestamp()-interval '1 second' WHERE id=%s",
+                (uuid4(), revoked_dispatch.id),
+            )
+        assert revoked_worker.run_once() == "reconciliation_required"
+        with psycopg.connect(admin) as connection:
+            assert (
+                connection.execute(
+                    "SELECT state FROM federation.research_dispatches WHERE id=%s",
+                    (revoked_dispatch.id,),
+                ).fetchone()[0]
+                == "reconciliation_required"
             )
         with pytest.raises(PermissionError, match="approval is missing"):
             with TenantUnitOfWork(db, tenant) as session:
