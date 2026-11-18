@@ -223,7 +223,9 @@ class RemoteDispatchWorker:
                 _, current_agent = self._current_context(session, current)
             except (LookupError, PermissionError, ValueError):
                 return "unresolved"
-            if current_agent["registration"] != agent["registration"]:
+            if current_agent["registration"] != agent["registration"] or not self._lock_authority(
+                session, identifier
+            ):
                 return "unresolved"
             session.execute(
                 text("""UPDATE federation.research_dispatches SET state='completed',
@@ -240,6 +242,15 @@ class RemoteDispatchWorker:
                 },
             )
         return "completed"
+
+    @staticmethod
+    def _lock_authority(session: Session, identifier: UUID) -> bool:
+        return (
+            session.execute(
+                text("SELECT federation.lock_dispatch_authority(:id)"), {"id": identifier}
+            ).scalar_one()
+            is True
+        )
 
     def _lock_project(self, session: Session) -> None:
         # Match the lock order used by authorize_project in the dispatch API.
@@ -541,6 +552,8 @@ class RemoteDispatchWorker:
                 checked = verified_artifact(candidate, lease.signed, current_agent["registration"])
                 if checked != result or result["artifact_digest"] != digest(result["artifact"]):
                     raise ValueError("Verified remote artifact changed")
+                if not self._lock_authority(session, lease.id):
+                    raise PermissionError("Remote authority changed before result acceptance")
             except (KeyError, LookupError, PermissionError, ValueError):
                 if self._finish(session, lease, "failed", "AUTHORITY_OR_ARTIFACT_CHANGED"):
                     return "rejected"

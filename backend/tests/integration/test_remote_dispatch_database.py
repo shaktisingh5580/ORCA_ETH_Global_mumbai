@@ -279,8 +279,25 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
                 },
             }
 
+        async def confirm_authority_lock(signed, agent, scope):
+            with TenantUnitOfWork(db, tenant) as session:
+                assert RemoteDispatchWorker._lock_authority(session, signed.grant.task_id)
+                with pytest.raises(psycopg.errors.LockNotAvailable):
+                    with psycopg.connect(admin) as connection:
+                        connection.execute("SET LOCAL lock_timeout = '250ms'")
+                        connection.execute(
+                            "UPDATE federation.research_authorizations SET revoked_at=clock_timestamp() "
+                            "WHERE tenant_id=%s AND agent_id=%s",
+                            (tenant, agent_id),
+                        )
+            return await respond(signed, agent, scope)
+
         worker = RemoteDispatchWorker(
-            tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, respond
+            tenant,
+            project,
+            lambda: TenantUnitOfWork(db, tenant),
+            coordinator,
+            confirm_authority_lock,
         )
         assert worker.run_once() == "completed"
         with psycopg.connect(admin) as connection:
