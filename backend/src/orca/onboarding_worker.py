@@ -1,6 +1,6 @@
 """Purpose: perform durable institution service qualification outside HTTP/database transactions.
 Behavior: fence leases, recheck current org authority and bind retries to one provider operation identity.
-Refs: institutional phase F02.5; existing worker lease patterns; Phase: F02.
+Refs: institutional phase F02.5; main_implementation plan.md P09.1-P09.3; Phase: F02/P09.
 """
 
 import argparse
@@ -15,11 +15,14 @@ from orca.config import Settings
 from orca.domain.identity import ROLE_SCOPES, Principal
 from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.federation.coordinator import FederationCoordinator, load_coordinator
 from orca.infrastructure.federation.qualification import qualify
 from orca.infrastructure.federation.runtime import NetworkRuntime, load_runtime
 
 
-def execute(db: Engine, network: NetworkRuntime, tenant: UUID, identifier: UUID) -> bool:
+def execute(
+    db: Engine, network: NetworkRuntime | FederationCoordinator, tenant: UUID, identifier: UUID
+) -> bool:
     token = uuid4()
     with TenantUnitOfWork(db, tenant) as session:
         selected = (
@@ -49,12 +52,15 @@ def execute(db: Engine, network: NetworkRuntime, tenant: UUID, identifier: UUID)
             row = app.expected(job["agent_id"], job["expected_version"])
             if row["binding_version"] != job["binding_version"] or row["state"] != "verified":
                 raise ValueError()
-        binding = network.configuration.coordinator
-        coordinator = {
-            "id": str(binding.id),
-            "key_id": binding.key_id,
-            "public_key": binding.public_key,
-        }
+        if isinstance(network, FederationCoordinator):
+            coordinator = network.public_descriptor()
+        else:
+            binding = network.configuration.coordinator
+            coordinator = {
+                "id": str(binding.id),
+                "key_id": binding.key_id,
+                "public_key": binding.public_key,
+            }
         report = qualify(row, coordinator, network.private_key, str(identifier))
         with TenantUnitOfWork(db, tenant) as session:
             current = session.execute(
@@ -90,10 +96,14 @@ def main() -> None:
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
     settings = Settings(_env_file=args.env_file)  # type: ignore[call-arg]
-    if not settings.database_url:
-        raise ValueError("Database configuration required")
+    if not settings.database_url or not settings.agent_onboarding_enabled:
+        raise ValueError("Agent onboarding and database configuration required")
     db = create_runtime_engine(settings.database_url)
-    network = load_runtime(settings)
+    network = (
+        load_coordinator(settings)
+        if settings.federation_coordinator_public_key is not None
+        else load_runtime(settings)
+    )
     try:
         while True:
             with db.connect() as connection:

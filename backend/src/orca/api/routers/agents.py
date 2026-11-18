@@ -1,6 +1,6 @@
 """Purpose: expose organization-authorized onboarding beside the current research APIs.
 Behavior: keep network calls outside tenant transactions and recheck versions before accepting proofs.
-Refs: institutional API/data design section 2; Phase: F02.
+Refs: institutional API/data design section 2; main_implementation plan.md P09.1; Phase: F02/P09.
 """
 
 from collections.abc import Iterator
@@ -20,6 +20,7 @@ from orca.api.routers.projects import engine, resolve_tenant
 from orca.application.agent_onboarding import Onboarding
 from orca.contracts.agents import AgentDraft, AgentProof, AgentRevision, AgentVersion
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.federation.coordinator import CoordinatorIdentity
 from orca.infrastructure.federation.ens_observation import inspect_name
 from orca.infrastructure.federation.https_egress import fetch_card
 
@@ -77,6 +78,9 @@ def service(
 
 
 def coordinator(request: Request) -> dict[str, str]:
+    configured = getattr(request.app.state, "onboarding_coordinator", None)
+    if isinstance(configured, CoordinatorIdentity):
+        return configured.public_descriptor()
     binding = runtime(request).configuration.coordinator
     return {"id": str(binding.id), "key_id": binding.key_id, "public_key": binding.public_key}
 

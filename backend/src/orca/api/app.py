@@ -1,6 +1,6 @@
 """Purpose: serve research routes and truthful operational metadata.
 Behavior: readiness probes the database and approved science policy while failing closed.
-Refs: api design.md §§3.1,14; main_implementation plan.md P08.1; Phase: P01/P08.
+Refs: api design.md §§3.1,3.10,14; main_implementation plan.md P08.1/P09.1; Phase: P01/P08/P09.
 """
 
 import base64
@@ -55,6 +55,7 @@ from orca.infrastructure.auth.access_logging import install_invitation_redaction
 from orca.infrastructure.auth.oidc import OIDCVerifier
 from orca.infrastructure.auth.supabase import SupabaseVerifier
 from orca.infrastructure.db.engine import create_runtime_engine
+from orca.infrastructure.federation.coordinator import load_public_coordinator
 from orca.infrastructure.federation.runtime import load_runtime
 from orca.infrastructure.storage.composition import snapshot_store, upload_store
 from orca.infrastructure.telemetry.http import emit_http
@@ -120,7 +121,9 @@ def create_app(settings: Settings) -> FastAPI:
         app.state.upload_store = upload_store(settings)
     if settings.prototype_enabled:
         app.state.prototype_settings = settings
-        app.state.agent_onboarding_enabled = settings.agent_onboarding_enabled
+    app.state.agent_onboarding_enabled = settings.agent_onboarding_enabled
+    if settings.federation_coordinator_public_key is not None:
+        app.state.onboarding_coordinator = load_public_coordinator(settings)
     if settings.network_enabled:
         app.state.network_runtime = load_runtime(settings)
     if settings.research_demo_enabled:
@@ -163,9 +166,10 @@ def create_app(settings: Settings) -> FastAPI:
         app.include_router(prototype_router)
         app.include_router(normalization_router)
         app.include_router(reasoning_router)
+        install_dashboard(app, settings)
+    if settings.prototype_enabled or settings.agent_onboarding_enabled:
         app.include_router(agents_router)
         app.include_router(directory_router)
-        install_dashboard(app, settings)
     if settings.network_enabled:
         app.include_router(network_router)
 

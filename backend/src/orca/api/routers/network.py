@@ -16,7 +16,6 @@ from orca.api.routers.organizations import errors
 from orca.api.routers.projects import engine, resolve_project, resolve_tenant
 from orca.application.network import Network, operation_view
 from orca.contracts.network import (
-    AgentBinding,
     AssignClaim,
     CancelNetworkTask,
     CreateNetworkTask,
@@ -74,29 +73,6 @@ def capabilities(request: Request) -> dict[str, Any]:
         "capabilities": sorted({agent.capability for agent in configured.configuration.agents}),
         "public_reference_consent_required": True,
     }
-
-
-@router.get("/agents", response_model=list[AgentBinding])
-def agents(
-    organization_id: UUID, request: Request, principal: CurrentPrincipal
-) -> list[AgentBinding]:
-    runtime(request)
-    db = engine(request)
-    tenant, roles = resolve_tenant(db, principal, organization_id)
-    try:
-        principal.require("project:read", roles)
-    except PermissionError as error:
-        raise HTTPException(403, "Project read permission required") from error
-    with TenantUnitOfWork(db, tenant) as session:
-        bindings: list[Any] = list(
-            session.execute(
-                text(
-                    "SELECT binding FROM federation.agents WHERE tenant_id=:t AND NOT revoked ORDER BY id LIMIT 100"
-                ),
-                {"t": tenant},
-            ).scalars()
-        )
-        return [AgentBinding.model_validate(row) for row in bindings]
 
 
 @router.post("/tasks", response_model=NetworkOperation, status_code=202)

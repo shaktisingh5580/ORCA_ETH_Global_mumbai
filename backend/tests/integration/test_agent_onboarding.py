@@ -1,6 +1,6 @@
 """Purpose: prove tenant-owned onboarding, immutable proof scope and real A2A qualification.
 Behavior: run real SDK/provider ASGI with isolated Postgres only; no cloud or chain mutations.
-Refs: institutional phase F02.1-F02.5; Phase: F02 test tooling.
+Refs: institutional phase F02.1-F02.5; main_implementation plan.md P09; Phase: F02/P09 test tooling.
 """
 
 import asyncio
@@ -196,6 +196,7 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
     from orca.api.dependencies import current_principal
     from orca.api.routers import agents as routes
     from orca.config import Settings
+    from orca.infrastructure.federation.coordinator import load_coordinator
 
     admin, runtime, tenant, other, _, _ = prepare_database()
     subject = str(uuid4())
@@ -231,20 +232,21 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         "card_digest": digest(raw),
         "operator_mode": "team_controlled",
     }
-    app = create_app(
-        Settings(
-            monitoring_token="0123456789abcdefghijklmnopqrstuvwxyz",
-            database_url=runtime.replace("postgresql://", "postgresql+psycopg://", 1),
-            object_store_endpoint="http://127.0.0.1:59000",
-            object_store_access_key="test-only",
-            object_store_secret_key="test-only",
-            prototype_enabled=True,
-            agent_onboarding_enabled=True,
-            prototype_bundle_digest="sha256:" + "a" * 64,
-            prototype_source_tenant=tenant,
-        )
+    settings = Settings(
+        monitoring_token="0123456789abcdefghijklmnopqrstuvwxyz",
+        database_url=runtime.replace("postgresql://", "postgresql+psycopg://", 1),
+        agent_onboarding_enabled=True,
+        federation_coordinator_id=c.id,
+        federation_coordinator_key_id=c.key_id,
+        federation_coordinator_public_key=c.public_key,
+        federation_coordinator_private_key=network.private_key,
     )
-    app.state.network_runtime = network
+    api_settings = settings.model_copy(update={"federation_coordinator_private_key": None})
+    app = create_app(api_settings)
+    assert not settings.prototype_enabled and not settings.network_enabled
+    assert not hasattr(app.state, "network_runtime")
+    assert not hasattr(app.state.onboarding_coordinator, "private_key")
+    federation_coordinator = load_coordinator(settings)
     app.dependency_overrides[current_principal] = lambda: principal
     monkeypatch.setattr(routes, "fetch_card", lambda endpoint: raw)
     with TestClient(app) as client:
@@ -299,10 +301,10 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         )
         assert again.json()["id"] == job.json()["id"]
         assert onboarding_worker.execute(
-            app.state.runtime_engine, network, tenant, UUID(job.json()["id"])
+            app.state.runtime_engine, federation_coordinator, tenant, UUID(job.json()["id"])
         )
         assert not onboarding_worker.execute(
-            app.state.runtime_engine, network, tenant, UUID(job.json()["id"])
+            app.state.runtime_engine, federation_coordinator, tenant, UUID(job.json()["id"])
         )
         assert (
             client.get(path + "/qualifications/" + job.json()["id"]).json()["state"] == "succeeded"

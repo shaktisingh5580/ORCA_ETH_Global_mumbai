@@ -1,0 +1,27 @@
+{
+  "id": "P09-FULL-FEDERATION-RUNTIME-001",
+  "date": "2026-11-18",
+  "authority": [
+    "main_implementation plan.md P09-P11",
+    "api design.md sections 3.10-3.12 and 4.6-4.7",
+    "AGENTS.md development sequencing"
+  ],
+  "decision": "The research-federated profile owns institutional onboarding and future A2A task delegation. Its coordinator identity is configured independently from H04 prototype networking and Arkiv wallet material.",
+  "reuse": [
+    "P03-P08 catalog, science, jobs, evidence and review are required scientific foundations and remain in place.",
+    "F02 durable organization-owned registration, proof and A2A qualification are adapted into P09 while trust and research dispatch remain separate."
+  ],
+  "prototype_boundary": [
+    "H04 operator-pinned loopback task/Arkiv routes remain prototype-only and are not P09-P11 acceptance evidence.",
+    "A public Agent Card, qualification pass or ENS text record cannot grant institution verification or research-task authority."
+  ],
+  "current_increment": "With agent_onboarding_enabled and a dedicated Ed25519 coordinator identity, the organization agent API and onboarding worker can run without prototype_enabled or network_enabled. The API uses only the public coordinator key; the worker alone receives the matching private key.",
+  "remaining": [
+    "Implement full P09 agent/capability/endpoint registry and scoped remote research delegation with official A2A transport.",
+    "Bind current ENS controller, service key and Arkiv wallet through P10 signed challenges and revocation checks.",
+    "Build P11 separate-wallet Arkiv task, claim, assignment and independent verification workflow.",
+    "Complete prerequisite gates and live external operator evidence before declaring federation accepted."
+  ],
+  "gate_status": "development_in_progress",
+  "oracle_deployment": "deferred_by_user"
+}

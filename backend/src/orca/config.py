@@ -1,6 +1,6 @@
 """Purpose: reject incomplete runtime configuration before the server starts.
 Behavior: validate monitoring, persistence, object-store and OIDC settings before startup.
-Refs: API sections 2, 3.1-3.3; main plan P02; Phase: P02.
+Refs: API sections 2, 3.1-3.3 and 3.10; main plan P02/P09; Phase: P02/P09.
 """
 
 import base64
@@ -51,6 +51,12 @@ class Settings(BaseSettings):
     network_wallet_env_file: str = ".env.arkiv"
     network_state_dir: str = ".cache/network/coordinator"
     agent_onboarding_enabled: bool = False
+    federation_coordinator_id: UUID | None = None
+    federation_coordinator_key_id: str | None = Field(
+        default=None, min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_.-]+$"
+    )
+    federation_coordinator_public_key: str | None = None
+    federation_coordinator_private_key: SecretStr | None = None
     gemini_api_keys: SecretStr | None = None
     gemini_api_key: SecretStr | None = None
     gemini_model: str = Field(default="gemini-flash-latest", pattern=r"^[a-z0-9][a-z0-9.-]{0,90}$")
@@ -117,6 +123,23 @@ class Settings(BaseSettings):
         ):
             raise ValueError(
                 "agent coordination requires prototype persistence and an operator-pinned signing configuration"
+            )
+        federation_identity = (
+            self.federation_coordinator_id,
+            self.federation_coordinator_key_id,
+            self.federation_coordinator_public_key,
+        )
+        if (any(federation_identity) or self.federation_coordinator_private_key) and not all(
+            federation_identity
+        ):
+            raise ValueError("federated coordinator identity requires ID, key ID and public key")
+        if (
+            self.agent_onboarding_enabled
+            and not self.prototype_enabled
+            and (not self.database_url or not all(federation_identity))
+        ):
+            raise ValueError(
+                "federated agent onboarding requires persistence and a separate coordinator identity"
             )
         if self.acquisition_enabled:
             if not self.database_url or not all(configured_store) or not self.acquisition_sources:
