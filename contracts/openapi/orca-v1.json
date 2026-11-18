@@ -1258,6 +1258,41 @@
         "title": "CreateProject",
         "type": "object"
       },
+      "CreateRemoteDispatch": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "format": "uuid",
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "budget_usd": {
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Budget Usd",
+            "type": "string"
+          },
+          "capability_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "method_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Method Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent_id",
+          "capability_id",
+          "method_id",
+          "budget_usd"
+        ],
+        "title": "CreateRemoteDispatch",
+        "type": "object"
+      },
       "CreateScientificReport": {
         "additionalProperties": false,
         "properties": {
@@ -4833,6 +4868,161 @@
           "selected_sources"
         ],
         "title": "RecipeValidationRequest",
+        "type": "object"
+      },
+      "RemoteDispatchView": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "format": "uuid",
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "binding_version": {
+            "format": "uuid",
+            "title": "Binding Version",
+            "type": "string"
+          },
+          "budget_usd": {
+            "pattern": "^(0|[1-9]\\d{0,17})(\\.\\d{1,8})?$",
+            "title": "Budget Usd",
+            "type": "string"
+          },
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "dataset_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Dataset Ids",
+            "type": "array"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "grant_digest": {
+            "anyOf": [
+              {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Digest"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "method_id": {
+            "title": "Method Id",
+            "type": "string"
+          },
+          "plan_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Plan Digest",
+            "type": "string"
+          },
+          "remote_cancellation_confirmed": {
+            "const": false,
+            "default": false,
+            "title": "Remote Cancellation Confirmed",
+            "type": "boolean"
+          },
+          "result_digest": {
+            "anyOf": [
+              {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Digest"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "scientific_acceptance": {
+            "const": "not_evaluated",
+            "default": "not_evaluated",
+            "title": "Scientific Acceptance",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "leased",
+              "completed",
+              "failed",
+              "cancelled",
+              "reconciliation_required"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "verified_response": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified Response"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "agent_id",
+          "binding_version",
+          "capability_id",
+          "method_id",
+          "plan_digest",
+          "dataset_ids",
+          "budget_usd",
+          "state",
+          "generation",
+          "grant_digest",
+          "result_digest",
+          "verified_response",
+          "error_code",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RemoteDispatchView",
         "type": "object"
       },
       "ResolveChallengeRequest": {
@@ -12586,6 +12776,221 @@
         "summary": "Run Outcome",
         "tags": [
           "investigations"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/remote-dispatches": {
+      "post": {
+        "operationId": "create_remote_dispatch_v1_research_investigations__investigation_id__runs__run_id__remote_dispatches_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRemoteDispatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteDispatchView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Create Remote Dispatch",
+        "tags": [
+          "remote-dispatches"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/remote-dispatches/{dispatch_id}": {
+      "get": {
+        "operationId": "get_remote_dispatch_v1_research_investigations__investigation_id__runs__run_id__remote_dispatches__dispatch_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "dispatch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Dispatch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteDispatchView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Remote Dispatch",
+        "tags": [
+          "remote-dispatches"
+        ]
+      }
+    },
+    "/v1/research/investigations/{investigation_id}/runs/{run_id}/remote-dispatches/{dispatch_id}/cancel": {
+      "post": {
+        "operationId": "cancel_remote_dispatch_v1_research_investigations__investigation_id__runs__run_id__remote_dispatches__dispatch_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "dispatch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Dispatch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteDispatchView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Cancel Remote Dispatch",
+        "tags": [
+          "remote-dispatches"
         ]
       }
     },

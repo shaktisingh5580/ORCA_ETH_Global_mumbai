@@ -75,6 +75,15 @@ class RemoteDispatchWorker:
     def _params(self, identifier: UUID) -> dict[str, UUID]:
         return {"tenant": self.tenant, "project": self.project, "id": identifier}
 
+    def _lock_project(self, session: Session) -> None:
+        # Match the lock order used by authorize_project in the dispatch API.
+        session.execute(
+            text(
+                "SELECT id FROM research.projects WHERE tenant_id=:tenant AND id=:project FOR UPDATE"
+            ),
+            {"tenant": self.tenant, "project": self.project},
+        )
+
     def _current_context(
         self, session: Session, row: dict[str, Any]
     ) -> tuple[ResearchDispatchScope, dict[str, Any]]:
@@ -200,31 +209,28 @@ class RemoteDispatchWorker:
         code: str,
         response: dict[str, Any] | None = None,
     ) -> bool:
-        row = self._row(session, lease.id, lock=True)
-        if (
-            row is None
-            or row["state"] != "leased"
-            or row["lease_token"] != lease.token
-            or row["generation"] != lease.generation
-            or row["lease_until"] <= datetime.now(timezone.utc)
-        ):
-            return False
         result_digest = response["artifact_digest"] if response is not None else None
-        session.execute(
-            text("""UPDATE federation.research_dispatches
+        return (
+            session.execute(
+                text("""UPDATE federation.research_dispatches
               SET state=:state,lease_token=NULL,lease_until=NULL,
                 verified_response=CAST(:response AS jsonb),result_digest=:digest,
                 error_code=:code,updated_at=clock_timestamp()
-              WHERE tenant_id=:tenant AND project_id=:project AND id=:id"""),
-            {
-                **self._params(lease.id),
-                "state": state,
-                "code": code,
-                "response": json.dumps(response) if response is not None else None,
-                "digest": result_digest,
-            },
+              WHERE tenant_id=:tenant AND project_id=:project AND id=:id AND state='leased'
+                AND lease_token=:token AND generation=:generation
+                AND lease_until>clock_timestamp() RETURNING id"""),
+                {
+                    **self._params(lease.id),
+                    "token": lease.token,
+                    "generation": lease.generation,
+                    "state": state,
+                    "code": code,
+                    "response": json.dumps(response) if response is not None else None,
+                    "digest": result_digest,
+                },
+            ).scalar_one_or_none()
+            is not None
         )
-        return True
 
     def _claim(self, session: Session) -> LeasedDispatch | None:
         row = (
@@ -284,6 +290,7 @@ class RemoteDispatchWorker:
     ) -> Literal["idle", "completed", "rejected", "reconciliation_required", "lease_lost"]:
         """Never replay an expired remote lease: the provider may have completed it."""
         with self.transaction() as session:
+            self._lock_project(session)
             expired = session.execute(
                 text("""UPDATE federation.research_dispatches
                   SET state='reconciliation_required',lease_token=NULL,lease_until=NULL,
@@ -297,8 +304,16 @@ class RemoteDispatchWorker:
             return "reconciliation_required" if expired else "idle"
         assert lease.signed is not None
         with self.transaction() as session:
+            self._lock_project(session)
             row = self._row(session, lease.id)
-            assert row is not None
+            if (
+                row is None
+                or row["state"] != "leased"
+                or row["lease_token"] != lease.token
+                or row["generation"] != lease.generation
+                or row["lease_until"] <= datetime.now(timezone.utc)
+            ):
+                return "lease_lost"
             try:
                 scope, agent = self._current_context(session, row)
             except (LookupError, PermissionError, ValueError):
@@ -309,7 +324,8 @@ class RemoteDispatchWorker:
 
             async def exchange_once() -> dict[str, Any]:
                 assert lease.signed is not None
-                return await self.exchange(lease.signed, agent, scope)
+                async with asyncio.timeout(90):
+                    return await self.exchange(lease.signed, agent, scope)
 
             result = asyncio.run(exchange_once())
         except Exception:
@@ -320,6 +336,7 @@ class RemoteDispatchWorker:
                     return "reconciliation_required"
             return "lease_lost"
         with self.transaction() as session:
+            self._lock_project(session)
             row = self._row(session, lease.id, lock=True)
             if row is None:
                 return "lease_lost"

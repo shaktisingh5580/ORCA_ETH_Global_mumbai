@@ -3,6 +3,7 @@ Behavior: reject absent authority, cap concurrent allocations and preserve idemp
 Refs: main_implementation plan.md P09.3; api design.md §§2.2,17.1; Phase: P09.
 """
 
+import secrets
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
@@ -11,12 +12,17 @@ import psycopg
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from fastapi.testclient import TestClient
 from live_database import prepare_database
 from psycopg.types.json import Jsonb
+from pydantic import SecretStr
 
+from orca.api.app import create_app
+from orca.api.dependencies import current_principal
 from orca.application.investigations import Investigations
 from orca.application.remote_dispatch_worker import LeasedDispatch, RemoteDispatchWorker
 from orca.application.remote_dispatches import RemoteDispatches
+from orca.config import Settings
 from orca.contracts.investigations import ApprovePlan, CreateInvestigation
 from orca.contracts.research_plans import PlanNode, TypedPlan
 from orca.domain.identity import ROLE_SCOPES, Principal
@@ -291,6 +297,75 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget() -> Non
                 "failed",
                 "STALE_WORKER",
             )
+        app = create_app(
+            Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+        )
+        app.state.runtime_engine = db
+        app.dependency_overrides[current_principal] = lambda: principal
+        base = f"/v1/research/investigations/{investigation.id}/runs/{run.run_id}/remote-dispatches"
+        with TestClient(app) as client:
+            created = client.post(
+                base,
+                headers={"Idempotency-Key": "remote-cancel"},
+                json={
+                    "agent_id": str(agent_id),
+                    "capability_id": "temperature_summary_v1",
+                    "method_id": "sst.seasonal_anomaly",
+                    "budget_usd": "0.25",
+                },
+            )
+            assert created.status_code == 202, created.text
+            dispatch_id = created.json()["id"]
+            path = f"{base}/{dispatch_id}"
+            assert client.get(path).json()["state"] == "queued"
+            foreign = path.replace(str(run.run_id), str(uuid4()), 1)
+            assert client.get(foreign).status_code == 404
+            stopped = client.post(f"{path}/cancel")
+            assert stopped.status_code == 200, stopped.text
+            assert stopped.json()["error_code"] == "LOCAL_CANCELLED_BEFORE_SEND"
+            assert client.post(f"{path}/cancel").json()["generation"] == 1
+        with psycopg.connect(admin) as connection:
+            assert connection.execute(
+                "SELECT generation,lease_token,verified_response FROM federation.research_dispatches WHERE id=%s",
+                (dispatch_id,),
+            ).fetchone() == (1, None, None)
+
+        async def cancel_during_call(signed, agent, scope):
+            with TenantUnitOfWork(db, tenant) as session:
+                assert RemoteDispatches(session, tenant, project, principal).cancel(
+                    run.run_id, signed.grant.task_id
+                )
+            return await respond(signed, agent, scope)
+
+        with TenantUnitOfWork(db, tenant) as session:
+            service = RemoteDispatches(session, tenant, project, principal)
+            in_flight = service.enqueue(
+                run.run_id,
+                agent_id,
+                "temperature_summary_v1",
+                "sst.seasonal_anomaly",
+                Decimal("0.25"),
+                "remote-in-flight",
+            )
+        cancelling_worker = RemoteDispatchWorker(
+            tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, cancel_during_call
+        )
+        assert cancelling_worker.run_once() == "lease_lost"
+        with TenantUnitOfWork(db, tenant) as session:
+            service = RemoteDispatches(session, tenant, project, principal)
+            view = service.get(run.run_id, in_flight.id)
+            assert view["state"] == "cancelled" and view["verified_response"] is None
+            assert view["error_code"] == "LOCAL_CANCELLED_REMOTE_UNCONFIRMED"
+            with pytest.raises(ValueError, match="reserved run budget"):
+                service.enqueue(
+                    run.run_id,
+                    agent_id,
+                    "temperature_summary_v1",
+                    "sst.seasonal_anomaly",
+                    Decimal("0.51"),
+                    "remote-uncertain-budget",
+                )
+
         with TenantUnitOfWork(db, tenant) as session:
             revoked_dispatch = RemoteDispatches(session, tenant, project, principal).enqueue(
                 run.run_id,

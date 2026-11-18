@@ -36,6 +36,50 @@ class RemoteDispatches:
             principal,
         )
 
+    def get(self, run_id: UUID, dispatch_id: UUID) -> dict[str, object]:
+        """Expose durable transport state without implying scientific acceptance."""
+        authorize_project(self.session, self.tenant, self.project, self.principal, "project:read")
+        row = (
+            self.session.execute(
+                text("""SELECT id,run_id,agent_id,binding_version,capability_id,method_id,
+              plan_digest,dataset_ids,budget_usd::text AS budget_usd,state,generation,grant_digest,result_digest,
+              verified_response,error_code,created_at,updated_at
+              FROM federation.research_dispatches WHERE tenant_id=:tenant AND project_id=:project
+                AND run_id=:run AND id=:id"""),
+                {"tenant": self.tenant, "project": self.project, "run": run_id, "id": dispatch_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            raise LookupError("Remote dispatch not found")
+        return dict(row)
+
+    def cancel(self, run_id: UUID, dispatch_id: UUID) -> bool:
+        """Fence a local intent; a remote provider may still need separate cancellation."""
+        authorize_project(self.session, self.tenant, self.project, self.principal, "research:run")
+        state = self.session.execute(
+            text("""SELECT state FROM federation.research_dispatches
+              WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run AND id=:id
+              FOR UPDATE"""),
+            {"tenant": self.tenant, "project": self.project, "run": run_id, "id": dispatch_id},
+        ).scalar_one_or_none()
+        if state is None:
+            raise LookupError("Remote dispatch not found")
+        if state == "cancelled":
+            return False
+        if state in {"completed", "failed"}:
+            raise ValueError("Completed remote dispatch cannot be cancelled")
+        self.session.execute(
+            text("""UPDATE federation.research_dispatches
+              SET state='cancelled',generation=generation+1,lease_token=NULL,lease_until=NULL,
+                error_code=CASE WHEN signed_grant IS NULL THEN 'LOCAL_CANCELLED_BEFORE_SEND'
+                  ELSE 'LOCAL_CANCELLED_REMOTE_UNCONFIRMED' END,updated_at=clock_timestamp()
+              WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run AND id=:id"""),
+            {"tenant": self.tenant, "project": self.project, "run": run_id, "id": dispatch_id},
+        )
+        return True
+
     def enqueue(
         self,
         run_id: UUID,
@@ -163,7 +207,8 @@ class RemoteDispatches:
         allocated = self.session.execute(
             text("""SELECT COALESCE(sum(budget_usd),0) FROM federation.research_dispatches
               WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run
-                AND state IN ('queued','leased','completed')"""),
+                AND (state IN ('queued','leased','completed','reconciliation_required')
+                  OR signed_grant IS NOT NULL)"""),
             params,
         ).scalar_one()
         if allocated + budget_usd > reservation:

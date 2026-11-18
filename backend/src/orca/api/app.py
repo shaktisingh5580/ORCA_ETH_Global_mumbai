@@ -42,6 +42,7 @@ from orca.api.routers.organizations import router as organizations_router
 from orca.api.routers.projects import router as projects_router
 from orca.api.routers.prototype import router as prototype_router
 from orca.api.routers.reasoning import router as reasoning_router
+from orca.api.routers.remote_dispatches import router as remote_dispatches_router
 from orca.api.routers.reports import router as reports_router
 from orca.api.routers.reviews import router as reviews_router
 from orca.api.routers.science import router as science_router
@@ -153,6 +154,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(science_router)
     app.include_router(source_probes_router)
     app.include_router(investigations_router)
+    app.include_router(remote_dispatches_router)
     app.include_router(evidence_router)
     app.include_router(reviews_router)
     app.include_router(benchmarks_router)
