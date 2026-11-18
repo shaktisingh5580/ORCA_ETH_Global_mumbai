@@ -9,9 +9,16 @@ from uuid import UUID
 
 from pydantic import Field
 
-from orca.contracts.common import Contract, Digest
+from orca.contracts.common import Contract, Digest, UTCDateTime
 
 Capability = Literal["sst_reproduction", "sst_review"]
+
+
+class AgentEndpointObservation(Contract):
+    agent_id: UUID
+    binding_version: UUID
+    observed_at: UTCDateTime
+    status: Literal["matches_registration", "card_mismatch", "unavailable"]
 
 
 class AgentBinding(Contract):

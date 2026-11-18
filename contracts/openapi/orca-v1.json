@@ -271,6 +271,42 @@
         "title": "AgentEndpointClaim",
         "type": "object"
       },
+      "AgentEndpointObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "format": "uuid",
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "binding_version": {
+            "format": "uuid",
+            "title": "Binding Version",
+            "type": "string"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "matches_registration",
+              "card_mismatch",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent_id",
+          "binding_version",
+          "observed_at",
+          "status"
+        ],
+        "title": "AgentEndpointObservation",
+        "type": "object"
+      },
       "AgentRevision": {
         "additionalProperties": false,
         "properties": {
@@ -288,6 +324,21 @@
           "registration"
         ],
         "title": "AgentRevision",
+        "type": "object"
+      },
+      "AgentVersion": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "AgentVersion",
         "type": "object"
       },
       "ApprovePlan": {
@@ -9247,6 +9298,75 @@
           }
         ],
         "summary": "Get Capabilities",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
+    "/v1/network/agents/{agent_id}/endpoint-checks": {
+      "post": {
+        "description": "Observe the sole registered endpoint without trusting arbitrary caller URLs.",
+        "operationId": "check_endpoint_v1_network_agents__agent_id__endpoint_checks_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentVersion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentEndpointObservation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Check Endpoint",
         "tags": [
           "federation"
         ]

@@ -22,6 +22,16 @@ from orca.infrastructure.federation.https_egress import endpoint_origin
 from orca.infrastructure.federation.signing import canonical, digest, unb64
 
 
+def validate_registered_card(card: dict[str, Any], registration: dict[str, Any]) -> None:
+    if digest(card) != registration["card_digest"]:
+        raise ValueError("Agent Card differs from the registered digest")
+    parsed = AgentCard.model_validate(card)
+    if parsed.url != registration["endpoint"] or parsed.protocol_version != "0.3.0":
+        raise ValueError("Agent Card endpoint or protocol differs")
+    if registration["capability"] not in {skill.id for skill in parsed.skills}:
+        raise ValueError("Agent Card does not declare the requested capability")
+
+
 class Onboarding:
     def __init__(self, session: Session, tenant: UUID, organization: UUID, principal: Principal):
         self.session, self.tenant, self.organization, self.principal = (
@@ -55,12 +65,15 @@ class Onboarding:
     def row(self, identifier: UUID, write: bool = False) -> dict[str, Any]:
         row = (
             self.session.execute(
-                text("""SELECT r.*,v.registration,
+                text(
+                    """SELECT r.*,v.registration,
           (SELECT max(q.expires_at) FROM federation.agent_qualifications q WHERE q.tenant_id=r.tenant_id
             AND q.agent_id=r.id AND q.binding_version=r.binding_version AND q.report->>'status'='PASS')
             AS qualification_expires_at FROM federation.registrations r
           JOIN federation.registration_versions v ON v.id=r.binding_version AND v.tenant_id=r.tenant_id
-          WHERE r.tenant_id=:t AND r.organization_id=:o AND r.id=:id"""),
+          WHERE r.tenant_id=:t AND r.organization_id=:o AND r.id=:id"""
+                    + (" FOR UPDATE OF r" if write else "")
+                ),
                 {**self.params(write), "id": identifier},
             )
             .mappings()
@@ -187,13 +200,7 @@ class Onboarding:
         if row["state"] not in {"draft", "verification_pending"}:
             raise ValueError("Revise the binding before requesting another proof")
         registration = row["registration"]
-        if digest(card) != registration["card_digest"]:
-            raise ValueError("Agent Card differs from the registered digest")
-        parsed = AgentCard.model_validate(card)
-        if parsed.url != registration["endpoint"] or parsed.protocol_version != "0.3.0":
-            raise ValueError("Agent Card endpoint or protocol differs")
-        if registration["capability"] not in {skill.id for skill in parsed.skills}:
-            raise ValueError("Agent Card does not declare the requested capability")
+        validate_registered_card(card, registration)
         challenge_id = uuid4()
         expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
         payload = {

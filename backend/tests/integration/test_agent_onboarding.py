@@ -195,6 +195,7 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
     from orca.api.app import create_app
     from orca.api.dependencies import current_principal
     from orca.api.routers import agents as routes
+    from orca.api.routers import federation
     from orca.config import Settings
     from orca.infrastructure.federation.coordinator import load_coordinator
 
@@ -255,6 +256,27 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         assert response.status_code == 201, response.text
         identifier = response.json()["id"]
         path = base + "/" + identifier
+        checks = f"/v1/network/agents/{identifier}/endpoint-checks?organization_id={org}"
+        requests = []
+
+        def fetch_registered(endpoint):
+            requests.append(endpoint)
+            return raw if len(requests) == 1 else {**raw, "name": "Changed Card"}
+
+        monkeypatch.setattr(federation, "fetch_card", fetch_registered)
+        assert client.post(checks, json={"expected_version": 2}).status_code == 412
+        assert requests == []
+        observed = client.post(checks, json={"expected_version": 1})
+        assert observed.status_code == 200, observed.text
+        assert observed.json()["status"] == "matches_registration"
+        assert observed.json()["binding_version"] == response.json()["binding_version"]
+        assert client.post(checks, json={"expected_version": 1}).json()["status"] == "card_mismatch"
+        assert requests == [provider["endpoint"], provider["endpoint"]]
+        assert client.get(path).json()["state"] == "draft"
+        events = client.get(path + "/events").json()
+        assert [
+            item["data"]["status"] for item in events if item["event_type"] == "endpoint_checked"
+        ] == ["matches_registration", "card_mismatch"]
         assert client.get(f"/v1/organizations/{other_org}/agents").status_code in (403, 404)
         challenge = client.post(
             path + "/verification-challenges", json={"expected_version": 1}
@@ -327,6 +349,8 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
                 (tenant, subject),
             )
         assert client.get(base).status_code == 200
+        assert client.post(checks, json={"expected_version": 6}).status_code == 403
+        assert len(requests) == 2
         assert (
             client.post(base, json=body, headers={"Idempotency-Key": "reader-create"}).status_code
             == 403

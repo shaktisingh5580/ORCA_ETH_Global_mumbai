@@ -4,24 +4,28 @@ Refs: main_implementation plan.md P09.1; api design.md §3.10; Phase: P09.
 """
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
+import httpx
 from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import text
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.agents import service as onboarding_service
 from orca.api.routers.projects import engine, resolve_tenant
-from orca.contracts.agents import AgentRevision
+from orca.application.agent_onboarding import validate_registered_card
+from orca.contracts.agents import AgentRevision, AgentVersion
 from orca.contracts.common import Page
 from orca.contracts.network import (
     AgentCapabilityClaim,
     AgentEndpointClaim,
+    AgentEndpointObservation,
     FederatedAgentDetail,
     FederatedAgentSummary,
 )
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
+from orca.infrastructure.federation.https_egress import fetch_card
 
 router = APIRouter(prefix="/v1/network/agents", tags=["federation"])
 
@@ -189,3 +193,39 @@ def get_endpoints(
         next_cursor=None,
         page_size=1,
     )
+
+
+@router.post("/{agent_id}/endpoint-checks", response_model=AgentEndpointObservation)
+def check_endpoint(
+    agent_id: UUID,
+    organization_id: UUID,
+    body: AgentVersion,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> AgentEndpointObservation:
+    """Observe the sole registered endpoint without trusting arbitrary caller URLs."""
+    with onboarding_service(request, organization_id, principal) as app:
+        registration = app.expected(agent_id, body.expected_version)["registration"]
+    status: Literal["matches_registration", "card_mismatch", "unavailable"]
+    try:
+        observed = fetch_card(registration["endpoint"])
+    except (OSError, ValueError, httpx.HTTPError):
+        status = "unavailable"
+    else:
+        try:
+            validate_registered_card(observed, registration)
+        except ValueError:
+            status = "card_mismatch"
+        else:
+            status = "matches_registration"
+    observed_at = datetime.now(timezone.utc)
+    with onboarding_service(request, organization_id, principal) as app:
+        row = app.expected(agent_id, body.expected_version)
+        observation = AgentEndpointObservation(
+            agent_id=agent_id,
+            binding_version=row["binding_version"],
+            observed_at=observed_at,
+            status=status,
+        )
+        app.event(agent_id, "endpoint_checked", observation.model_dump(mode="json"))
+    return observation
