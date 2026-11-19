@@ -26,6 +26,32 @@ Card alone does not qualify it. Dispatch requires a current
 secondary endpoint. Include the same URL as `endpoint` on the dispatch request.
 Requests that omit it continue to use the primary endpoint.
 
+Fallback is an explicit replacement. If ORCA records PROVIDER_PREFLIGHT_FAILED,
+submit a new dispatch for the same run, capability, method and budget, with a new
+Idempotency-Key and `fallback_from` set to the original dispatch UUID. Choose a
+different currently qualified, policy-approved endpoint. ORCA permits one
+replacement for an original dispatch. A timeout during or after submission
+requires readback reconciliation before any operator decision.
+
+The live acceptance suite is backend/tests/live/test_external_research_a2a.py.
+Set ORCA_TEST_EXTERNAL_A2A_BUNDLE to a private JSON file prepared with the separate
+provider operator. The file needs `coordinator` (id, key_id, public_key and private_key
+for the dedicated test identity), `signed_grant` for a fresh sanctioned task,
+`scope` in ResearchDispatchScope format, and `agent` with the current IDs, state,
+qualification expiry, research-dispatch flag and pinned registration. The grant
+must name the exact HTTPS endpoint. To test cancellation, also supply
+`cancellation` with its own fresh `signed_grant`, `remote_task_id` and
+`remote_context_id` for a separate live task which the provider can still cancel.
+
+Run from the repository root with its Python environment:
+
+    python -m pytest -c backend/pyproject.toml backend/tests/live/test_external_research_a2a.py -q -rs --tb=no --junitxml=docs/gates/P09/external-a2a.xml
+
+Keep the bundle and keys out of Git. The JUnit evidence records task and artifact
+digests. The cancellation prerequisite requires a provider that exposes a
+cancellable running research task. The bounded temperature-summary service
+computes and persists its result synchronously.
+
 To check a completed temperature summary offline, run
 `python -m orca.workers.verify_remote_summary <review-bundle.json>`.
 The bundle contains `signed_grant`, independently pinned `coordinator_public`

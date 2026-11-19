@@ -1565,6 +1565,18 @@
             ],
             "title": "Endpoint"
           },
+          "fallback_from": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback From"
+          },
           "method_id": {
             "maxLength": 120,
             "minLength": 1,
@@ -5385,6 +5397,18 @@
               }
             ],
             "title": "Error Code"
+          },
+          "fallback_from": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback From"
           },
           "generation": {
             "title": "Generation",

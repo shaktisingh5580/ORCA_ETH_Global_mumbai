@@ -21,6 +21,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from orca.application.federation import ResearchDispatchScope, ResearchGrant, sign_grant
 from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.research_a2a_client import (
+    ResearchRequestNotSent,
     cancel_research_task,
     dispatch_research_task,
     read_research_result,
@@ -186,6 +187,46 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
         coordinator = FederationCoordinator(
             uuid4(), "coordinator-v1", public(coordinator_key), private(coordinator_key)
         )
+        attempted: list[str] = []
+
+        def offline(request: httpx.Request) -> httpx.Response:
+            attempted.append(request.method)
+            raise httpx.ConnectTimeout("Provider offline")
+
+        with pytest.raises(ResearchRequestNotSent):
+            await dispatch_research_task(
+                signed,
+                agent,
+                scope,
+                coordinator.id,
+                coordinator.public_key,
+                coordinator.private_key,
+                coordinator.key_id,
+                transport=httpx.MockTransport(offline),
+            )
+        assert attempted == ["GET"]
+
+        def response_lost(request: httpx.Request) -> httpx.Response:
+            attempted.append(request.method)
+            if request.method == "GET":
+                return httpx.Response(200, json=card_data)
+            raise httpx.ReadTimeout("Response lost after message/send")
+
+        # The SDK may wrap transport failures, but a failure after submission
+        # must never be classified as safe for fallback.
+        with pytest.raises(Exception) as failure:
+            await dispatch_research_task(
+                signed,
+                agent,
+                scope,
+                coordinator.id,
+                coordinator.public_key,
+                coordinator.private_key,
+                coordinator.key_id,
+                transport=httpx.MockTransport(response_lost),
+            )
+        assert not isinstance(failure.value, ResearchRequestNotSent)
+        assert attempted == ["GET", "GET", "POST"]
         result = await dispatch_research_task(
             signed,
             agent,

@@ -3,6 +3,7 @@ Behavior: use safe HTTPS egress and verify the returned task and service-signed 
 Refs: main_implementation plan.md P09.2-P09.3; api design.md §17.1; Phase: P09.
 """
 
+import asyncio
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -37,6 +38,10 @@ from orca.application.federation import (
 from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.https_egress import PublicProviderTransport, endpoint_origin
 from orca.infrastructure.federation.signing import canonical, digest, unb64
+
+
+class ResearchRequestNotSent(ValueError):
+    """The client stopped before attempting to submit the A2A task."""
 
 
 def verified_artifact(
@@ -116,6 +121,7 @@ async def _research_client(
     transport: httpx.AsyncBaseTransport | None,
     *,
     readback_task_id: str | None = None,
+    classify_before_send: bool = False,
 ) -> AsyncIterator[tuple[A2AClient, dict[str, Any]]]:
     grant = verify_grant(signed, coordinator.public_key, coordinator.key_id)
     if grant.endpoint is not None and grant.endpoint != registration["endpoint"]:
@@ -164,20 +170,28 @@ async def _research_client(
         trust_env=False,
         follow_redirects=False,
     ) as http:
-        response = await http.get(origin + "/.well-known/agent-card.json")
-        response.raise_for_status()
-        if len(response.content) > 32768:
-            raise ValueError("Agent Card exceeds the response bound")
-        raw = response.json()
-        if digest(raw) != registration["card_digest"]:
-            raise ValueError("Agent Card changed since registration")
-        card = AgentCard.model_validate(raw)
-        if (
-            card.url != registration["endpoint"]
-            or card.protocol_version != "0.3.0"
-            or grant.capability_id not in {skill.id for skill in card.skills}
-        ):
-            raise ValueError("Agent Card does not match the approved binding")
+        try:
+            async with asyncio.timeout(45):
+                response = await http.get(origin + "/.well-known/agent-card.json")
+            response.raise_for_status()
+            if len(response.content) > 32768:
+                raise ValueError("Agent Card exceeds the response bound")
+            raw = response.json()
+            if digest(raw) != registration["card_digest"]:
+                raise ValueError("Agent Card changed since registration")
+            card = AgentCard.model_validate(raw)
+            if (
+                card.url != registration["endpoint"]
+                or card.protocol_version != "0.3.0"
+                or grant.capability_id not in {skill.id for skill in card.skills}
+            ):
+                raise ValueError("Agent Card does not match the approved binding")
+        except (OSError, ValueError, httpx.HTTPError) as error:
+            if classify_before_send:
+                raise ResearchRequestNotSent(
+                    "Provider card could not be verified before send"
+                ) from error
+            raise
         http.headers["Authorization"] = "Bearer " + token
         yield A2AClient(http, agent_card=card), data
 
@@ -212,7 +226,9 @@ async def dispatch_research_task(
     coordinator = FederationCoordinator(
         coordinator_id, coordinator_key_id, coordinator_public_key, coordinator_private_key
     )
-    async with _research_client(signed, registration, coordinator, transport) as (client, data):
+    async with _research_client(
+        signed, registration, coordinator, transport, classify_before_send=True
+    ) as (client, data):
         reply = await client.send_message(
             SendMessageRequest(
                 id=str(uuid4()),

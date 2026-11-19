@@ -44,7 +44,7 @@ class RemoteDispatches:
         row = (
             self.session.execute(
                 text("""SELECT id,run_id,agent_id,binding_version,capability_id,method_id,
-              plan_digest,dataset_ids,budget_usd::text AS budget_usd,state,generation,grant_digest,result_digest,endpoint,
+              plan_digest,dataset_ids,budget_usd::text AS budget_usd,state,generation,grant_digest,result_digest,endpoint,fallback_from,
               verified_response,error_code,created_at,updated_at,
               remote_cancel_confirmed_at IS NOT NULL AS remote_cancellation_confirmed
               FROM federation.research_dispatches WHERE tenant_id=:tenant AND project_id=:project
@@ -122,6 +122,7 @@ class RemoteDispatches:
         idempotency_key: str,
         *,
         endpoint: str | None = None,
+        fallback_from: UUID | None = None,
     ) -> DispatchReceipt:
         authorize_project(self.session, self.tenant, self.project, self.principal, "research:run")
         if not 1 <= len(idempotency_key) <= 128 or not 1 <= len(capability_id) <= 100:
@@ -145,6 +146,7 @@ class RemoteDispatches:
                 "method_id": method_id,
                 "budget_usd": format(budget_usd, "f"),
                 **({"endpoint": endpoint} if endpoint is not None else {}),
+                **({"fallback_from": str(fallback_from)} if fallback_from is not None else {}),
             }
         )
         existing = (
@@ -179,6 +181,39 @@ class RemoteDispatches:
         plan = TypedPlan.model_validate(run["plan"])
         if plan.method_hint != method_id or not plan.source_ids:
             raise ValueError("Remote method and source snapshots must match the approved plan")
+        prior = None
+        if fallback_from is not None:
+            prior = (
+                self.session.execute(
+                    text("""SELECT d.state,d.error_code,d.agent_id,d.endpoint,d.capability_id,
+                  d.method_id,d.plan_digest,d.dataset_ids,d.budget_usd,
+                  coalesce(d.endpoint,v.registration->>'endpoint') AS target,
+                  EXISTS(SELECT 1 FROM federation.research_dispatches child
+                    WHERE child.tenant_id=d.tenant_id AND child.project_id=d.project_id
+                      AND child.fallback_from=d.id) AS replaced
+                  FROM federation.research_dispatches d JOIN federation.registration_versions v
+                    ON v.tenant_id=d.tenant_id AND v.id=d.binding_version AND v.agent_id=d.agent_id
+                  WHERE d.tenant_id=:tenant AND d.project_id=:project AND d.run_id=:run AND d.id=:prior
+                  FOR UPDATE OF d"""),
+                    {**params, "prior": fallback_from},
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if prior is None:
+                raise LookupError("Original dispatch not found in this run")
+            if prior["state"] != "failed" or prior["error_code"] != "PROVIDER_PREFLIGHT_FAILED":
+                raise ValueError("Fallback requires a confirmed failure before submission")
+            if prior["replaced"]:
+                raise ValueError("Original dispatch already has a fallback")
+            if (
+                prior["capability_id"] != capability_id
+                or prior["method_id"] != method_id
+                or prior["plan_digest"] != run["plan_digest"]
+                or prior["dataset_ids"] != plan.source_ids
+                or prior["budget_usd"] != budget_usd
+            ):
+                raise ValueError("Fallback must preserve the original approved scope and budget")
         for source_id in plan.source_ids:
             granted = self.session.execute(
                 text("""SELECT 1 FROM research.snapshot_project_grants
@@ -218,6 +253,12 @@ class RemoteDispatches:
         )
         if target["capability"] != capability_id:
             raise PermissionError("Provider is not active and qualified for this capability")
+        if (
+            fallback_from is not None
+            and prior is not None
+            and target["endpoint"] == prior["target"]
+        ):
+            raise ValueError("Fallback requires a different provider endpoint")
         authorization = self.session.execute(
             text("""SELECT id FROM federation.research_authorizations
               WHERE tenant_id=:tenant AND project_id=:project AND agent_id=:agent
@@ -252,7 +293,9 @@ class RemoteDispatches:
             text("""SELECT COALESCE(sum(budget_usd),0) FROM federation.research_dispatches
               WHERE tenant_id=:tenant AND project_id=:project AND run_id=:run
                 AND (state IN ('queued','leased','completed','reconciliation_required')
-                  OR signed_grant IS NOT NULL)"""),
+                  OR (signed_grant IS NOT NULL AND NOT (
+                    state='failed' AND error_code IS NOT DISTINCT FROM 'PROVIDER_PREFLIGHT_FAILED'
+                  )))"""),
             params,
         ).scalar_one()
         if allocated + budget_usd > reservation:
@@ -262,9 +305,9 @@ class RemoteDispatches:
             text("""INSERT INTO federation.research_dispatches
               (id,tenant_id,organization_id,project_id,run_id,agent_id,binding_version,
                authorization_id,capability_id,method_id,plan_digest,dataset_ids,budget_usd,
-               request_digest,idempotency_key,created_by,endpoint)
+               request_digest,idempotency_key,created_by,endpoint,fallback_from)
               VALUES(:id,:tenant,:organization,:project,:run,:agent,:binding,:authorization,
-                :capability,:method,:plan_digest,:datasets,:budget,:request,:key,:actor,:endpoint)"""),
+                :capability,:method,:plan_digest,:datasets,:budget,:request,:key,:actor,:endpoint,:fallback)"""),
             {
                 **params,
                 "id": identifier,
@@ -281,6 +324,7 @@ class RemoteDispatches:
                 "key": idempotency_key,
                 "actor": self.principal.subject,
                 "endpoint": endpoint,
+                "fallback": fallback_from,
             },
         )
         return DispatchReceipt(identifier, run_id, agent_id, "queued")

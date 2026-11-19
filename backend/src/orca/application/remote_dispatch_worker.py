@@ -28,6 +28,7 @@ from orca.application.workspace_access import authorize_project
 from orca.domain.identity import Principal
 from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.research_a2a_client import (
+    ResearchRequestNotSent,
     cancel_research_task,
     dispatch_research_task,
     read_research_result,
@@ -563,6 +564,11 @@ class RemoteDispatchWorker:
                     )
 
             result = asyncio.run(exchange_once())
+        except ResearchRequestNotSent:
+            with self.transaction() as session:
+                if self._finish(session, lease, "failed", "PROVIDER_PREFLIGHT_FAILED"):
+                    return "rejected"
+            return "lease_lost"
         except Exception:
             with self.transaction() as session:
                 if self._finish(

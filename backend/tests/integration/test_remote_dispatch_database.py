@@ -29,6 +29,7 @@ from orca.domain.identity import ROLE_SCOPES, Principal
 from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.infrastructure.federation.coordinator import FederationCoordinator
+from orca.infrastructure.federation.research_a2a_client import ResearchRequestNotSent
 from orca.infrastructure.federation.signing import b64, canonical, digest
 from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
 
@@ -442,6 +443,17 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
             tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, lose_response
         )
         assert recovery_worker.run_once() == "reconciliation_required"
+        with TenantUnitOfWork(db, tenant) as session:
+            with pytest.raises(ValueError, match="confirmed failure before submission"):
+                RemoteDispatches(session, tenant, project, principal).enqueue(
+                    run.run_id,
+                    agent_id,
+                    "temperature_summary_v1",
+                    "sst.seasonal_anomaly",
+                    Decimal("0.10"),
+                    "unsafe-fallback",
+                    fallback_from=uncertain.id,
+                )
         attempts = []
 
         async def read_result(signed, registration, identity, reference):
@@ -544,12 +556,90 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
         )
 
         with TenantUnitOfWork(db, tenant) as session:
+            origin = RemoteDispatches(session, tenant, project, principal).enqueue(
+                run.run_id,
+                agent_id,
+                "temperature_summary_v1",
+                "sst.seasonal_anomaly",
+                Decimal("0.10"),
+                "preflight-fails",
+            )
+
+        async def preflight_fails(*_):
+            raise ResearchRequestNotSent("Card unavailable")
+
+        assert (
+            RemoteDispatchWorker(
+                tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, preflight_fails
+            ).run_once()
+            == "rejected"
+        )
+        with TenantUnitOfWork(db, tenant) as session:
+            service = RemoteDispatches(session, tenant, project, principal)
+            assert service.get(run.run_id, origin.id)["error_code"] == "PROVIDER_PREFLIGHT_FAILED"
+            with pytest.raises(ValueError, match="different provider endpoint"):
+                service.enqueue(
+                    run.run_id,
+                    agent_id,
+                    "temperature_summary_v1",
+                    "sst.seasonal_anomaly",
+                    Decimal("0.10"),
+                    "same-endpoint",
+                    fallback_from=origin.id,
+                )
+            replacement = service.enqueue(
+                run.run_id,
+                agent_id,
+                "temperature_summary_v1",
+                "sst.seasonal_anomaly",
+                Decimal("0.10"),
+                "safe-fallback",
+                endpoint=secondary_target,
+                fallback_from=origin.id,
+            )
+            assert service.get(run.run_id, replacement.id)["fallback_from"] == origin.id
+            assert (
+                service.enqueue(
+                    run.run_id,
+                    agent_id,
+                    "temperature_summary_v1",
+                    "sst.seasonal_anomaly",
+                    Decimal("0.10"),
+                    "safe-fallback",
+                    endpoint=secondary_target,
+                    fallback_from=origin.id,
+                ).id
+                == replacement.id
+            )
+            with pytest.raises(ValueError, match="already has a fallback"):
+                service.enqueue(
+                    run.run_id,
+                    agent_id,
+                    "temperature_summary_v1",
+                    "sst.seasonal_anomaly",
+                    Decimal("0.10"),
+                    "duplicate-fallback",
+                    endpoint=secondary_target,
+                    fallback_from=origin.id,
+                )
+        assert (
+            RemoteDispatchWorker(
+                tenant,
+                project,
+                lambda: TenantUnitOfWork(db, tenant),
+                coordinator,
+                respond_secondary,
+            ).run_once()
+            == "completed"
+        )
+
+        with TenantUnitOfWork(db, tenant) as session:
             revoked_dispatch = RemoteDispatches(session, tenant, project, principal).enqueue(
                 run.run_id,
                 agent_id,
                 "temperature_summary_v1",
                 "sst.seasonal_anomaly",
-                Decimal("0.30"),
+                Decimal("0.20"),
                 "remote-revoke",
             )
 
