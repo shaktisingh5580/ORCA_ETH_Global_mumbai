@@ -29,7 +29,12 @@ from orca.infrastructure.federation.public_events import (
     public_event,
     public_task_intent,
 )
-from orca.infrastructure.federation.runtime import ChainUnavailable, NetworkRuntime, load_runtime
+from orca.infrastructure.federation.runtime import (
+    ChainUnavailable,
+    NetworkRuntime,
+    PublicV1ReconciliationRequired,
+    load_runtime,
+)
 from orca.infrastructure.federation.signing import CHAIN_ID, DOMAIN, sign, verify
 
 
@@ -569,7 +574,9 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
             and error.status_code >= 500
         ) and job["attempts"] < 2
         code = (
-            "ARKIV_RECONCILIATION_REQUIRED"
+            "ARKIV_V1_RECONCILIATION_REQUIRED"
+            if isinstance(error, PublicV1ReconciliationRequired)
+            else "ARKIV_RECONCILIATION_REQUIRED"
             if reconciliation
             else "COORDINATION_FAILED_OR_AUTHORITY_CHANGED"
         )

@@ -612,24 +612,40 @@ def test_lost_a2a_response_retries_same_operation_and_provider_replays_durable_o
 
 @pytest.mark.live
 @pytest.mark.enable_socket
-def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(network_http):
+@pytest.mark.parametrize("v1", [False, True], ids=["legacy", "arkiv-v1"])
+def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(network_http, v1):
     from dataclasses import replace
 
-    from orca.infrastructure.federation.runtime import ChainUnavailable
+    from orca.infrastructure.federation.runtime import (
+        ChainUnavailable,
+        PublicV1ReconciliationRequired,
+    )
 
     client, tenant, project, _, run, _ = network_http
     seen = []
 
     class UncertainGateway:
         def publish(self, *args):
-            seen.append(args)
+            seen.append("signed")
+            if v1:
+                return {"entity_key": "0x" + "a" * 64}
             raise ChainUnavailable(True)
+
+        def public_v1_publish(self, intent):
+            assert intent["kind"] == "task"
+            seen.append("v1")
+            raise PublicV1ReconciliationRequired()
 
     runtime = replace(client.app.state.network_runtime, gateway=UncertainGateway())
     created = post(
         client,
         "/v1/network/tasks",
-        {"project_id": str(project), "source_run_id": str(run), "approve_public_reference": True},
+        {
+            "project_id": str(project),
+            "source_run_id": str(run),
+            "approve_public_reference": True,
+            "publish_arkiv_v1": v1,
+        },
     )
     identifier = uuid_from(created.json()["id"])
     assert process(client.app.state.runtime_engine, runtime, tenant, identifier)
@@ -637,7 +653,11 @@ def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(netw
     result = client.get(
         f"/v1/network/operations/{identifier}", params={"project_id": str(project)}
     ).json()
-    assert result["status"] == "reconciliation_required" and len(seen) == 1
+    assert result["status"] == "reconciliation_required"
+    assert result["error_code"] == (
+        "ARKIV_V1_RECONCILIATION_REQUIRED" if v1 else "ARKIV_RECONCILIATION_REQUIRED"
+    )
+    assert seen == (["signed", "v1"] if v1 else ["signed"])
 
 
 @pytest.mark.live

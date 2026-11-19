@@ -1,0 +1,44 @@
+{
+  "phase": "P11",
+  "gate": "G11",
+  "status": "BLOCKED",
+  "prerequisite": {
+    "gate": "G10",
+    "status": "NOT_PASSED"
+  },
+  "scope": "P11.4 independent verification and recovery",
+  "required_cases": {
+    "test_orca_api_offline_external_verifier_reads": {
+      "test_file": "arkiv/tests/independent-verifier.test.mjs",
+      "evidence_scope": "local SDK transport and no ORCA API",
+      "status": "LOCAL_PASS"
+    },
+    "test_arkiv_entity_expired_and_deleted": {
+      "test_file": "arkiv/tests/public-outbox.test.mjs",
+      "evidence_scope": "local fixture tests missing rows before and after recorded expiry",
+      "status": "LOCAL_PASS"
+    },
+    "test_nonce_collision_handled": {
+      "test_file": "arkiv/tests/public-outbox.test.mjs",
+      "evidence_scope": "local mismatched SDK creation response",
+      "status": "LOCAL_PASS"
+    },
+    "test_tx_timeout_unknown_reconcile": {
+      "test_file": "arkiv/tests/public-outbox.test.mjs",
+      "evidence_scope": "local injected send ambiguity and read-only recovery",
+      "status": "LOCAL_PASS"
+    },
+    "test_rate_limit_backoff": {
+      "test_file": "arkiv/tests/independent-verifier.test.mjs",
+      "evidence_scope": "local HTTP 429 and Retry-After inputs",
+      "status": "LOCAL_PASS"
+    }
+  },
+  "remaining": [
+    "Complete G10 acceptance and verify the operator identities used for live P11 work.",
+    "Collect authorized live multi-wallet task, claim, assignment, result and review receipts.",
+    "Verify current published P11 entities independently while the ORCA API is offline.",
+    "Complete end-to-end authenticated recovery of held Arkiv v1 operations and capture live lifecycle evidence."
+  ],
+  "progress_file": "docs/gates/P11/progress.json"
+}

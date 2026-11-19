@@ -1,6 +1,6 @@
 """Purpose: load explicit operator-pinned agent endpoints and invoke the isolated Arkiv bridge.
 Behavior: restrict this prototype to literal loopback providers and keep wallet secrets out of HTTP.
-Refs: H04 decision; main_implementation plan.md P11.2; api design.md §3.12. Phase: H04/P11.
+Refs: H04 decision; main_implementation plan.md P11.2–P11.4; api design.md §3.12. Phase: H04/P11.
 """
 
 import json
@@ -61,6 +61,11 @@ class ChainUnavailable(RuntimeError):
         super().__init__("ARKIV_RECONCILIATION_REQUIRED" if reconciliation else "ARKIV_UNAVAILABLE")
 
 
+class PublicV1ReconciliationRequired(ChainUnavailable):
+    def __init__(self) -> None:
+        super().__init__(reconciliation=True)
+
+
 @dataclass(frozen=True)
 class ArkivGateway:
     wallet_env_file: Path
@@ -118,14 +123,24 @@ class ArkivGateway:
     def public_v1_publish(self, intent: dict[str, Any]) -> dict[str, Any]:
         if intent["owner"].lower() != self.owner.lower():
             raise ValueError("pinned writer mismatch")
-        result = self._bridge(
-            ["public-outbox.mjs", "publish", str(self.state_dir / "arkiv-v1"), "--approve-public"],
-            intent,
-            write=True,
-            ambiguous=True,
-        )
+        try:
+            result = self._bridge(
+                [
+                    "public-outbox.mjs",
+                    "publish",
+                    str(self.state_dir / "arkiv-v1"),
+                    "--approve-public",
+                ],
+                intent,
+                write=True,
+                ambiguous=True,
+            )
+        except ChainUnavailable as error:
+            if error.reconciliation:
+                raise PublicV1ReconciliationRequired() from error
+            raise
         if result.get("status") != "indexed":
-            raise ChainUnavailable(reconciliation=True)
+            raise PublicV1ReconciliationRequired()
         return result
 
     def public_v1_read(self, kind: str, key: str, owner: str) -> dict[str, Any]:

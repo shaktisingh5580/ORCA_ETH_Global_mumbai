@@ -1,6 +1,6 @@
 """Purpose: reconcile uncertain local coordinator/provider sends without blind transaction replay.
 Behavior: require live owner/digest/signature proof before unlocking the matching writer/resuming intent.
-Refs: canonical durable outbox/recovery rules; H04-agent-coordination.json; Phase: H04.
+Refs: H04-agent-coordination.json and main_implementation plan.md P11.4. Phase: H04/P11.
 """
 
 import argparse
@@ -59,6 +59,14 @@ def main() -> None:
             service.task_row(operation["task_id"])
             if operation["created_by"] != args.subject:
                 raise PermissionError("only original requester can resume this intent")
+            if args.resume:
+                task_receipt = session.execute(
+                    text(
+                        "SELECT receipt FROM federation.events WHERE tenant_id=:t AND task_id=:task AND kind='task'"
+                    ),
+                    {"t": tenant, "task": operation["task_id"]},
+                ).scalar_one_or_none()
+                refuse_v1_resume(operation, task_receipt)
         locations = [(runtime.configuration.coordinator, runtime.gateway)]
         for binding in runtime.configuration.agents:
             role = "ocean" if binding.capability == "sst_reproduction" else "reviewer"
@@ -143,6 +151,17 @@ def main() -> None:
         )
     finally:
         db.dispose()
+
+
+def refuse_v1_resume(operation: dict, task_receipt: dict | None) -> None:
+    if (
+        operation["error_code"] == "ARKIV_V1_RECONCILIATION_REQUIRED"
+        or operation["payload"].get("publish_arkiv_v1")
+        or (task_receipt or {}).get("arkiv_v1")
+    ):
+        raise ValueError(
+            "Use read-only Arkiv v1 reconciliation for this operation. The legacy tool cannot requeue it."
+        )
 
 
 if __name__ == "__main__":

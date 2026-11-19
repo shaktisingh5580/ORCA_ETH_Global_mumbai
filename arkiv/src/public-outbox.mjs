@@ -1,6 +1,6 @@
 /** Purpose: publish consented P11 coordination and evidence references with durable intents.
  * Behavior: bind the wallet, reserve the predicted key before send and reconcile by reading only.
- * Refs: main_implementation plan.md P11.2–P11.3; api design.md §§3.12,4.7,5.2. Phase: P11.
+ * Refs: main_implementation plan.md P11.2–P11.4; api design.md §§3.12,4.7,5.2. Phase: P11.
  */
 import { mkdir, open, readFile, unlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -12,6 +12,7 @@ import { http, isAddress, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createRabdiReader, preflight, RABDI_CHAIN_ID, readPublicRecord } from './public-client.mjs';
 import { entityKey, publicationOptions, publicSchema, validatePublicAttributes } from './public-schema.mjs';
+import { observeCreationReceipt } from './readback.mjs';
 
 function address(value) {
   if (typeof value !== 'string' || !isAddress(value, {strict:false}) || value.toLowerCase() === zeroAddress) {
@@ -95,14 +96,27 @@ async function reconcile(reader, paths, intent, reservation) {
   const observed = await readPublicRecord(reader, {
     kind:intent.kind, key:reservation.key, expectedOwner:intent.owner,
   });
-  if (observed.status !== 'observed') {
-    return {status:'unresolved', entity_key:reservation.key, observation:observed.status,
-      tx_hash:submitted?.tx_hash ?? null};
+  const txHash = submitted?.tx_hash ?? null;
+  const receipt = txHash ? await observeCreationReceipt(reader, {
+    txHash, entityKey:reservation.key, owner:intent.owner,
+  }) : null;
+  if (observed.status !== 'observed' || (receipt && receipt.status !== 'observed')) {
+    const observation = observed.status === 'not_found' && receipt?.status === 'observed' &&
+      BigInt(observed.observed_block) >= BigInt(receipt.creation_expiry_block)
+      ? 'absent_at_or_after_recorded_expiry' : observed.status;
+    return {status:'unresolved', entity_key:reservation.key, observation, tx_hash:txHash,
+      ...(receipt && {receipt})};
   }
   if (!isDeepStrictEqual(observed.attributes, intent.attributes)) {
     throw new Error('Reserved entity differs from its public intent');
   }
-  return {status:'indexed', entity_key:reservation.key, tx_hash:submitted?.tx_hash ?? null, observation:observed};
+  if (receipt && (BigInt(observed.observed_block) < BigInt(receipt.block_number) ||
+      BigInt(observed.expires_at_block) < BigInt(receipt.creation_expiry_block))) {
+    return {status:'unresolved', entity_key:reservation.key, observation:'inconsistent_chain_view',
+      tx_hash:txHash, receipt};
+  }
+  return {status:'indexed', entity_key:reservation.key, tx_hash:txHash, observation:observed,
+    ...(receipt && {receipt})};
 }
 
 export async function reconcilePublicIntent(reader, root, input) {
@@ -153,8 +167,10 @@ export async function publishPublicIntent(reader, writer, root, input) {
       ...expiration, salt:predicted.salt,
     });
     await reserve(paths.submitted, {key:created.entityKey?.toLowerCase(), tx_hash:created.txHash});
-    release = entityKey.test(created.txHash ?? '') && created.entityKey?.toLowerCase() === reservation.key;
-    return await reconcile(reader, paths, intent, reservation);
+    const result = await reconcile(reader, paths, intent, reservation);
+    release = result.status === 'indexed' || result.receipt?.status === 'observed' &&
+      result.observation === 'not_found';
+    return result;
   } finally {
     if (release) await unlink(paths.lock);
   }

@@ -10,13 +10,24 @@ import { asc, eq, gt } from '@arkiv-network/sdk/query';
 import { addr, key, str } from '@arkiv-network/sdk/schema';
 import { http, isAddress, zeroAddress } from 'viem';
 import { entityKey, publicId, publicSchema, schemaInventory, validatePublicAttributes } from './public-schema.mjs';
+import { readWithBackoff } from './read-backoff.mjs';
 
 export const RABDI_CHAIN_ID = 7794095;
+const retryableReads = new Set([
+  'eth_chainId', 'eth_call', 'eth_getTransactionReceipt', 'eth_getBlockByNumber',
+  'arkiv_getBlockTiming', 'arkiv_getEntity', 'arkiv_query',
+]);
 
 export function createRabdiReader(accessKey) {
+  const transport = http(undefined, {timeout:12000, retryCount:0});
   return createPublicClient({
     chain:rabdi({accessKey}),
-    transport:http(undefined, {timeout:12000, retryCount:0}),
+    transport:parameters => {
+      const connection = transport(parameters);
+      return {...connection, request:args => retryableReads.has(args.method)
+        ? readWithBackoff(() => connection.request(args))
+        : connection.request(args)};
+    },
   });
 }
 
@@ -79,7 +90,8 @@ export async function readPublicRecord(client, {kind, key, expectedOwner}) {
     row = await client.getEntity(key);
   } catch (error) {
     if (!(error instanceof NoEntityFoundError)) throw error;
-    return {chain_id:RABDI_CHAIN_ID, entity_key:key, status:'not_found'};
+    return {chain_id:RABDI_CHAIN_ID, entity_key:key, status:'not_found',
+      observed_block:String(await readBlock(client))};
   }
   return observeRecord(kind, schema, row, key, owner, await readBlock(client));
 }

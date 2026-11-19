@@ -7,7 +7,8 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { NoEntityFoundError } from '@arkiv-network/sdk';
+import { ENTITY_EVENTS_ABI, NoEntityFoundError } from '@arkiv-network/sdk';
+import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import { publishPublicIntent, reconcilePublicIntent } from '../src/public-outbox.mjs';
 
 const chain = {id:7794095};
@@ -18,6 +19,7 @@ const taskKey = '0x' + '1'.repeat(64);
 const claimKey = '0x' + '2'.repeat(64);
 const transaction = '0x' + '3'.repeat(64);
 const assignmentKey = '0x' + '5'.repeat(64);
+const blockHash = '0x' + '6'.repeat(64);
 const task = {
   kind:'task', owner:requester, lifetimeSeconds:60,
   attributes:{taskId, capability:'sst_reproduction', regionCode:'indian', status:'open',
@@ -34,9 +36,14 @@ async function setup(t) {
   t.after(() => rm(root, {recursive:true, force:true}));
   const rows = new Map();
   const sent = [];
+  const logs = [];
   const reader = {
     getChainId:async () => chain.id,
     getBlockTiming:async () => ({currentBlock:100n}),
+    getBlock:async () => ({hash:blockHash}),
+    getTransactionReceipt:async () => ({
+      status:'success', transactionHash:transaction, blockHash, blockNumber:99n, logs,
+    }),
     getEntity:async key => {
       if (!rows.has(key)) throw new NoEntityFoundError(key);
       return rows.get(key);
@@ -60,6 +67,13 @@ async function setup(t) {
       if (outcome === 'nonce_changed') {
         return {entityKey:'0x' + '4'.repeat(64), txHash:transaction};
       }
+      logs.push({
+        address:'0x4400000000000000000000000000000000000044', removed:false,
+        topics:encodeEventTopics({
+          abi:ENTITY_EVENTS_ABI, eventName:'EntityCreated', args:{entityKey:reserved.key, owner},
+        }),
+        data:encodeAbiParameters([{type:'uint64'}, {type:'uint8'}], [140n,1]),
+      });
       rows.set(reserved.key, {
         $key:reserved.key, $owner:owner, $creator:owner, $expiresAt:140n,
         $creationFlags:{readonly:true, permissionlessExtension:false},
@@ -111,7 +125,7 @@ test('test_ambiguous_tx_no_blind_resubmit', async t => {
   assert.equal(sent.length, 1);
 });
 
-test('read-only reconciliation recovers a visible entity after the writer loses its response', async t => {
+test('test_tx_timeout_unknown_reconcile', async t => {
   const {root,reader,writer,sent} = await setup(t);
   await assert.rejects(publishPublicIntent(reader,writer(requester,'lost_after_index'),root,task), /Lost transaction/);
   const result = await reconcilePublicIntent(reader,root,task);
@@ -121,13 +135,37 @@ test('read-only reconciliation recovers a visible entity after the writer loses 
   assert.equal(sent.length,1);
 });
 
-test('a mined key inconsistent with the reservation requires operator reconciliation', async t => {
+test('test_nonce_collision_handled', async t => {
   const {root,reader,writer,sent} = await setup(t);
   const result = await publishPublicIntent(reader,writer(requester,'nonce_changed'),root,task);
   assert.deepEqual(result,{status:'manual_review',entity_key:taskKey,
     returned_entity_key:'0x' + '4'.repeat(64),tx_hash:transaction});
   assert.deepEqual(await reconcilePublicIntent(reader,root,task), result);
   assert.equal(sent.length,1);
+});
+
+test('a changed block hash leaves the transaction unresolved and does not trigger another write', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  const original = await publishPublicIntent(reader,writer(requester),root,task);
+  assert.equal(original.receipt.block_hash, blockHash);
+  reader.getBlock = async () => ({hash:'0x' + '7'.repeat(64)});
+  const after = await reconcilePublicIntent(reader,root,task);
+  assert.equal(after.status,'unresolved');
+  assert.equal(after.receipt.status,'block_changed');
+  assert.equal((await publishPublicIntent(reader,writer(requester),root,task)).status,'unresolved');
+  assert.equal(sent.length,1);
+});
+
+test('test_arkiv_entity_expired_and_deleted', async t => {
+  const {root,reader,writer,rows} = await setup(t);
+  await publishPublicIntent(reader,writer(requester),root,task);
+  rows.delete(taskKey);
+  const deletedOrAbsent = await reconcilePublicIntent(reader,root,task);
+  assert.equal(deletedOrAbsent.observation,'not_found');
+  reader.getBlockTiming = async () => ({currentBlock:141n});
+  const pastExpiry = await reconcilePublicIntent(reader,root,task);
+  assert.equal(pastExpiry.observation,'absent_at_or_after_recorded_expiry');
+  assert.equal(pastExpiry.status,'unresolved');
 });
 
 test('only the requester can publish a reference for the exact selected claim', async t => {
