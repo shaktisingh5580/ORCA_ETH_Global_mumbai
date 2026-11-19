@@ -9798,6 +9798,9 @@
             },
             "description": "Successful Response"
           },
+          "409": {
+            "description": "At least one agent name is inactive on finalized Sepolia."
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9807,6 +9810,9 @@
               }
             },
             "description": "Validation Error"
+          },
+          "503": {
+            "description": "The finalized resolver observation is unavailable."
           }
         },
         "security": [
@@ -9892,6 +9898,9 @@
             },
             "description": "Successful Response"
           },
+          "409": {
+            "description": "At least one agent name is inactive on finalized Sepolia."
+          },
           "422": {
             "content": {
               "application/json": {
@@ -9901,6 +9910,9 @@
               }
             },
             "description": "Validation Error"
+          },
+          "503": {
+            "description": "The finalized resolver observation is unavailable."
           }
         },
         "security": [

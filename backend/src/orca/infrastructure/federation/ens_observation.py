@@ -60,6 +60,12 @@ def _run_verifier(
                     "research_dispatch_enabled": False,
                 }
             if (
+                args[:1] in {("compare-resolvers",), ("endpoint-permissions",)}
+                and isinstance(failure, dict)
+                and failure.get("code") == "ENS_NAME_INACTIVE"
+            ):
+                raise RuntimeError("ENS_NAME_INACTIVE")
+            if (
                 program == "identity-binding.mjs"
                 and isinstance(failure, dict)
                 and failure.get("status") == "SIGNATURES_REJECTED"

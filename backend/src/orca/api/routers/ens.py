@@ -44,6 +44,10 @@ _RECORD_KEYS = frozenset(
         "org.orca.manifestDigest",
     }
 )
+_PAIR_READ_RESPONSES: dict[int | str, dict[str, Any]] = {
+    409: {"description": "At least one agent name is inactive on finalized Sepolia."},
+    503: {"description": "The finalized resolver observation is unavailable."},
+}
 
 
 def _authorize(request: Request, principal: Principal, organization: UUID) -> None:
@@ -63,6 +67,18 @@ def _boundary_fields(observation: dict[str, Any]) -> dict[str, Any]:
         "block_hash": observation.get("block_hash"),
         "source_revision": observation.get("source_revision"),
     }
+
+
+def _resolver_read_error(error: RuntimeError, message: str) -> HTTPException:
+    if str(error) == "ENS_NAME_INACTIVE":
+        return HTTPException(
+            409,
+            {
+                "code": "ENS_NAME_INACTIVE",
+                "message": "At least one name is inactive on finalized Sepolia. Inspect each name separately and retry once both are active.",
+            },
+        )
+    return HTTPException(503, message, headers={"Retry-After": "15"})
 
 
 @router.post("/resolutions", response_model=ENSResolutionSnapshot)
@@ -106,7 +122,11 @@ def resolve_ens(
     )
 
 
-@router.post("/resolver-boundaries", response_model=ENSResolverBoundary)
+@router.post(
+    "/resolver-boundaries",
+    response_model=ENSResolverBoundary,
+    responses=_PAIR_READ_RESPONSES,
+)
 def compare_ens_resolvers(
     body: CompareENSResolversRequest,
     request: Request,
@@ -119,16 +139,18 @@ def compare_ens_resolvers(
     except ValueError as error:
         raise HTTPException(422, str(error)) from error
     except RuntimeError as error:
-        raise HTTPException(
-            503, "Finalized resolver comparison unavailable", headers={"Retry-After": "15"}
-        ) from error
+        raise _resolver_read_error(error, "Finalized resolver comparison unavailable") from error
     try:
         return ENSResolverBoundary.model_validate(_boundary_fields(observation))
     except ValidationError as error:
         raise HTTPException(503, "Resolver comparison returned invalid evidence") from error
 
 
-@router.post("/endpoint-permissions", response_model=ENSPermissionSnapshot)
+@router.post(
+    "/endpoint-permissions",
+    response_model=ENSPermissionSnapshot,
+    responses=_PAIR_READ_RESPONSES,
+)
 def observe_ens_endpoint_permissions(
     body: ENSPermissionRequest,
     request: Request,
@@ -140,8 +162,8 @@ def observe_ens_endpoint_permissions(
     except ValueError as error:
         raise HTTPException(422, str(error)) from error
     except RuntimeError as error:
-        raise HTTPException(
-            503, "Finalized ENS permission observation unavailable", headers={"Retry-After": "15"}
+        raise _resolver_read_error(
+            error, "Finalized ENS permission observation unavailable"
         ) from error
     try:
         return ENSPermissionSnapshot.model_validate(

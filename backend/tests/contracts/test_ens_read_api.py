@@ -155,3 +155,50 @@ def test_resolver_comparison_exposes_no_write_authority(monkeypatch: pytest.Monk
         assert client.post(path, json=request).status_code == 403
         assert client.post(permission_path, json=permission_request).status_code == 403
         assert reads == 2
+
+
+@pytest.mark.enable_socket
+def test_permission_inactive_name_is_distinct_from_provider_outage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from orca.infrastructure.federation import ens_observation
+
+    app = create_app(
+        Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+    )
+    app.dependency_overrides[current_principal] = lambda: Principal(
+        "owner", "test", frozenset({"identity:manage"})
+    )
+    monkeypatch.setattr(ens, "engine", lambda *_args: object())
+    monkeypatch.setattr(ens, "resolve_tenant", lambda *_args: (uuid4(), {"org_owner"}))
+    monkeypatch.setattr(ens_observation.shutil, "which", lambda _name: "node")
+    error_code = "ENS_NAME_INACTIVE"
+
+    def failed_node(command, **_kwargs):
+        return ens_observation.subprocess.CompletedProcess(
+            command, 1, stdout=f'{{"code":"{error_code}"}}'
+        )
+
+    monkeypatch.setattr(ens_observation.subprocess, "run", failed_node)
+    body = {
+        "organization_id": str(uuid4()),
+        "first_name": "analyst.orca.eth",
+        "second_name": "reviewer.orca.eth",
+        "ens_chain_id": 11155111,
+    }
+    with TestClient(app) as client:
+        routes = {
+            "resolver-boundaries": body,
+            "endpoint-permissions": {**body, "delegate": "0x" + "5" * 40},
+        }
+        for route, payload in routes.items():
+            result = client.post(f"/v1/identity/ens/{route}", json=payload)
+            assert result.status_code == 409
+            assert result.json()["detail"]["code"] == "ENS_NAME_INACTIVE"
+        error_code = "INTERNAL_PROVIDER_ERROR"
+        result = client.post(
+            "/v1/identity/ens/endpoint-permissions", json=routes["endpoint-permissions"]
+        )
+        assert result.status_code == 503
+        assert result.headers["retry-after"] == "15"
+        assert error_code not in result.text
