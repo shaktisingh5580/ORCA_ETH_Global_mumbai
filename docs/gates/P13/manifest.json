@@ -59,8 +59,17 @@
       "remaining": "Measure representative authorized production workloads and recover against a real object store. Cloud acceptance remains deferred."
     },
     "P13.4": {
-      "status": "NOT_STARTED",
-      "deliverable": "Scientific and network failure trials and taxonomy."
+      "status": "LOCAL_FAILURE_TRIALS_PASSED",
+      "deliverable": "Scientific and network failure trials and taxonomy.",
+      "taxonomy": "docs/pilots/failure_taxonomy.md",
+      "trial_evidence": "docs/gates/P13/failure-trials.json",
+      "required_cases": [
+        "test_unit_depth_and_asof_mismatch_rejection",
+        "test poisoned source text",
+        "test revoked agent results",
+        "test false challenge and provider conflict"
+      ],
+      "remaining": "Repeat applicable trials with a separately operated provider and authorized pilot data. Institutional readiness and independent reference evidence remain open."
     }
   },
   "remaining_pilot_acceptance": [

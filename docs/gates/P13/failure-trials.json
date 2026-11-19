@@ -1,0 +1,98 @@
+{
+  "phase": "P13.4",
+  "status": "LOCAL_FAILURE_TRIALS_PASSED",
+  "recorded_at_utc": "2026-11-19T19:07:00+00:00",
+  "code_revision": "0866d52beaf293d208cf492784f31553ee2f67fe",
+  "taxonomy": "docs/pilots/failure_taxonomy.md",
+  "environment": {
+    "source": "Test-only ERDDAP responses and untrusted tabular text",
+    "model": "Scripted test-only model responses through the real planner and review gateways",
+    "remote_dispatch": "Disposable PostgreSQL 17 with runtime role, real Ed25519 test signatures and injected A2A exchange"
+  },
+  "required_cases": {
+    "test_unit_depth_and_asof_mismatch_rejection": {
+      "status": "PASS",
+      "executions": [
+        {
+          "node": "tests.unit.test_acquisition_adapters::test_unit_depth_and_asof_mismatch_rejection[unit-2-response units mismatch]",
+          "seconds": 0.005
+        },
+        {
+          "node": "tests.unit.test_acquisition_adapters::test_unit_depth_and_asof_mismatch_rejection[depth-0-depth mismatch]",
+          "seconds": 0.004
+        },
+        {
+          "node": "tests.unit.test_acquisition_adapters::test_unit_depth_and_asof_mismatch_rejection[as_of-0-source availability is not established]",
+          "seconds": 0.003
+        },
+        {
+          "node": "tests.unit.test_acquisition_adapters::test_unit_depth_and_asof_mismatch_rejection[unknown_availability-0-source availability is not established]",
+          "seconds": 0.005
+        }
+      ],
+      "observed": "Changed response unit, incompatible depth, late retrieval and unknown availability each raised SOURCE_VALIDATION_FAILED. Depth and as-of rejection occurred before source access."
+    },
+    "test poisoned source text": {
+      "status": "PASS",
+      "executions": [
+        {
+          "node": "tests.unit.test_reasoning_loop::test_poisoned_source_text",
+          "seconds": 0.012
+        }
+      ],
+      "observed": "Scripted provider requested approval after reading untrusted source text. The tool was rejected, normalization did not produce a valid preview and the only proposal was needs_information."
+    },
+    "test revoked agent results": {
+      "status": "PASS",
+      "executions": [
+        {
+          "node": "tests.integration.test_remote_dispatch_database::test_revoked_agent_results",
+          "seconds": 9.238
+        }
+      ],
+      "observed": "Revocation committed before delivery of a signed reply. Dispatch recorded failed with AUTHORITY_OR_ARTIFACT_CHANGED, no response and no result digest. Readback stayed unresolved without contacting the provider and new delegation was denied."
+    },
+    "test false challenge and provider conflict": {
+      "status": "PASS",
+      "executions": [
+        {
+          "node": "tests.unit.test_evidence_review::test_false_challenge_and_provider_conflict[false-challenge]",
+          "seconds": 0.006
+        },
+        {
+          "node": "tests.unit.test_evidence_review::test_false_challenge_and_provider_conflict[conflicting-provider-result]",
+          "seconds": 0.004
+        }
+      ],
+      "observed": "The gateway rejected false disagreement and false agreement as well as the conflicting coordinator actions. Review followed the deterministic comparison of the supplied claims."
+    }
+  },
+  "focused_suites": {
+    "science_and_adapter": {
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0
+    },
+    "dispatch_database": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "review_http_contracts": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "checks": [
+    "Ruff lint and format on changed test files.",
+    "Strict mypy on the acquisition adapter, planner, review gateway and dispatch worker.",
+    "Repository header and import-boundary checks.",
+    "Fixture changes limited to backend/tests; wheel and source package configuration includes runtime sources and excludes test fixtures."
+  ],
+  "remaining_acceptance": [
+    "Repeat applicable trials with a separately operated provider and properly authorized pilot data.",
+    "Document operator independence and independently established reference calculations before claiming institutional readiness.",
+    "G13 remains blocked by its selected-profile prerequisite and outstanding pilot and live acceptance evidence. Oracle work is deferred."
+  ]
+}
