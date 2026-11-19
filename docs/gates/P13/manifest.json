@@ -1,0 +1,49 @@
+{
+  "phase": "P13",
+  "gate": "G13",
+  "status": "BLOCKED",
+  "selected_profile": "research-federated",
+  "prerequisite": {
+    "gate": "G11",
+    "status": "NOT_PASSED"
+  },
+  "development_status": {
+    "P13.1": {
+      "status": "LOCAL_IMPLEMENTATION",
+      "protocol": "docs/pilots/protocol.md",
+      "consent_and_rights": "docs/pilots/consent_rights.md",
+      "tool": "backend/scripts/pilot_replay.py",
+      "test_file": "backend/tests/science/test_pilot_replay.py",
+      "required_cases": [
+        "test_same_test_set_all_systems",
+        "test_human_rater_blinded_when_feasible",
+        "test_ground_truth_independent",
+        "test_no_causal_overclaim"
+      ],
+      "local_checks": [
+        "Five pilot replay tests and three P07 benchmark regression tests passed.",
+        "The pilot script passed strict type checking and its changed files passed Ruff."
+      ],
+      "acceptance_evidence_scope": "Synthetic rehearsal tests only. No participants, research timing, institutional adoption or independent observational outcomes were recorded."
+    },
+    "P13.2": {
+      "status": "NOT_STARTED",
+      "deliverable": "External provider data boundaries and legal and license isolation."
+    },
+    "P13.3": {
+      "status": "NOT_STARTED",
+      "deliverable": "Preregistered resource, queue, durability and cost benchmarks."
+    },
+    "P13.4": {
+      "status": "NOT_STARTED",
+      "deliverable": "Scientific and network failure trials and taxonomy."
+    }
+  },
+  "remaining_pilot_acceptance": [
+    "Enroll real consenting participants and document approved rights for each case.",
+    "Freeze the actual workflows, inputs and separately held observational reference before collection.",
+    "Collect matched outputs, researcher time, correction workload, replay artifacts and actual rater evidence.",
+    "Review the reference provenance and publish the authorized redacted evaluation."
+  ],
+  "oracle_deployment": "deferred_by_user"
+}
