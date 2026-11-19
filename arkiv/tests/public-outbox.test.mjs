@@ -1,0 +1,127 @@
+/** Purpose: verify P11 task and claim publication with separate wallet identities.
+ * Behavior: exercise durable reservations, contention and read-only ambiguous-send recovery.
+ * Refs: main_implementation plan.md P11.2; api design.md §5.2. Phase: P11.
+ */
+import assert from 'node:assert/strict';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import test from 'node:test';
+import { NoEntityFoundError } from '@arkiv-network/sdk';
+import { publishPublicIntent, reconcilePublicIntent } from '../src/public-outbox.mjs';
+
+const chain = {id:7794095};
+const requester = '0x' + 'a'.repeat(40);
+const provider = '0x' + 'b'.repeat(40);
+const taskId = '12345678-1234-4567-8123-0123456789ab';
+const taskKey = '0x' + '1'.repeat(64);
+const claimKey = '0x' + '2'.repeat(64);
+const transaction = '0x' + '3'.repeat(64);
+const task = {
+  kind:'task', owner:requester, lifetimeSeconds:60,
+  attributes:{taskId, capability:'sst_reproduction', regionCode:'indian', status:'open',
+    deadlineRef:new Date(Date.now() + 1200000).toISOString().replace(/\.\d{3}Z$/, 'Z')},
+};
+const claim = {
+  kind:'claim', owner:provider, lifetimeSeconds:30, parent:{key:taskKey, owner:requester},
+  attributes:{taskId, agentId:'87654321-1234-4567-8123-0123456789ab',
+    status:'proposed', bindingDigest:'sha256:' + 'a'.repeat(64)},
+};
+
+async function setup(t) {
+  const root = await mkdtemp(join(tmpdir(), 'orca-arkiv-public-'));
+  t.after(() => rm(root, {recursive:true, force:true}));
+  const rows = new Map();
+  const sent = [];
+  const reader = {
+    getChainId:async () => chain.id,
+    getBlockTiming:async () => ({currentBlock:100n}),
+    getEntity:async key => {
+      if (!rows.has(key)) throw new NoEntityFoundError(key);
+      return rows.get(key);
+    },
+    predictEntityKeys:async ({owner}) => [{key:owner === requester ? taskKey : claimKey, salt:10n}],
+  };
+  function writer(owner, outcome = 'success') {
+    return {account:{address:owner},chain,async createEntity(schema, attributes, options) {
+      const kind = schema.name.split('.')[1];
+      const reserved = JSON.parse(await readFile(
+        join(root, owner, `${kind}-${attributes.taskId}.reserved.json`), 'utf8',
+      ));
+      assert.equal(reserved.intent.owner, owner);
+      assert.equal(options.salt, 10n);
+      assert.equal(options.flags.readonly, true);
+      sent.push({owner,kind});
+      if (outcome === 'lost_before_index') throw new Error('Indeterminate send');
+      if (outcome === 'nonce_changed') {
+        return {entityKey:'0x' + '4'.repeat(64), txHash:transaction};
+      }
+      rows.set(reserved.key, {
+        $key:reserved.key, $owner:owner, $creator:owner, $expiresAt:140n,
+        $creationFlags:{readonly:true, permissionlessExtension:false},
+        $attributes:Object.fromEntries(Object.entries({'arkiv.schema':schema.name,...attributes})
+          .map(([name,value]) => [name,{type:'str',value}])),
+      });
+      if (outcome === 'lost_after_index') throw new Error('Lost transaction response');
+      return {entityKey:reserved.key, txHash:transaction};
+    }};
+  }
+  return {root, reader, writer, rows, sent};
+}
+
+test('test_wallet_a_task_wallet_b_claim', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  await assert.rejects(publishPublicIntent(reader,writer(provider),root,claim), /current parent/);
+  const published = await publishPublicIntent(reader,writer(requester),root,task);
+  assert.equal(published.status, 'indexed');
+  await assert.rejects(publishPublicIntent(reader,writer(requester),root,claim), /pinned Rabdi wallet/);
+  await assert.rejects(publishPublicIntent(reader,writer(requester),root,{...claim,owner:requester}), /separate wallets/);
+  const claimed = await publishPublicIntent(reader,writer(provider),root,claim);
+  assert.equal(claimed.status, 'indexed');
+  assert.equal(claimed.observation.owner, provider);
+  assert.equal(claimed.observation.assignment_authorized, false);
+  assert.deepEqual(sent,[{owner:requester,kind:'task'},{owner:provider,kind:'claim'}]);
+});
+
+test('test_duplicate_claim_reconcile', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  await publishPublicIntent(reader,writer(requester),root,task);
+  const claimant = writer(provider);
+  const results = await Promise.all([
+    publishPublicIntent(reader,claimant,root,claim), publishPublicIntent(reader,claimant,root,claim),
+  ]);
+  assert.ok(results.some(result => result.status === 'indexed'));
+  assert.equal((await reconcilePublicIntent(reader,root,claim)).entity_key, claimKey);
+  assert.equal((await publishPublicIntent(reader,claimant,root,claim)).entity_key, claimKey);
+  await assert.rejects(publishPublicIntent(reader,claimant,root,{...claim,lifetimeSeconds:28}), /durable reservation/);
+  assert.equal(sent.filter(record => record.kind === 'claim').length, 1);
+});
+
+test('test_ambiguous_tx_no_blind_resubmit', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  await assert.rejects(publishPublicIntent(reader,writer(requester,'lost_before_index'),root,task), /Indeterminate/);
+  const repeat = await publishPublicIntent(reader,writer(requester),root,task);
+  assert.deepEqual(repeat,{status:'unresolved',entity_key:taskKey,observation:'not_found',tx_hash:null});
+  const another = {...task,attributes:{...task.attributes,taskId:'12345678-1234-4567-8123-0123456789ac'}};
+  assert.equal((await publishPublicIntent(reader,writer(requester),root,another)).status, 'writer_locked');
+  assert.equal(sent.length, 1);
+});
+
+test('read-only reconciliation recovers a visible entity after the writer loses its response', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  await assert.rejects(publishPublicIntent(reader,writer(requester,'lost_after_index'),root,task), /Lost transaction/);
+  const result = await reconcilePublicIntent(reader,root,task);
+  assert.equal(result.status,'indexed');
+  assert.equal(result.tx_hash,null);
+  assert.equal(result.entity_key,taskKey);
+  assert.equal(sent.length,1);
+});
+
+test('a mined key inconsistent with the reservation requires operator reconciliation', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  const result = await publishPublicIntent(reader,writer(requester,'nonce_changed'),root,task);
+  assert.deepEqual(result,{status:'manual_review',entity_key:taskKey,
+    returned_entity_key:'0x' + '4'.repeat(64),tx_hash:transaction});
+  assert.deepEqual(await reconcilePublicIntent(reader,root,task), result);
+  assert.equal(sent.length,1);
+});

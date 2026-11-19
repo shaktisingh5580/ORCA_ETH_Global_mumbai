@@ -31,6 +31,37 @@ Official references: [Rabdi](https://docs.arkiv.network/networks/rabdi/),
 [queries](https://docs.arkiv.network/reference/query-language/) and
 [expiration](https://docs.arkiv.network/writing/expiration/).
 
+### P11 task and claim publication
+
+The operator adapter accepts a consented task or claim intent on standard
+input. It expects `kind`, `owner`, `lifetimeSeconds`, and the exact
+`attributes` for that public schema. A claim also needs `parent` with
+the task entity `key` and its independently known requester `owner`.
+The claimant wallet must differ from the requester's wallet. The adapter
+checks the current parent record and the remaining task deadline.
+
+Use the same private, durable state directory for every invocation by a
+given writer. Keep `ARKIV_PRIVATE_KEY` on its operator's host and out of
+the input document. The read-only reconciliation command uses the public
+intent and the corresponding state directory.
+
+```powershell
+Get-Content -Raw <intent.json> | node arkiv/src/public-outbox.mjs publish <state-directory> --approve-public
+Get-Content -Raw <intent.json> | node arkiv/src/public-outbox.mjs reconcile <state-directory>
+```
+
+An unresolved send keeps the wallet lock, the predicted entity key, and
+the reserved intent. Reconciliation compares current chain readback with
+the reserved owner and attributes. An absent record can mean index lag,
+expiration or a missing transaction, so it leaves publication unresolved.
+If recovery finds the entity after the response was lost, the result can
+include the entity key with a null transaction hash. The operator must
+review the retained lock before allowing further wallet writes. A public
+claim remains a proposal until ORCA selects the assignment in its database.
+
+See [Arkiv's create options](https://docs.arkiv.network/typescript-sdk/api-reference/main/type-aliases/createentityoptions/)
+and [key prediction](https://docs.arkiv.network/typescript-sdk/api-reference/main/functions/predictentitykey/).
+
 ## H04 coordination records
 
 `orca.coordination.hackathon.v1` is the deployed H04 coordination schema. V2, `orca.coordination.hackathon.v2`, adds indexed `capability`, `region` and `source_mode` for direct task discovery. Both versions remain readable; old records are not rewritten.
