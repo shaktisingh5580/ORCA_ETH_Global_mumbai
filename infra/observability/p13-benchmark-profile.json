@@ -1,0 +1,25 @@
+{
+  "profile": "p13-local-v1",
+  "scope": "Development workload on one workstation. Timing and resource ceilings apply to this profile only.",
+  "queue": {
+    "concurrent_clients": 8,
+    "p95_ms_max": 3000,
+    "expected_committed_runs_per_shared_key": 1,
+    "requested_usd_per_run": "2.00",
+    "approved_plan_usd": "5.00",
+    "expected_runs_under_budget_spike": 2,
+    "test_quota_per_minute": 1
+  },
+  "sst": {
+    "expected_months": 21,
+    "expected_cells": 78771,
+    "peak_traced_python_bytes_max": 100663296,
+    "elapsed_seconds_max": 90
+  },
+  "object_storage": {
+    "transport": "botocore stub",
+    "failure": "SlowDown on readback after confirmed write",
+    "expected_put_calls": 1,
+    "expected_recovered_snapshots": 1
+  }
+}
