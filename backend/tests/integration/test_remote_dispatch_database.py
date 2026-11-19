@@ -39,6 +39,16 @@ from orca.infrastructure.jobs.postgres_queue import EnqueuedRun, PostgresQueue
 def test_remote_dispatch_requires_current_authority_and_reserved_budget(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    exercise_remote_dispatch(monkeypatch, revocation_only=False)
+
+
+@pytest.mark.live
+@pytest.mark.enable_socket
+def test_revoked_agent_results(monkeypatch: pytest.MonkeyPatch) -> None:
+    exercise_remote_dispatch(monkeypatch, revocation_only=True)
+
+
+def exercise_remote_dispatch(monkeypatch: pytest.MonkeyPatch, *, revocation_only: bool) -> None:
     admin, runtime, tenant, _, project, _ = prepare_database()
     subject = str(uuid4())
     agent_id, binding, snapshot, version, product = [uuid4() for _ in range(5)]
@@ -286,6 +296,70 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
                     "signature": b64(provider_key.sign(canonical(payload))),
                 },
             }
+
+        if revocation_only:
+
+            async def revoke_during_call(signed, agent, scope):
+                with psycopg.connect(admin) as connection:
+                    connection.execute(
+                        "UPDATE federation.research_authorizations SET revoked_at=clock_timestamp() "
+                        "WHERE tenant_id=%s AND agent_id=%s",
+                        (tenant, agent_id),
+                    )
+                return await respond(signed, agent, scope)
+
+            revoked_worker = RemoteDispatchWorker(
+                tenant,
+                project,
+                lambda: TenantUnitOfWork(db, tenant),
+                coordinator,
+                revoke_during_call,
+            )
+            assert revoked_worker.run_once() == "rejected"
+            with psycopg.connect(admin) as connection:
+                assert connection.execute(
+                    "SELECT revoked_at IS NOT NULL FROM federation.research_authorizations "
+                    "WHERE tenant_id=%s AND agent_id=%s",
+                    (tenant, agent_id),
+                ).fetchone() == (True,)
+                assert connection.execute(
+                    "SELECT state,error_code,verified_response,result_digest "
+                    "FROM federation.research_dispatches WHERE id=%s",
+                    (dispatch.id,),
+                ).fetchone() == ("failed", "AUTHORITY_OR_ARTIFACT_CHANGED", None, None)
+                connection.execute(
+                    "UPDATE federation.research_dispatches SET state='leased',lease_token=%s,"
+                    "lease_until=clock_timestamp()-interval '1 second' WHERE id=%s",
+                    (uuid4(), dispatch.id),
+                )
+            assert revoked_worker.run_once() == "reconciliation_required"
+            with psycopg.connect(admin) as connection:
+                assert (
+                    connection.execute(
+                        "SELECT state FROM federation.research_dispatches WHERE id=%s",
+                        (dispatch.id,),
+                    ).fetchone()[0]
+                    == "reconciliation_required"
+                )
+
+            async def unexpected_read(*_):
+                pytest.fail("Revoked authority must stop readback before any provider call")
+
+            monkeypatch.setattr(
+                "orca.application.remote_dispatch_worker.read_research_result", unexpected_read
+            )
+            assert revoked_worker.reconcile(dispatch.id) == "unresolved"
+            with pytest.raises(PermissionError, match="approval is missing"):
+                with TenantUnitOfWork(db, tenant) as session:
+                    RemoteDispatches(session, tenant, project, principal).enqueue(
+                        run.run_id,
+                        agent_id,
+                        "temperature_summary_v1",
+                        "sst.seasonal_anomaly",
+                        Decimal("0.50"),
+                        "remote-3",
+                    )
+            return
 
         async def confirm_authority_lock(signed, agent, scope):
             with TenantUnitOfWork(db, tenant) as session:
@@ -633,57 +707,5 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
             == "completed"
         )
 
-        with TenantUnitOfWork(db, tenant) as session:
-            revoked_dispatch = RemoteDispatches(session, tenant, project, principal).enqueue(
-                run.run_id,
-                agent_id,
-                "temperature_summary_v1",
-                "sst.seasonal_anomaly",
-                Decimal("0.20"),
-                "remote-revoke",
-            )
-
-        async def revoke_during_call(signed, agent, scope):
-            with psycopg.connect(admin) as connection:
-                connection.execute(
-                    "UPDATE federation.research_authorizations SET revoked_at=clock_timestamp() "
-                    "WHERE tenant_id=%s AND agent_id=%s",
-                    (tenant, agent_id),
-                )
-            return await respond(signed, agent, scope)
-
-        revoked_worker = RemoteDispatchWorker(
-            tenant, project, lambda: TenantUnitOfWork(db, tenant), coordinator, revoke_during_call
-        )
-        assert revoked_worker.run_once() == "rejected"
-        with psycopg.connect(admin) as connection:
-            assert connection.execute(
-                "SELECT state,verified_response FROM federation.research_dispatches WHERE id=%s",
-                (revoked_dispatch.id,),
-            ).fetchone() == ("failed", None)
-            connection.execute(
-                "UPDATE federation.research_dispatches SET state='leased',lease_token=%s,"
-                "lease_until=clock_timestamp()-interval '1 second' WHERE id=%s",
-                (uuid4(), revoked_dispatch.id),
-            )
-        assert revoked_worker.run_once() == "reconciliation_required"
-        with psycopg.connect(admin) as connection:
-            assert (
-                connection.execute(
-                    "SELECT state FROM federation.research_dispatches WHERE id=%s",
-                    (revoked_dispatch.id,),
-                ).fetchone()[0]
-                == "reconciliation_required"
-            )
-        with pytest.raises(PermissionError, match="approval is missing"):
-            with TenantUnitOfWork(db, tenant) as session:
-                RemoteDispatches(session, tenant, project, principal).enqueue(
-                    run.run_id,
-                    agent_id,
-                    "temperature_summary_v1",
-                    "sst.seasonal_anomaly",
-                    Decimal("0.50"),
-                    "remote-3",
-                )
     finally:
         db.dispose()

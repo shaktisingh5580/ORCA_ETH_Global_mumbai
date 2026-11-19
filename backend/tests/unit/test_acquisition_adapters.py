@@ -6,6 +6,7 @@ Refs: main plan P03.2/P03.3; API 7; Phase: P03.
 import hashlib
 import io
 import json
+from datetime import datetime
 from unittest.mock import Mock
 from uuid import uuid4
 
@@ -117,6 +118,34 @@ def test_source_rejects_malformed_or_unbound_responses(change):
     source.client._get = Mock(side_effect=[metadata, content])
     with pytest.raises(AcquisitionFailed):
         source.fetch(body, version)
+
+
+@pytest.mark.parametrize(
+    ("mismatch", "calls", "detail"),
+    [
+        ("unit", 2, "response units mismatch"),
+        ("depth", 0, "depth mismatch"),
+        ("as_of", 0, "source availability is not established"),
+        ("unknown_availability", 0, "source availability is not established"),
+    ],
+)
+def test_unit_depth_and_asof_mismatch_rejection(mismatch, calls, detail):
+    source, body, version, metadata, content = source_case()
+    version = version.model_copy(update={"depth_m": 0.0, "available_at": version.retrieved_at})
+    if mismatch == "unit":
+        source.client._get.side_effect = [metadata, content.replace(b"degree_C", b"K")]
+    elif mismatch == "depth":
+        body = body.model_copy(update={"depth": 20.0})
+    else:
+        cutoff = "2025-01-15T00:00:00+00:00"
+        if mismatch == "unknown_availability":
+            version = version.model_copy(update={"available_at": None})
+            cutoff = "2025-02-02T00:00:00+00:00"
+        body = body.model_copy(update={"as_of": datetime.fromisoformat(cutoff)})
+    with pytest.raises(AcquisitionFailed, match="^SOURCE_VALIDATION_FAILED$") as rejected:
+        source.fetch(body, version)
+    assert detail in str(rejected.value.__cause__)
+    assert source.client._get.call_count == calls
 
 
 def test_cloud_snapshot_readback_and_corruption_rejection():
