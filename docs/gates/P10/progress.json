@@ -4,13 +4,16 @@
   "acceptance": "not_passed",
   "implemented": [
     "P10.4 read-only ENS resolution route uses the pinned Sepolia finalized-state verifier under organization identity scope, exposes name activity, controller, resolver and finalized block evidence, and never promotes text records into research or institutional authority",
-    "P10.4 agent dashboard summarizes finalized name activity, registration-record matches and disabled authority/dispatch while retaining the complete inspection evidence"
+    "P10.4 agent dashboard summarizes finalized name activity, registration-record matches and disabled authority/dispatch while retaining the complete inspection evidence",
+    "P10.1/P10.4 the pinned ENS reader and authorized identity API compare two agent names at one finalized block and report whether they share a resolver. The comparison exposes addresses and block evidence without copying text records or asserting delegation authority."
   ],
   "verified": [
-    "Live finalized Sepolia inspection of analyst.orca-research-lab.eth observed an active name controlled by 0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8 at block 12156525; all five ORCA text records are empty, so authority and research dispatch remain unverified. Public readback: docs/gates/P10/live-name-inspection.json. No live registration, delegation, revocation or wallet-binding acceptance is claimed."
+    "Live finalized Sepolia inspection of analyst.orca-research-lab.eth observed an active name controlled by 0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8 at block 12156525; all five ORCA text records are empty, so authority and research dispatch remain unverified. Public readback: docs/gates/P10/live-name-inspection.json. No live registration, delegation, revocation or wallet-binding acceptance is claimed.",
+    "Live Sepolia deployment preflight passed at finalized block 12166281 using the existing pinned deployment revision. Evidence is in live-deployment-preflight.json.",
+    "30 local Node tests and six Python tests passed, including shared and distinct resolver observations at one block, no text record disclosure, rejection of inconsistent evidence, and authorization checks."
   ],
   "remaining": [
-    "P10.1 dedicated protocol adapter, supported deployment and live namespace readback",
+    "P10.1 dedicated protocol adapter and live readback for two agent names using distinct resolvers",
     "P10.2 EAC permission boundaries, delegation and revocation",
     "P10.3 signed ENS/Arkiv/A2A wallet and key binding",
     "P10.4 complete identity and permission evidence UI, cache invalidation and live revocation tests",

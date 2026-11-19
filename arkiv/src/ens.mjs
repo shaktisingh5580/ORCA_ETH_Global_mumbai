@@ -1,7 +1,7 @@
 /** Purpose: inspect the pinned Sepolia ENSv2 hierarchy without custody or transactions.
  * Behavior: bind all reads to one finalized block, verify code/interfaces/proxies and report records.
  * Refs: institutional plan F03.1; official contracts-v2 revision in contracts/ens/sepolia.json.
- * Phase: F03.1. This observation alone never grants controller or research authority.
+ * Phase: F03.1/P10.1. This observation alone never grants controller or research authority.
  */
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -37,6 +37,7 @@ export function checkRuntime(code, runtime) {
 export class EnsReader {
   constructor(client, deployment = pin) { this.client = client; this.deployment = deployment; this.cache = new Map(); }
   async start() {
+    this.cache.clear();
     if (await this.client.getChainId() !== this.deployment.chain_id) throw new Error('Wrong ENS chain');
     this.block = await this.client.getBlock({blockTag:'finalized'});
     if (!this.block.hash || this.block.number === null) throw new Error('Finalized block unavailable');
@@ -86,6 +87,9 @@ export class EnsReader {
   }
   async inspect(input) {
     const name = checkedName(input); await this.start();
+    return {...await this.inspectAtBlock(name,true),...await this.finish()};
+  }
+  async inspectAtBlock(name, readRecords) {
     const hierarchy=[]; let registry=this.deployment.contracts.RootRegistry.address;
     const labels=name.split('.').reverse();
     for (let i=0;i<labels.length;i++) {
@@ -105,7 +109,7 @@ export class EnsReader {
     const dns=toHex(packetToBytes(name)), found=await this.read(universal.address,universal.abi,'findResolver',[dns]);
     if (!same(found[0],leaf.resolver) || found[1]!==namehash(name) || Number(found[2])!==0) throw new Error('Name uses inherited or inconsistent resolver');
     const records={};
-    for (const key of RECORD_KEYS) {
+    for (const key of readRecords?RECORD_KEYS:[]) {
       const data=encodeFunctionData({abi:profile,functionName:'text',args:[namehash(name),key]});
       const [answer,resolver]=await this.read(universal.address,universal.abi,'resolve',[dns,data]);
       if (!same(resolver,leaf.resolver)) throw new Error('Resolver changed during resolution');
@@ -113,20 +117,41 @@ export class EnsReader {
       if (Buffer.byteLength(value)>2048) throw new Error('ENS record exceeds ORCA limit');
       records[key]=value;
     }
-    return {status:'NAME_OBSERVED_NOT_AUTHORIZED',name,hierarchy,records,...await this.finish(),authority_verified:false,affiliation_verified:false,delegation_isolation:'NOT_PROVEN',research_dispatch_enabled:false};
+    return {status:'NAME_OBSERVED_NOT_AUTHORIZED',name,hierarchy,records,authority_verified:false,affiliation_verified:false,delegation_isolation:'NOT_PROVEN',research_dispatch_enabled:false};
+  }
+  async compareResolvers(firstInput, secondInput) {
+    const names=[checkedName(firstInput),checkedName(secondInput)];
+    if (names[0]===names[1]) throw new Error('Choose two different ENS names');
+    await this.start();
+    const observations=[];
+    for(const name of names) {
+      const result=await this.inspectAtBlock(name,false);
+      const leaf=result.hierarchy.at(-1);
+      observations.push({name,controller:leaf.owner,resolver:leaf.resolver});
+    }
+    return {
+      status:same(observations[0].resolver,observations[1].resolver)?
+        'SHARED_RESOLVER':'DISTINCT_RESOLVERS',
+      names:observations,
+      ...await this.finish(),
+      authority_verified:false,
+      delegation_isolation:'NOT_PROVEN',
+      research_dispatch_enabled:false
+    };
   }
 }
 
-export async function main(command, name) {
+export async function main(command, name, secondName) {
   // Public fixed transport; caller cannot choose RPC, URL, chain or signing material.
   const client=createPublicClient({chain:sepolia,transport:http(sepolia.rpcUrls.default.http[0],{timeout:12000,retryCount:0}),ccipRead:false});
   const reader=new EnsReader(client);
   if (command==='preflight') return reader.preflight();
   if (command==='inspect') return reader.inspect(name);
-  throw new Error('Commands: preflight | inspect name.eth');
+  if (command==='compare-resolvers') return reader.compareResolvers(name,secondName);
+  throw new Error('Commands: preflight | inspect name.eth | compare-resolvers first.eth second.eth');
 }
 if (process.argv[1]===fileURLToPath(import.meta.url)) {
-  try { console.log(JSON.stringify(await main(process.argv[2],process.argv[3]))); }
+  try { console.log(JSON.stringify(await main(process.argv[2],process.argv[3],process.argv[4]))); }
   catch (error) {
     const code = error.message === 'Name is not actively registered at every hierarchy level' ? 'ENS_NAME_INACTIVE' : 'ENS_READ_UNAVAILABLE_OR_UNSUPPORTED';
     console.log(JSON.stringify({code,authority_verified:false}));

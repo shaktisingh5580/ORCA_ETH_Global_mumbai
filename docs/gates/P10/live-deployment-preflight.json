@@ -1,0 +1,36 @@
+{
+  "command": "node arkiv/src/ens.mjs preflight",
+  "status": "DEPLOYMENT_READ_CHECK_PASSED",
+  "chain_id": 11155111,
+  "block_number": "12166281",
+  "block_hash": "0xb52ef64bb333a2c41d3081782b07c680852dfc7bdcea1bb7cc42458947b280b4",
+  "block_timestamp": "1795064532",
+  "source_revision": "07e55a056f5b6a9c90119f501bdd05714e67dddd",
+  "contracts": [
+    {
+      "address": "0xb458d6a3a77919449d03e7a6903c26827c1ec43f",
+      "implementation": null,
+      "code_sha256": "a5e9ac8359de8a58236fbbb9dbc400e776199e4b140dc328c6db39a09fd7f580",
+      "kind": "RootRegistry"
+    },
+    {
+      "address": "0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4",
+      "implementation": null,
+      "code_sha256": "a5e9ac8359de8a58236fbbb9dbc400e776199e4b140dc328c6db39a09fd7f580",
+      "kind": "ETHRegistry"
+    },
+    {
+      "address": "0x24e1d8e068620b647ca097f961a61055f4f42d72",
+      "implementation": null,
+      "code_sha256": "07f59e4361a50a71d1a37a5c2faee6f510e59e296b42ef6211ef15e199aa3a1c",
+      "kind": "UniversalResolverV2"
+    },
+    {
+      "address": "0xda70306c98e97ece36f997a21368e53298572991",
+      "implementation": null,
+      "code_sha256": "aba1c1351159847f1c6efa6effcbd5ac365bb9fb5fd6864f05396d3bc6bd438b",
+      "kind": "VerifiableFactory"
+    }
+  ],
+  "authority_verified": false
+}

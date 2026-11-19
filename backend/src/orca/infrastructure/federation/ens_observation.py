@@ -13,9 +13,16 @@ from typing import Any
 from orca.infrastructure.federation.runtime import ROOT
 
 
-def inspect_name(name: str) -> dict[str, Any]:
-    if not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+){1,5}\.eth", name) or len(name) > 253:
+def _validate_agent_name(name: str) -> None:
+    if (
+        not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+){1,4}\.eth", name)
+        or len(name) > 253
+        or any(len(label) > 63 for label in name.split("."))
+    ):
         raise ValueError("Enter an agent subname such as analyst.orca-research-lab.eth")
+
+
+def _run_verifier(*args: str, timeout: int = 35) -> dict[str, Any]:
     node = shutil.which("node")
     if not node:
         raise RuntimeError("ENS_VERIFIER_UNAVAILABLE")
@@ -24,11 +31,11 @@ def inspect_name(name: str) -> dict[str, Any]:
     }
     try:
         result = subprocess.run(
-            [node, str(ROOT / "arkiv/src/ens.mjs"), "inspect", name],
+            [node, str(ROOT / "arkiv/src/ens.mjs"), *args],
             capture_output=True,
             text=True,
             encoding="utf-8",
-            timeout=35,
+            timeout=timeout,
             env=environment,
         )
         if len(result.stdout) <= 200_000 and result.returncode:
@@ -36,9 +43,13 @@ def inspect_name(name: str) -> dict[str, Any]:
                 failure = json.loads(result.stdout)
             except ValueError:
                 failure = {}
-            if failure.get("code") == "ENS_NAME_INACTIVE":
+            if (
+                args[0] == "inspect"
+                and isinstance(failure, dict)
+                and failure.get("code") == "ENS_NAME_INACTIVE"
+            ):
                 return {
-                    "name": name,
+                    "name": args[1],
                     "status": "ENS_NAME_INACTIVE",
                     "authority_verified": False,
                     "records": {},
@@ -47,9 +58,34 @@ def inspect_name(name: str) -> dict[str, Any]:
                 }
         if result.returncode or len(result.stdout) > 200_000:
             raise RuntimeError("ENS_READ_UNAVAILABLE_OR_UNSUPPORTED")
-        value: dict[str, Any] = json.loads(result.stdout)
-        if value.get("authority_verified") is not False or value.get("name") != name:
+        value = json.loads(result.stdout)
+        if not isinstance(value, dict) or value.get("authority_verified") is not False:
             raise RuntimeError("ENS_OBSERVATION_INVALID")
         return value
     except (subprocess.TimeoutExpired, OSError, ValueError) as error:
         raise RuntimeError("ENS_READ_UNAVAILABLE_OR_UNSUPPORTED") from error
+
+
+def inspect_name(name: str) -> dict[str, Any]:
+    _validate_agent_name(name)
+    result = _run_verifier("inspect", name)
+    if result.get("name") != name:
+        raise RuntimeError("ENS_OBSERVATION_INVALID")
+    return result
+
+
+def inspect_resolver_boundary(first: str, second: str) -> dict[str, Any]:
+    _validate_agent_name(first)
+    _validate_agent_name(second)
+    if first == second:
+        raise ValueError("Choose two different agent names")
+    result = _run_verifier("compare-resolvers", first, second, timeout=50)
+    names = result.get("names")
+    if (
+        not isinstance(names, list)
+        or len(names) != 2
+        or not all(isinstance(observation, dict) for observation in names)
+        or [observation.get("name") for observation in names] != [first, second]
+    ):
+        raise RuntimeError("ENS_OBSERVATION_INVALID")
+    return result

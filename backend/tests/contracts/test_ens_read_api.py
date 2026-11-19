@@ -71,3 +71,53 @@ def test_unverified_identity_not_accepted(monkeypatch: pytest.MonkeyPatch) -> No
         failed = client.post(url, json=body)
         assert failed.status_code == 503
         assert failed.headers["retry-after"] == "15"
+
+
+@pytest.mark.enable_socket
+def test_resolver_comparison_exposes_no_write_authority(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = create_app(
+        Settings(monitoring_token=SecretStr(secrets.token_urlsafe(48)), environment="test")
+    )
+    tenant, organization = uuid4(), uuid4()
+    roles = {"org_owner"}
+    app.dependency_overrides[current_principal] = lambda: Principal(
+        "owner", "test", frozenset({"identity:manage"})
+    )
+    monkeypatch.setattr(ens, "engine", lambda *_args: object())
+    monkeypatch.setattr(ens, "resolve_tenant", lambda *_args: (tenant, roles))
+    first, second = "ocean.orca.eth", "weather.orca.eth"
+    evidence = {
+        "chain_id": 11155111,
+        "status": "DISTINCT_RESOLVERS",
+        "block_number": "123",
+        "block_hash": "0x" + "c" * 64,
+        "source_revision": "d" * 40,
+        "names": [
+            {"name": first, "controller": "0x" + "a" * 40, "resolver": "0x" + "1" * 40},
+            {"name": second, "controller": "0x" + "a" * 40, "resolver": "0x" + "2" * 40},
+        ],
+        "records": {"private-check": "must stay outside this response"},
+    }
+
+    def compare(left, right):
+        assert (left, right) == (first, second)
+        return evidence
+
+    monkeypatch.setattr(ens, "inspect_resolver_boundary", compare)
+    with TestClient(app) as client:
+        path = "/v1/identity/ens/resolver-boundaries"
+        request = {
+            "organization_id": str(organization),
+            "first_name": first,
+            "second_name": second,
+            "ens_chain_id": 11155111,
+        }
+        response = client.post(path, json=request)
+        assert response.status_code == 200, response.text
+        assert response.json()["delegation_isolation"] == "NOT_PROVEN"
+        assert response.json()["authority_verified"] is False
+        assert "records" not in response.json()
+        evidence["status"] = "SHARED_RESOLVER"
+        assert client.post(path, json=request).status_code == 503
+        roles = {"viewer"}
+        assert client.post(path, json=request).status_code == 403

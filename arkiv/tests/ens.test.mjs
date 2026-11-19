@@ -5,8 +5,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { encodeAbiParameters, parseAbiParameters } from 'viem';
-import { namehash } from 'viem/ens';
+import { encodeAbiParameters, parseAbiParameters, toHex } from 'viem';
+import { namehash, packetToBytes } from 'viem/ens';
 import { EnsReader, checkedName, checkRuntime, pin, RECORD_KEYS } from '../src/ens.mjs';
 
 const OWNER='0x1111111111111111111111111111111111111111';
@@ -92,3 +92,34 @@ test('hierarchy observation includes five actual record reads and never grants a
 for(const [label,options] of [['expired',{expiry:1000n}],['reserved',{status:1}],['no owner',{owner:ZERO}],['wildcard inheritance',{offset:5}],['oversized record',{huge:true}]]) {
   test(`rejects ${label}`,async()=>{await assert.rejects(hierarchyReader(options).inspect('orca.eth'));});
 }
+
+test('test_resolver_ocean_weather_isolation: compare both dedicated resolver addresses at one finalized block',async()=>{
+  const ocean='ocean.orca.eth', weather='weather.orca.eth';
+  const other='0x3333333333333333333333333333333333333333';
+  let weatherResolver=other;
+  const reads=[];
+  let blocks=0;
+  const reader=new EnsReader({...base(),getBlock:async()=>{blocks++;return block;},readContract:async args=>{
+    reads.push(args.functionName);
+    assert.equal(args.blockNumber,block.number);
+    if(args.functionName==='getState') return {status:2,expiry:2000n,latestOwner:OWNER,tokenId:12n,resource:34n};
+    if(args.functionName==='getResolver') return args.args[0]==='weather'?weatherResolver:RESOLVER;
+    if(args.functionName==='getSubregistry') return pin.contracts.ETHRegistry.address;
+    if(args.functionName==='findResolver') {
+      const isWeather=args.args[0]===toHex(packetToBytes(weather));
+      return [isWeather?weatherResolver:RESOLVER,namehash(isWeather?weather:ocean),0n];
+    }
+    throw Error('Boundary comparison should not read text records');
+  }});
+  reader.contract=async()=>({});
+  const distinct=await reader.compareResolvers(ocean,weather);
+  assert.equal(blocks,2);
+  assert.equal(distinct.status,'DISTINCT_RESOLVERS');
+  assert.equal(distinct.names[1].resolver,other);
+  assert.equal(distinct.delegation_isolation,'NOT_PROVEN');
+  assert.equal(distinct.authority_verified,false);
+  weatherResolver=RESOLVER;
+  assert.equal((await reader.compareResolvers(ocean,weather)).status,'SHARED_RESOLVER');
+  assert.equal(reads.includes('resolve'),false);
+  await assert.rejects(reader.compareResolvers(ocean,ocean),/two different/);
+});

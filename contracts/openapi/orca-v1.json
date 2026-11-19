@@ -1240,6 +1240,41 @@
         "title": "ChallengeView",
         "type": "object"
       },
+      "CompareENSResolversRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "ens_chain_id": {
+            "const": 11155111,
+            "title": "Ens Chain Id",
+            "type": "integer"
+          },
+          "first_name": {
+            "maxLength": 253,
+            "minLength": 5,
+            "title": "First Name",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "second_name": {
+            "maxLength": 253,
+            "minLength": 5,
+            "title": "Second Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "first_name",
+          "second_name",
+          "ens_chain_id"
+        ],
+        "title": "CompareENSResolversRequest",
+        "type": "object"
+      },
       "CompatibilityReport": {
         "additionalProperties": false,
         "properties": {
@@ -1991,6 +2026,107 @@
           "records"
         ],
         "title": "ENSResolutionSnapshot",
+        "type": "object"
+      },
+      "ENSResolverBoundary": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_verified": {
+            "const": false,
+            "default": false,
+            "title": "Authority Verified",
+            "type": "boolean"
+          },
+          "block_hash": {
+            "pattern": "^0x[0-9a-fA-F]{64}$",
+            "title": "Block Hash",
+            "type": "string"
+          },
+          "delegation_isolation": {
+            "const": "NOT_PROVEN",
+            "default": "NOT_PROVEN",
+            "title": "Delegation Isolation",
+            "type": "string"
+          },
+          "ens_chain_id": {
+            "const": 11155111,
+            "title": "Ens Chain Id",
+            "type": "integer"
+          },
+          "names": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/components/schemas/ENSResolverObservation"
+              },
+              {
+                "$ref": "#/components/schemas/ENSResolverObservation"
+              }
+            ],
+            "title": "Names",
+            "type": "array"
+          },
+          "observed_block": {
+            "minimum": 0.0,
+            "title": "Observed Block",
+            "type": "integer"
+          },
+          "research_dispatch_enabled": {
+            "const": false,
+            "default": false,
+            "title": "Research Dispatch Enabled",
+            "type": "boolean"
+          },
+          "source_revision": {
+            "pattern": "^[0-9a-f]{40}$",
+            "title": "Source Revision",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DISTINCT_RESOLVERS",
+              "SHARED_RESOLVER"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ens_chain_id",
+          "status",
+          "names",
+          "observed_block",
+          "block_hash",
+          "source_revision"
+        ],
+        "title": "ENSResolverBoundary",
+        "type": "object"
+      },
+      "ENSResolverObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "controller": {
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Controller",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "resolver": {
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Resolver",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "controller",
+          "resolver"
+        ],
+        "title": "ENSResolverObservation",
         "type": "object"
       },
       "EphemeralDownload": {
@@ -9185,6 +9321,53 @@
           }
         ],
         "summary": "Resolve Ens",
+        "tags": [
+          "ENS identity"
+        ]
+      }
+    },
+    "/v1/identity/ens/resolver-boundaries": {
+      "post": {
+        "description": "Report resolver addresses observed at the same finalized block.",
+        "operationId": "compare_ens_resolvers_v1_identity_ens_resolver_boundaries_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareENSResolversRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ENSResolverBoundary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Compare Ens Resolvers",
         "tags": [
           "ENS identity"
         ]
