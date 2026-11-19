@@ -1,14 +1,23 @@
 """Purpose: expose bounded P09 remote research intent and transport status contracts.
 Behavior: distinguish verified transport artifacts from scientific acceptance and remote cancellation.
-Refs: main_implementation plan.md P09.3; api design.md §§3.6,17.1; Phase: P09.
+Refs: main_implementation plan.md P09.3 and P13.2; api design.md §§3.6,17.1. Phase: P09/P13.
 """
 
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, FiniteFloat
 
 from orca.contracts.common import Contract, Digest, Money, UTCDateTime
+
+
+class ProviderTemperatureSummary(Contract):
+    method: Literal["arithmetic_mean/1.0"]
+    count: int = Field(strict=True, ge=2, le=1000)
+    mean_celsius: FiniteFloat = Field(strict=True)
+    input_digest: Digest
+    source_mode: Literal["operator_approved_values"]
+    scientific_scope: Literal["supplied_values_only"]
 
 
 class CreateRemoteDispatch(Contract):

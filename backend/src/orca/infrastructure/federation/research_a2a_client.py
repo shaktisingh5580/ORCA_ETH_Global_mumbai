@@ -1,6 +1,6 @@
 """Purpose: exchange a scoped P09 research grant with a pinned external A2A service.
 Behavior: use safe HTTPS egress and verify the returned task and service-signed artifact.
-Refs: main_implementation plan.md P09.2-P09.3; api design.md §17.1; Phase: P09.
+Refs: main_implementation plan.md P09.2–P09.3 and P13.2; api design.md §17.1. Phase: P09/P13.
 """
 
 import asyncio
@@ -35,6 +35,7 @@ from orca.application.federation import (
     validate_scope,
     verify_grant,
 )
+from orca.contracts.remote_dispatch import ProviderTemperatureSummary
 from orca.infrastructure.federation.coordinator import FederationCoordinator
 from orca.infrastructure.federation.https_egress import PublicProviderTransport, endpoint_origin
 from orca.infrastructure.federation.signing import canonical, digest, unb64
@@ -88,6 +89,23 @@ def verified_artifact(
         raise ValueError("Artifact signature differs from pinned service key") from error
     if len(canonical(payload)) > 256_000:
         raise ValueError("Artifact exceeds the response bound")
+    if grant.capability_id == "temperature_summary_v1" and grant.method_id == "arithmetic_mean/1.0":
+        if set(payload) != {
+            "schema_version",
+            "grant_digest",
+            "task_id",
+            "run_id",
+            "approved_plan_digest",
+            "method_id",
+            "dataset_ids",
+            "a2a_task_id",
+            "a2a_context_id",
+            "result",
+        }:
+            raise ValueError("Temperature summary contains unapproved artifact fields")
+        summary = payload["result"]
+        if summary != {"status": "insufficient_evidence"}:
+            ProviderTemperatureSummary.model_validate(summary)
     return {
         "a2a_task_id": task["id"],
         "a2a_context_id": task["contextId"],
@@ -284,7 +302,7 @@ async def cancel_research_task(
         await client.cancel_task(
             CancelTaskRequest(id=str(uuid4()), params=TaskIdParams(id=remote_ref[0]))
         )
-        return (await read())["status"]["state"] == "canceled"
+        return bool((await read())["status"]["state"] == "canceled")
 
 
 async def read_research_result(

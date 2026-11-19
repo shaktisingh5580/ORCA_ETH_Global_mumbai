@@ -1,6 +1,6 @@
 """Purpose: provide an independently deployable, institution-controlled A2A onboarding service.
 Behavior: keep keys/state local, accept operator-approved coordinator tokens and compute bounded summaries.
-Refs: institutional implementation plan F02.4; A2A 0.3.0; Phase: F02.
+Refs: institutional plan F02.4; main_implementation plan.md P13.2; A2A 0.3.0. Phase: F02/P13.
 """
 
 import argparse
@@ -151,7 +151,7 @@ class QualificationAgent(AgentExecutor):
             auth = context.call_context.state["authorization"]
             signed = None
             if auth["scope"] == "research:dispatch":
-                signed, inputs = approved_inputs(data, auth, self.config)
+                signed, inputs = approved_inputs(data, auth, self.config, self.store.release_policy)
                 grant = signed.grant
                 summary = compute(inputs)
                 summary["source_mode"] = "operator_approved_values"
@@ -187,7 +187,7 @@ class QualificationAgent(AgentExecutor):
                 ],
             )
             if signed is not None:
-                await asyncio.to_thread(self.store.complete, signed, task)
+                await asyncio.to_thread(self.store.complete, signed, task, summary["count"])
         except (KeyError, TypeError, ValueError, OverflowError):
             task = Task(
                 id=context.task_id,

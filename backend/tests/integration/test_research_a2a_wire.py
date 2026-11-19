@@ -1,6 +1,6 @@
 """Purpose: verify the P09 research client uses official A2A wire messages.
 Behavior: exchange one scoped task through an in-process transport and reject stale provider bindings.
-Refs: main_implementation plan.md P09.2-P09.3; api design.md §17.1; Phase: P09.
+Refs: main_implementation plan.md P09.2–P09.3 and P13.2; api design.md §17.1. Phase: P09/P13.
 """
 
 import asyncio
@@ -25,6 +25,7 @@ from orca.infrastructure.federation.research_a2a_client import (
     cancel_research_task,
     dispatch_research_task,
     read_research_result,
+    verified_artifact,
 )
 from orca.infrastructure.federation.signing import b64, canonical, digest
 from orca.institution_provider import card, create_provider
@@ -277,6 +278,22 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
                 },
             },
         }
+        policy = tmp_path / "research-policy.json"
+        policy.write_text(
+            json.dumps(
+                {
+                    "schema": "orca.provider-release.v1",
+                    "plans": {
+                        grant.approved_plan_digest: {
+                            "rights_record_digest": "sha256:" + "a" * 64,
+                            "min_samples": 2,
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        provider_transport = httpx.ASGITransport(app=create_provider(config, tmp_path))
         dispatched = await dispatch_research_task(
             signed,
             agent,
@@ -285,9 +302,35 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
             coordinator.public_key,
             coordinator.private_key,
             coordinator.key_id,
-            transport=httpx.ASGITransport(app=create_provider(config, tmp_path)),
+            transport=provider_transport,
         )
         assert dispatched["artifact"]["result"]["mean_celsius"] == 27
+        private_payload = {
+            **dispatched["artifact"],
+            "result": {**dispatched["artifact"]["result"], "values": [26, 28]},
+        }
+        invalid_task = {
+            "id": dispatched["a2a_task_id"],
+            "contextId": dispatched["a2a_context_id"],
+            "kind": "task",
+            "status": {"state": "completed"},
+            "artifacts": [
+                {
+                    "parts": [
+                        {
+                            "kind": "data",
+                            "data": {
+                                "payload": private_payload,
+                                "key_id": agent["registration"]["key_id"],
+                                "signature": b64(provider_key.sign(canonical(private_payload))),
+                            },
+                        }
+                    ]
+                }
+            ],
+        }
+        with pytest.raises(ValueError, match="Extra inputs"):
+            verified_artifact({"result": invalid_task}, signed, agent["registration"])
         supplied = {
             "dataset_ids": [str(item) for item in grant.dataset_ids],
             "values": [26, 28],
@@ -334,7 +377,7 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
             agent["registration"],
             coordinator,
             None,
-            transport=httpx.ASGITransport(app=create_provider(config, tmp_path)),
+            transport=provider_transport,
         )
         assert recovered == dispatched
         assert recovered["a2a_task_id"] != str(grant.task_id)
@@ -377,6 +420,22 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
                     },
                 )
                 assert denied.status_code == 401
+        policy.write_text('{"schema":"orca.provider-release.v1","plans":{}}', encoding="utf-8")
+        with pytest.raises(ValueError):
+            await read_research_result(
+                signed, agent["registration"], coordinator, None, transport=provider_transport
+            )
+        with pytest.raises(ValueError):
+            await dispatch_research_task(
+                signed,
+                agent,
+                scope,
+                coordinator.id,
+                coordinator.public_key,
+                coordinator.private_key,
+                coordinator.key_id,
+                transport=provider_transport,
+            )
         grant = grant.model_copy(update={"expires_at": now - timedelta(seconds=1)})
         signed = sign_grant(grant, private(coordinator_key), "coordinator-v1")
         remote_state = TaskState.completed
