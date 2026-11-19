@@ -1,0 +1,31 @@
+P10 ENS endpoint delegation
+
+Use two active Sepolia agent names served by distinct ORCA-supported,
+factory-verified resolvers. Run the checks from the repository root:
+
+    node arkiv/src/ens.mjs compare-resolvers <target-name> <comparison-name>
+    node arkiv/src/ens.mjs endpoint-permissions <target-name> <comparison-name> <delegate-address>
+
+An organization operator can also request POST /v1/identity/ens/endpoint-permissions
+with organization_id, ens_chain_id (11155111), first_name, second_name and delegate.
+Each request observes one finalized block. A comparison describes the two supplied
+names and does not prove no other names point at the resolver.
+
+For an operator to prepare the exact transaction for review:
+
+    node arkiv/src/ens.mjs prepare-endpoint-grant <target-name> <comparison-name> <delegate-address> <controller-address>
+    node arkiv/src/ens.mjs prepare-endpoint-update <target-name> <comparison-name> <delegate-address> <https-endpoint>
+    node arkiv/src/ens.mjs prepare-endpoint-revoke <target-name> <comparison-name> <delegate-address> <controller-address>
+
+These commands emit an unsigned transaction after simulation on the displayed
+finalized block. Recheck current state before signing. A successful simulation is
+not a transaction receipt or proof of a live state change. Capture readback after
+grant, update and revocation on later finalized blocks. Retain the receipt hashes
+and the denied cross-resolver and post-revocation checks for G10 acceptance.
+
+The identity binding signature verifier in arkiv/src/identity-binding.mjs
+requires an independently expected manifest. It checks distinct Sepolia and
+Rabdi EIP-712 signatures and an Ed25519 service signature. It returns signature
+evidence only. Durable challenge issuance and consumption, live ERC-1271
+verification, institutional credential validation and revocation enforcement
+remain separate acceptance work.
