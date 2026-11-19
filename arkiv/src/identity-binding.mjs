@@ -1,5 +1,5 @@
-/** Purpose: verify P10 controller, Arkiv wallet and A2A key signatures on one manifest.
- * Behavior: bind signatures to pinned chain domains and the independently expected challenge.
+/** Purpose: prepare and verify P10 controller, Arkiv wallet and A2A key signatures on one manifest.
+ * Behavior: export public signing data and verify it against pinned domains and an expected challenge.
  * Refs: main_implementation plan.md P10.3; api design.md §§4.6,10; Phase: P10.
  */
 import { createPublicKey, verify } from 'node:crypto';
@@ -116,10 +116,23 @@ if (process.argv[1]===fileURLToPath(import.meta.url)) {
       if (bytes>20000) throw new Error('Binding input exceeds limit');
       chunks.push(chunk);
     }
-    const {expected,signatures}=JSON.parse(Buffer.concat(chunks).toString('utf8'));
-    console.log(JSON.stringify(await verifyBindingSignatures(expected,expected,signatures)));
+    const input=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    const command=process.argv[2];
+    if (command==='prepare') {
+      const typed=bindingTypedData(input);
+      console.log(JSON.stringify({
+        ...typed,
+        service_statement:serviceBindingStatement(input).toString('utf8'),
+      },null,2));
+    } else if (command===undefined) {
+      const {expected,signatures}=input;
+      console.log(JSON.stringify(await verifyBindingSignatures(expected,expected,signatures)));
+    } else {
+      throw new Error('Unknown identity binding command');
+    }
   } catch {
-    console.log(JSON.stringify({status:'SIGNATURES_REJECTED',authority_verified:false}));
+    const status=process.argv[2]==='prepare'?'MANIFEST_REJECTED':'SIGNATURES_REJECTED';
+    console.log(JSON.stringify({status,authority_verified:false}));
     process.exitCode=1;
   }
 }

@@ -4,7 +4,9 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { generateKeyPairSync, randomBytes, randomUUID, sign } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { bindingTypedData, serviceBindingStatement, verifyBindingSignatures } from '../src/identity-binding.mjs';
 
@@ -54,4 +56,17 @@ test('test_stolen_wallet_spoof',async()=>{
   const impostor=generateKeyPairSync('ed25519');
   const service=sign(null,serviceBindingStatement(manifest),impostor.privateKey).toString('base64url');
   await assert.rejects(verifyBindingSignatures(manifest,manifest,{...signatures,service},1001),/Service signature/);
+});
+
+test('prepare exports the exact public signing payloads for all three signers',async()=>{
+  const {manifest,typed}=await binding();
+  const script=fileURLToPath(new URL('../src/identity-binding.mjs',import.meta.url));
+  const prepared=spawnSync(process.execPath,[script,'prepare'],{input:JSON.stringify(manifest),encoding:'utf8'});
+  assert.equal(prepared.status,0,prepared.stderr);
+  assert.deepEqual(JSON.parse(prepared.stdout),{
+    ...typed,service_statement:serviceBindingStatement(manifest).toString('utf8'),
+  });
+  const invalid=spawnSync(process.execPath,[script,'prepare'],{input:'{}',encoding:'utf8'});
+  assert.equal(invalid.status,1);
+  assert.equal(JSON.parse(invalid.stdout).status,'MANIFEST_REJECTED');
 });
