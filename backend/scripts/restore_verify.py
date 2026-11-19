@@ -1,17 +1,19 @@
-"""Purpose: capture and verify P08 database/object references around a staging restore.
+"""Purpose: capture and verify database/object references around an isolated restore.
 Behavior: require environment-held credentials and fail closed on missing or changed bytes.
-Refs: main_implementation plan.md P08.2; docs/04_database.md §7; Phase: P08.
+Refs: main_implementation plan.md P08.2/P14.2; docs/04_database.md §7; Phase: P08, P14.
 """
 
 import argparse
 import json
 import os
 from pathlib import Path
+from time import perf_counter
 from typing import cast
 
 import boto3
 import psycopg
 from botocore.config import Config
+from psycopg import IsolationLevel
 
 from orca.infrastructure.recovery.restore_verify import (
     RecoveryS3,
@@ -36,6 +38,8 @@ def main() -> int:
     try:
         if args.command == "capture":
             with psycopg.connect(url, connect_timeout=10) as connection:
+                connection.isolation_level = IsolationLevel.REPEATABLE_READ
+                connection.read_only = True
                 manifest = capture_references(connection)
             args.manifest.write_bytes(canonical_bytes(manifest) + b"\n")
             print(
@@ -72,11 +76,14 @@ def main() -> int:
                 s3={"addressing_style": "path"},
             ),
         )
+        started = perf_counter()
         with psycopg.connect(url, connect_timeout=10) as connection:
+            connection.isolation_level = IsolationLevel.REPEATABLE_READ
+            connection.read_only = True
             result = verify_restore(
                 connection, cast(RecoveryS3, client), bucket, manifest, args.expected_digest
             )
-        print(json.dumps(result))
+        print(json.dumps({**result, "verification_seconds": round(perf_counter() - started, 3)}))
         return 0
     except Exception:
         # SDK and SQL exceptions may contain connection strings, bucket paths or credentials.

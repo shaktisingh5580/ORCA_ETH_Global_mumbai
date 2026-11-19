@@ -1,6 +1,6 @@
 """Purpose: verify content-addressed P04 science lineage and replay preserved MUR inputs.
 Behavior: test digest safeguards and recompute a real pinned subset when retained source bytes are available.
-Refs: main_implementation plan.md P04.4; docs/04_database.md §§3,7; Phase: P04.
+Refs: main_implementation plan.md P04.4/P14.2; docs/04_database.md §§3,7; Phase: P04, P14.
 """
 
 import csv
@@ -15,6 +15,7 @@ from uuid import uuid4
 import pytest
 import rfc8785
 from pydantic import ValidationError
+from pytest_socket import SocketBlockedError
 
 from orca.contracts.science_evidence import ScienceEvidenceManifest, ScienceSnapshotInput
 from orca.science.manifests import source_bytes_digest, verify_manifest
@@ -95,7 +96,7 @@ def manifest(**changes: object) -> ScienceEvidenceManifest:
     return ScienceEvidenceManifest.build(**values)
 
 
-def test_real_pinned_subset_recomputes_within_tolerance():
+def replay_real_pinned_subset():
     input_directory = preserved_input_directory()
     capture_path = input_directory / "capture.json"
     report_path = repository_root() / "docs" / "gates" / "P03" / "native-inputs-cloud.json"
@@ -225,6 +226,22 @@ def test_real_pinned_subset_recomputes_within_tolerance():
         reference_anomaly, abs=NUMERICAL_REPRODUCTION_TOLERANCE_C
     )
     assert result.scientific_status == "reference_only_not_approved"
+    return result
+
+
+def test_real_pinned_subset_recomputes_within_tolerance():
+    replay_real_pinned_subset()
+
+
+def test_arkiv_offline_core_science_ok(record_property):
+    import socket
+
+    # Tests run with sockets disabled, independently of any Arkiv service setting.
+    with pytest.raises(SocketBlockedError):
+        socket.socket()
+    result = replay_real_pinned_subset()
+    record_property("offline_science_samples", result.included_samples)
+    record_property("science_status", result.scientific_status)
 
 
 def test_input_hash_matches_original():
