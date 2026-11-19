@@ -48,8 +48,9 @@ async function setup(t) {
   function writer(owner, outcome = 'success') {
     return {account:{address:owner},chain,async createEntity(schema, attributes, options) {
       const kind = schema.name.split('.')[1];
+      const reference = attributes.taskId ?? attributes.resultDigest.slice('sha256:'.length);
       const reserved = JSON.parse(await readFile(
-        join(root, owner, `${kind}-${attributes.taskId}.reserved.json`), 'utf8',
+        join(root, owner, `${kind}-${reference}.reserved.json`), 'utf8',
       ));
       assert.equal(reserved.intent.owner, owner);
       assert.equal(options.salt, 10n);
@@ -147,4 +148,20 @@ test('only the requester can publish a reference for the exact selected claim', 
   assert.equal(result.observation.attributes.claimRef, claimKey);
   assert.equal((await publishPublicIntent(reader,writer(requester),root,assignment)).entity_key, assignmentKey);
   assert.equal(sent.filter(write => write.kind === 'assignment').length, 1);
+});
+
+test('result and review intents preserve their owner and digest on readback', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  const artifactDigest = 'sha256:' + 'a'.repeat(64);
+  const result = {kind:'result', owner:requester, lifetimeSeconds:600, attributes:{
+    taskId, artifactDigest, methodId:'orca.native-seasonal-sst/hackathon-v1', status:'inconclusive',
+  }};
+  const review = {kind:'review', owner:provider, lifetimeSeconds:600, attributes:{
+    resultDigest:artifactDigest, reviewDigest:'sha256:'+'b'.repeat(64),
+    reviewerId:claim.attributes.agentId, verdict:'challenges',
+  }};
+  assert.deepEqual((await publishPublicIntent(reader,writer(requester),root,result)).observation.attributes, result.attributes);
+  await assert.rejects(publishPublicIntent(reader,writer(requester),root,review), /pinned Rabdi wallet/);
+  assert.deepEqual((await publishPublicIntent(reader,writer(provider),root,review)).observation.attributes, review.attributes);
+  assert.equal(sent.length, 2);
 });

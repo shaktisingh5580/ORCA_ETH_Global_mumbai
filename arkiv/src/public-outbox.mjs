@@ -1,6 +1,6 @@
-/** Purpose: publish consented P11 task, claim and assignment references with durable intents.
+/** Purpose: publish consented P11 coordination and evidence references with durable intents.
  * Behavior: bind the wallet, reserve the predicted key before send and reconcile by reading only.
- * Refs: main_implementation plan.md P11.2; api design.md §§3.12,4.7,5.2. Phase: P11.
+ * Refs: main_implementation plan.md P11.2–P11.3; api design.md §§3.12,4.7,5.2. Phase: P11.
  */
 import { mkdir, open, readFile, unlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -22,13 +22,15 @@ function address(value) {
 
 function intentFor(input) {
   const {kind, lifetimeSeconds} = input;
-  if (!['task', 'claim', 'assignment'].includes(kind)) throw new Error('Unsupported publication intent');
+  if (!['task', 'claim', 'assignment', 'result', 'review'].includes(kind)) {
+    throw new Error('Unsupported publication intent');
+  }
   const owner = address(input.owner);
   const attributes = validatePublicAttributes(kind, input.attributes);
   publicationOptions(kind, lifetimeSeconds);
   let parent = null;
   let selectedClaim = null;
-  if (kind !== 'task') {
+  if (kind === 'claim' || kind === 'assignment') {
     if (!entityKey.test(input.parent?.key ?? '')) throw new Error('Expected a public task key');
     parent = {key:input.parent.key.toLowerCase(), owner:address(input.parent.owner)};
     if (kind === 'claim' && parent.owner === owner) throw new Error('Task and claim require separate wallets');
@@ -50,7 +52,8 @@ function intentFor(input) {
 
 function pathsFor(root, intent) {
   const folder = resolve(root, intent.owner);
-  const basename = `${intent.kind}-${intent.attributes.taskId}`;
+  const reference = intent.attributes.taskId ?? intent.attributes.resultDigest.slice('sha256:'.length);
+  const basename = `${intent.kind}-${reference}`;
   return {
     folder, lock:join(folder, 'writer.lock'),
     reservation:join(folder, basename + '.reserved.json'),
@@ -140,7 +143,8 @@ export async function publishPublicIntent(reader, writer, root, input) {
     }
     const reservation = {chain_id:RABDI_CHAIN_ID, intent, key:predicted.key.toLowerCase(),
       salt:String(predicted.salt)};
-    const remainingSeconds = Math.floor((Date.parse(deadline) - Date.now()) / 2000) * 2;
+    const remainingSeconds = deadline === undefined ? intent.lifetimeSeconds
+      : Math.floor((Date.parse(deadline) - Date.now()) / 2000) * 2;
     const expiration = publicationOptions(intent.kind, Math.min(intent.lifetimeSeconds, remainingSeconds));
     // Any interruption from this point leaves a lock and allows readback only.
     release = false;

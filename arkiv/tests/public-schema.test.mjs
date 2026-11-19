@@ -22,7 +22,7 @@ const task = {
 };
 const request = {kind:'task', key, expectedOwner:owner};
 
-function transport({currentBlock = 120, chainId = 7794095, missing = false, overrides = {}} = {}) {
+function transport({currentBlock = 120, chainId = 7794095, missing = false, overrides = {}, after} = {}) {
   const calls = [];
   const rpc = {
     key, owner, creator:owner, expiresAt:'0x79',
@@ -45,9 +45,11 @@ function transport({currentBlock = 120, chainId = 7794095, missing = false, over
           assert.ok(query.includes(filter), query);
         }
         assert.ok(query.toLowerCase().includes(owner), query);
+        assert.match(query, /ORDER BY \$key(?::key)? ASC/);
+        if (after) assert.ok(query.includes(`$key > key(${after})`), query);
         assert.equal(options.limit, '0x2');
         return {
-          data:[rpc, {...rpc, key:'0x' + '2'.repeat(64)}],
+          data:after ? [{...rpc, key:'0x' + '2'.repeat(64)}] : [rpc, {...rpc, key:'0x' + '2'.repeat(64)}],
           blockNumber:'0x76',
         };
       }
@@ -128,6 +130,17 @@ test('test_index_lag_visible', async () => {
   await assert.rejects(queryTaskRecords(transport({overrides:{owner:other}}).client, params), /writer/);
   await assert.rejects(queryTaskRecords(transport({currentBlock:117}).client, params), /ahead/);
   const invalid = transport();
-  await assert.rejects(queryTaskRecords(invalid.client, {...params, kind:'review'}), /task-indexed/);
+  await assert.rejects(queryTaskRecords(invalid.client, {...params, kind:'review'}), /indexed task or digest/);
   assert.deepEqual(invalid.calls, []);
+});
+
+test('test_paginate_and_expire', async () => {
+  const params = {kind:'task', taskId:task.taskId, expectedOwner:owner, limit:1};
+  const first = await queryTaskRecords(transport().client, params);
+  assert.equal(first.next_cursor, key);
+  const second = await queryTaskRecords(transport({after:key, currentBlock:121}).client, {...params, after:key});
+  assert.equal(second.records.length, 1);
+  assert.notEqual(second.records[0].entity_key, key);
+  assert.equal(second.records[0].status, 'expired');
+  assert.equal(second.next_cursor, null);
 });
