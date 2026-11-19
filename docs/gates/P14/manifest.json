@@ -25,7 +25,20 @@
       ],
       "remaining": "Resolve or document the remaining OS advisory matches, verify exact deployed images and live rotation and authority, and obtain independent security signoff."
     },
-    "P14.2": {"status": "NOT_STARTED"},
+    "P14.2": {
+      "status": "LOCAL_RESTORE_DRILL_PASSED",
+      "gate_status": "BLOCKED",
+      "evidence": "docs/gates/P14/restore-manifest.json",
+      "runbook": "docs/runbooks/disaster_recovery.md",
+      "required_cases": [
+        "test_restore_to_clean_env",
+        "test_missing_object_version_detected",
+        "test_arkiv_offline_core_science_ok",
+        "test_source_429_graceful",
+        "test_db_failover_job_recovery"
+      ],
+      "remaining": "Exercise encrypted backups, actual deployment failover and authorized object recovery. Confirm selected-release RTO/RPO and obtain operator signoff."
+    },
     "P14.3": {"status": "NOT_STARTED"},
     "P14.4": {"status": "NOT_STARTED"},
     "P14.5": {"status": "NOT_STARTED"}

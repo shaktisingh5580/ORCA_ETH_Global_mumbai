@@ -1,0 +1,119 @@
+{
+  "phase": "P14.2",
+  "profile": "research-federated",
+  "status": "LOCAL_RESTORE_DRILL_PASSED",
+  "gate_status": "BLOCKED",
+  "recorded_at_utc": "2026-11-19T20:06:10+00:00",
+  "test_revision": "d798783c31f3ee88e4ec669eb0e3fed9a1b27c71",
+  "runbook": "docs/runbooks/disaster_recovery.md",
+  "topology": {
+    "database": "Separate local PostgreSQL 17 clusters with PostGIS and the real migrated schema. Source database connections disabled before recovery.",
+    "object_storage": "Two disposable MinIO server instances, separate volumes and an intermediate tar archive made with the source stopped.",
+    "minio_image_id": "sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+    "archive_tool_image_id": "sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6",
+    "chain": "No external network in the preserved science test.",
+    "source": "Test HTTP statuses at the ERDDAP boundary and real retained NOAA bytes in the separate science replay."
+  },
+  "required_cases": {
+    "test_restore_to_clean_env": {
+      "status": "PASS",
+      "observed": "Restored a custom PostgreSQL dump into an empty second cluster and a MinIO volume backup into a new independent service. Verified the expected reference digest, SHA-256 bytes for two objects, the older native version despite different latest bytes, and denial of unscoped runtime reads.",
+      "executions": [
+        {
+          "test": "tests.recovery.test_disaster_recovery::test_restore_to_clean_env",
+          "measurements": {
+            "backup_bytes": 359463,
+            "backup_seconds": 2.974,
+            "restore_seconds": 6.042,
+            "drill_seconds": 16.144,
+            "verified_objects": 2,
+            "reference_manifest_digest": "sha256:efe0c9c8a36351c7b14461240afd6062fb37128aee2f1aacc2ed60b6f0f4f0ea",
+            "database_archive_sha256": "df91cccf8fe61be65d8d4d550a9f08441a8a53ce7298f6a202e396e650a10136",
+            "verification_seconds": 0.088,
+            "post_backup_changes_absent": 1
+          }
+        }
+      ]
+    },
+    "test_missing_object_version_detected": {
+      "status": "PASS",
+      "observed": "MinIO returned 404 for the pinned native version in a separate bucket that held a newer version. The verifier stopped at the missing version.",
+      "executions": [
+        {
+          "test": "tests.recovery.test_disaster_recovery::test_missing_object_version_detected",
+          "measurements": {
+            "missing_native_version_http_status": 404
+          }
+        }
+      ]
+    },
+    "test_arkiv_offline_core_science_ok": {
+      "status": "PASS",
+      "observed": "With sockets disabled, the reference calculation recomputed from the checked preserved NOAA MUR inputs using the established numerical tolerance. The result kept its reference-only status.",
+      "executions": [
+        {
+          "test": "tests.science.test_real_reference_replay::test_arkiv_offline_core_science_ok",
+          "measurements": {
+            "offline_science_samples": 3751,
+            "science_status": "reference_only_not_approved"
+          }
+        }
+      ]
+    },
+    "test_source_429_graceful": {
+      "status": "PASS",
+      "observed": "HTTP 429 returns SOURCE_RATE_LIMITED and HTTP 404 or 410 returns SOURCE_UNAVAILABLE. Additional PostgreSQL worker trials confirmed terminal failure and no snapshot publication after 429 and 410.",
+      "executions": [
+        {
+          "test": "tests.unit.test_acquisition_adapters::test_source_429_graceful[429-SOURCE_RATE_LIMITED]",
+          "measurements": {}
+        },
+        {
+          "test": "tests.unit.test_acquisition_adapters::test_source_429_graceful[404-SOURCE_UNAVAILABLE]",
+          "measurements": {}
+        },
+        {
+          "test": "tests.unit.test_acquisition_adapters::test_source_429_graceful[410-SOURCE_UNAVAILABLE]",
+          "measurements": {}
+        }
+      ]
+    },
+    "test_db_failover_job_recovery": {
+      "status": "PASS",
+      "observed": "After the source test database refused connections, the restored queue advanced the lease to generation 2, rejected stale checkpoint and completion writes, reused one checkpoint, recorded INCONCLUSIVE and released the reserved budget.",
+      "executions": [
+        {
+          "test": "tests.recovery.test_disaster_recovery::test_db_failover_job_recovery",
+          "measurements": {
+            "worker_recovery_seconds": 0.054,
+            "recovered_generation": 2
+          }
+        }
+      ]
+    }
+  },
+  "focused_passed_cases": {
+    "postgres_minio_restore": 3,
+    "offline_science_and_adapters": 33,
+    "acquisition_and_historical_replay": 8,
+    "leases_and_queue": 8
+  },
+  "total_passed": 52,
+  "checks": [
+    "Ruff lint and format",
+    "Strict mypy on changed runtime files and CLI",
+    "Purpose headers",
+    "Import boundaries",
+    "Disposable MinIO container and volume cleanup"
+  ],
+  "measurement_scope": {
+    "restore_seconds": "Logical database restore, object archive extraction, target object server start and digest verification. Target initialization preceding restore is outside this timer.",
+    "loss": "One deliberately committed post-backup project edit was absent. Both captured object references and the captured checkpoint survived. This measured a cutoff in a disposable drill and does not establish a production RPO.",
+    "local_archive": "The unencrypted archives contained only isolated test data. Encrypted backup, deployed-target restore, actual HA failover and operator signoff remain open."
+  },
+  "remaining_acceptance": [
+    "Verify an approved encrypted backup and version-preserving recovery on the selected deployment.",
+    "Exercise the deployment's actual failover path with writer fencing, measure RTO/RPO, and verify lifecycle, retention and operator ownership.",
+    "Revalidate prerequisite gates and obtain independent operator acceptance. Oracle deployment remains deferred."
+  ]
+}
