@@ -27,8 +27,22 @@
       "acceptance_evidence_scope": "Synthetic rehearsal tests only. No participants, research timing, institutional adoption or independent observational outcomes were recorded."
     },
     "P13.2": {
-      "status": "NOT_STARTED",
-      "deliverable": "External provider data boundaries and legal and license isolation."
+      "status": "LOCAL_IMPLEMENTATION",
+      "deliverable": "External provider data boundaries and license approval",
+      "runbook": "docs/runbooks/provider_selfhost.md",
+      "test_file": "backend/tests/security/test_data_sovereignty.py",
+      "required_cases": [
+        "test_provider_keeps_private_dataset_offchain",
+        "test_permission_revocation_stops_new_task",
+        "test_cannot_cross_org_evidence"
+      ],
+      "local_checks": [
+        "22 provider, research grant and A2A wire tests passed.",
+        "The coordinator dispatch and revocation integration test and five tenant RLS tests passed in separate clean PostgreSQL databases.",
+        "Changed provider modules passed strict type checking, and Compose configuration validated."
+      ],
+      "acceptance_evidence_scope": "Local provider automation with operator-controlled fixtures. No external institution operated an endpoint or approved real data rights in this increment.",
+      "remaining": "Verify a separately operated HTTPS provider and real source rights, registration, release, revocation and storage separation."
     },
     "P13.3": {
       "status": "NOT_STARTED",

@@ -7,6 +7,9 @@ plan digest and supply `organization_id`, `project_id`, `dataset_ids` (in grant
 order), `values` and `unit`. The provider supports `arithmetic_mean/1.0` on up
 to 1,000 finite values in Celsius or Kelvin. The operator supplies the approved
 values before execution. Keep the provider directory on durable private storage.
+P13 also requires an explicit provider-local research-policy.json approving each
+released plan digest. See docs/runbooks/provider_selfhost.md for its format and
+revocation behavior.
 
 Start the provider with `python -m orca.institution_provider serve --directory <provider-directory>`.
 For live reconciliation ORCA must reach the pinned public HTTPS Agent Card and
