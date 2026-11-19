@@ -4,12 +4,15 @@ Refs: H04 protocol/security gate, main_implementation plan.md P11.2–P11.4. Pha
 """
 
 import copy
+import json
 import runpy
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+from orca.contracts.network import SignedEnvelope
 from orca.domain.agent_results import validate_comparison
 from orca.infrastructure.federation.runtime import ArkivGateway, PublicV1ReconciliationRequired
 
@@ -99,6 +102,10 @@ def test_arkiv_v1_bridge_keeps_reads_separate_and_fences_unresolved_writes(tmp_p
     assert error.value.reconciliation
     assert commands[1][0][-1] == "--approve-public"
     assert commands[1][1]["env"]["ARKIV_PRIVATE_KEY"] == "test-private"
+    with pytest.raises(PublicV1ReconciliationRequired):
+        gateway.reconcile_v1({"owner": owner})
+    assert commands[2][0][2] == "reconcile"
+    assert "ARKIV_PRIVATE_KEY" not in commands[2][1]["env"]
 
 
 def test_legacy_resume_cannot_requeue_public_v1_operations():
@@ -113,3 +120,42 @@ def test_legacy_resume_cannot_requeue_public_v1_operations():
     ):
         with pytest.raises(ValueError, match="cannot requeue"):
             guard(row, receipt)
+
+
+def test_signed_recovery_uses_only_matching_reserved_event(tmp_path, monkeypatch):
+    owner = "0x" + "a" * 40
+    key = "0x" + "b" * 64
+    event_id = "12345678-1234-4567-8123-0123456789ab"
+    signed = SignedEnvelope(
+        payload={"event_id": event_id},
+        content_digest="sha256:" + "c" * 64,
+        key_id="test-key",
+        signature="test-signature",
+    )
+    binding = SimpleNamespace(wallet=owner)
+    file = tmp_path / "receipts" / f"{event_id}.json"
+    file.parent.mkdir()
+    reservation = {
+        "owner": owner,
+        "chain_id": 7794095,
+        "event_id": event_id,
+        "entity_key": key,
+        "content_digest": signed.content_digest,
+    }
+    seen = []
+
+    def observe(self, entity_key, agent, envelope):
+        seen.append((entity_key, agent, envelope))
+        return {"entity_key": entity_key}
+
+    monkeypatch.setattr(ArkivGateway, "read", observe)
+    gateway = ArkivGateway(tmp_path / "test.env", tmp_path, owner)
+    for invalid in (None, {**reservation, "event_id": "different"}):
+        if invalid:
+            file.write_text(json.dumps(invalid), encoding="utf-8")
+        with pytest.raises(PublicV1ReconciliationRequired):
+            gateway.reconcile_signed(signed, binding)
+    assert seen == []
+    file.write_text(json.dumps(reservation), encoding="utf-8")
+    assert gateway.reconcile_signed(signed, binding)["state"] == "indexed"
+    assert seen == [(key, binding, signed)]

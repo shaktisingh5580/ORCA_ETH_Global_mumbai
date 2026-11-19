@@ -149,6 +149,47 @@ class ArkivGateway:
             raise ValueError("Arkiv v1 entity is unavailable or expired")
         return result
 
+    def reconcile_v1(self, intent: dict[str, Any]) -> dict[str, Any]:
+        if intent["owner"].lower() != self.owner.lower():
+            raise ValueError("pinned writer mismatch")
+        try:
+            result = self._bridge(
+                ["public-outbox.mjs", "reconcile", str(self.state_dir / "arkiv-v1")],
+                intent,
+            )
+        except ChainUnavailable as error:
+            raise PublicV1ReconciliationRequired() from error
+        if result.get("status") != "indexed":
+            raise PublicV1ReconciliationRequired()
+        return result
+
+    def reconcile_signed(self, envelope: SignedEnvelope, binding: AgentBinding) -> dict[str, Any]:
+        if binding.wallet.lower() != self.owner.lower():
+            raise ValueError("pinned writer mismatch")
+        filename = self.state_dir / "receipts" / f"{envelope.payload['event_id']}.json"
+        try:
+            reservation = strict_json(filename.read_bytes())
+            if (
+                reservation["owner"].lower() != self.owner.lower()
+                or reservation["content_digest"] != envelope.content_digest
+                or reservation["event_id"] != envelope.payload["event_id"]
+                or reservation["chain_id"] != 7794095
+            ):
+                raise ValueError("Signed reservation differs from the operation")
+            observed = self.read(reservation["entity_key"], binding, envelope)
+            if observed["entity_key"].lower() != reservation["entity_key"].lower():
+                raise ValueError("Signed readback returned a different entity")
+        except (
+            OSError,
+            KeyError,
+            TypeError,
+            AttributeError,
+            ValueError,
+            ChainUnavailable,
+        ) as error:
+            raise PublicV1ReconciliationRequired() from error
+        return {**reservation, "state": "indexed", "read_back": observed, "reconciled": True}
+
     def public_v1_evidence(
         self, kind: str, reference: str, owner: str, cursor: str | None
     ) -> dict[str, Any]:

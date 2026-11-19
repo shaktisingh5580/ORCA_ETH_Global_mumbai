@@ -4,6 +4,7 @@ Refs: H04 gate, main_implementation plan.md P11.2–P11.3 and api design.md §5.
 """
 
 import json
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from uuid import uuid4
@@ -613,7 +614,9 @@ def test_lost_a2a_response_retries_same_operation_and_provider_replays_durable_o
 @pytest.mark.live
 @pytest.mark.enable_socket
 @pytest.mark.parametrize("v1", [False, True], ids=["legacy", "arkiv-v1"])
-def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(network_http, v1):
+def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(
+    network_http, v1, monkeypatch
+):
     from dataclasses import replace
 
     from orca.infrastructure.federation.runtime import (
@@ -621,8 +624,9 @@ def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(netw
         PublicV1ReconciliationRequired,
     )
 
-    client, tenant, project, _, run, _ = network_http
+    client, tenant, project, _, run, principal = network_http
     seen = []
+    visible = False
 
     class UncertainGateway:
         def publish(self, *args):
@@ -635,6 +639,18 @@ def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(netw
             assert intent["kind"] == "task"
             seen.append("v1")
             raise PublicV1ReconciliationRequired()
+
+        def reconcile_signed(self, event, coordinator):
+            assert event.payload["kind"] == "task"
+            seen.append("signed-read")
+            return {"entity_key": "0x" + "a" * 64}
+
+        def reconcile_v1(self, intent):
+            assert intent["kind"] == "task"
+            seen.append("v1-read")
+            if not visible:
+                raise PublicV1ReconciliationRequired()
+            return {"status": "indexed", "entity_key": "0x" + "b" * 64}
 
     runtime = replace(client.app.state.network_runtime, gateway=UncertainGateway())
     created = post(
@@ -659,6 +675,36 @@ def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(netw
     )
     assert seen == (["signed", "v1"] if v1 else ["signed"])
 
+    recovery_url = f"/v1/network/operations/{identifier}/arkiv-recovery"
+    params = {"project_id": str(project)}
+    if not v1:
+        assert client.post(recovery_url, params=params).status_code == 409
+        return
+
+    collaborator = str(uuid4())
+    with psycopg.connect(os.environ["ORCA_TEST_DATABASE_URL"]) as connection:
+        connection.execute(
+            "INSERT INTO iam.memberships(id,tenant_id,subject,role) VALUES(%s,%s,%s,'org_owner')",
+            (uuid4(), tenant, collaborator),
+        )
+    other_member = Principal(collaborator, principal.issuer, principal.token_scopes)
+    with monkeypatch.context() as patch:
+        patch.setitem(client.app.dependency_overrides, current_principal, lambda: other_member)
+        assert client.post(recovery_url, params=params).status_code == 404
+
+    for expected in ("reconciliation_required", "succeeded"):
+        visible = expected == "succeeded"
+        response = client.post(recovery_url, params=params)
+        assert response.status_code == 202, response.text
+        assert client.post(recovery_url, params=params).json()["status"] == "queued"
+        assert process(client.app.state.runtime_engine, runtime, tenant, identifier)
+        assert (
+            client.get(f"/v1/network/operations/{identifier}", params=params).json()["status"]
+            == expected
+        )
+        assert not process(client.app.state.runtime_engine, runtime, tenant, identifier)
+    assert seen == ["signed", "v1", "signed-read", "v1-read", "signed-read", "v1-read"]
+
 
 @pytest.mark.live
 @pytest.mark.enable_socket
@@ -667,6 +713,7 @@ def test_arkiv_v1_task_claim_and_assignment_use_authenticated_worker(network_htt
 
     from orca import network_worker
     from orca.infrastructure.federation.public_events import public_claim_attributes, public_event
+    from orca.infrastructure.federation.runtime import PublicV1ReconciliationRequired
 
     client, tenant, project, _, run, principal = network_http
     runtime = client.app.state.network_runtime
@@ -677,6 +724,7 @@ def test_arkiv_v1_task_claim_and_assignment_use_authenticated_worker(network_htt
     legacy_records = {}
     intents = []
     v1_records = {}
+    recovered = []
 
     class Chain:
         def publish(self, envelope, writer):
@@ -704,10 +752,22 @@ def test_arkiv_v1_task_claim_and_assignment_use_authenticated_worker(network_htt
 
         def public_v1_publish(self, intent):
             intents.append(intent)
+            if intent["kind"] == "assignment":
+                raise PublicV1ReconciliationRequired()
             return {
                 "status": "indexed",
-                "entity_key": task_key if intent["kind"] == "task" else assignment_key,
+                "entity_key": task_key,
             }
+
+        def reconcile_signed(self, envelope, writer):
+            key = "0x" + envelope.content_digest.removeprefix("sha256:")
+            self.read(key, writer, envelope)
+            return {"entity_key": key}
+
+        def reconcile_v1(self, intent):
+            assert intent == intents[1]
+            recovered.append(intent)
+            return {"status": "indexed", "entity_key": assignment_key}
 
         def public_v1_read(self, kind, key, owner):
             assert kind == "claim" and key == claim_key and owner == provider.wallet
@@ -787,15 +847,18 @@ def test_arkiv_v1_task_claim_and_assignment_use_authenticated_worker(network_htt
         raise httpx.ReadTimeout("test transport intercept after assignment publication")
 
     monkeypatch.setattr(network_worker, "exchange", hold_dispatch)
-    handle(
-        post(
-            client,
-            f"/v1/network/tasks/{task_id}/assignments",
-            {"claim_id": details["claims"][0]["id"], "expected_generation": 0},
-            project,
-        ),
-        "queued",
+    assigned = post(
+        client,
+        f"/v1/network/tasks/{task_id}/assignments",
+        {"claim_id": details["claims"][0]["id"], "expected_generation": 0},
+        project,
     )
+    handle(assigned, "reconciliation_required")
+    assert not dispatched
+    legacy_count = len(legacy_records)
+    recovery = f"/v1/network/operations/{assigned.json()['id']}/arkiv-recovery"
+    handle(client.post(recovery, params={"project_id": str(project)}), "queued")
+    assert len(legacy_records) == legacy_count and len(recovered) == 1
     assert len(intents) == 2 and len(dispatched) == 1
     assert intents[1]["kind"] == "assignment"
     assert intents[1]["parent"]["key"] == task_key

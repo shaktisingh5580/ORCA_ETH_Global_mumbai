@@ -1,6 +1,6 @@
 """Purpose: execute durable agent coordination through real A2A and Arkiv adapters.
 Behavior: fence workers, recheck authority, verify separate signatures/owners and reject stale results.
-Refs: H04 decision; main_implementation plan.md P11.2; api design.md §5.2. Phase: H04/P11.
+Refs: H04 decision; main_implementation plan.md P11.2–P11.4; api design.md §5.2. Phase: H04/P11.
 """
 
 import argparse
@@ -157,6 +157,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
             ),
             {"token": token, "t": tenant, "id": operation_id},
         )
+    readback_only = job["payload"].get("arkiv_readback_only") is True
     try:
         with TenantUnitOfWork(db, tenant) as session:
             task = dict(
@@ -261,7 +262,9 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                 key_id=coordinator.key_id,
             )
             receipt = (
-                runtime.gateway.publish(event, coordinator)
+                (runtime.gateway.reconcile_signed if readback_only else runtime.gateway.publish)(
+                    event, coordinator
+                )
                 if task["publication_mode"] == "public_reference"
                 else None
             )
@@ -272,9 +275,11 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                     )
                 receipt = {
                     **receipt,
-                    "arkiv_v1": runtime.gateway.public_v1_publish(
-                        public_task_intent(task, coordinator)
-                    ),
+                    "arkiv_v1": (
+                        runtime.gateway.reconcile_v1
+                        if readback_only
+                        else runtime.gateway.public_v1_publish
+                    )(public_task_intent(task, coordinator)),
                 }
             emitted.append((event, receipt))
         elif job["action"] == "import_claim":
@@ -373,7 +378,11 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                     key_id=coordinator.key_id,
                 )
                 receipt = (
-                    runtime.gateway.publish(event, coordinator)
+                    (
+                        runtime.gateway.reconcile_signed
+                        if readback_only
+                        else runtime.gateway.publish
+                    )(event, coordinator)
                     if task["publication_mode"] == "public_reference"
                     else None
                 )
@@ -384,7 +393,11 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                         raise ValueError("Selected assignment lacks its verified Arkiv v1 claim")
                     receipt = {
                         **receipt,
-                        "arkiv_v1": runtime.gateway.public_v1_publish(
+                        "arkiv_v1": (
+                            runtime.gateway.reconcile_v1
+                            if readback_only
+                            else runtime.gateway.public_v1_publish
+                        )(
                             public_assignment_intent(
                                 task["id"],
                                 coordinator,
@@ -567,7 +580,12 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
             finish(session, tenant, operation_id, token)
         return True
     except Exception as error:
-        reconciliation = isinstance(error, ChainUnavailable) and error.reconciliation
+        v1_reconciliation = isinstance(error, PublicV1ReconciliationRequired) or (
+            readback_only and isinstance(error, ChainUnavailable)
+        )
+        reconciliation = v1_reconciliation or (
+            isinstance(error, ChainUnavailable) and error.reconciliation
+        )
         transient = (
             isinstance(error, (httpx.TransportError, A2AClientTimeoutError))
             or isinstance(error, A2AClientHTTPError)
@@ -575,7 +593,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
         ) and job["attempts"] < 2
         code = (
             "ARKIV_V1_RECONCILIATION_REQUIRED"
-            if isinstance(error, PublicV1ReconciliationRequired)
+            if v1_reconciliation
             else "ARKIV_RECONCILIATION_REQUIRED"
             if reconciliation
             else "COORDINATION_FAILED_OR_AUTHORITY_CHANGED"

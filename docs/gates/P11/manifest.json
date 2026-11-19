@@ -38,7 +38,7 @@
     "Complete G10 acceptance and verify the operator identities used for live P11 work.",
     "Collect authorized live multi-wallet task, claim, assignment, result and review receipts.",
     "Verify current published P11 entities independently while the ORCA API is offline.",
-    "Complete end-to-end authenticated recovery of held Arkiv v1 operations and capture live lifecycle evidence."
+    "Exercise authenticated recovery of held Arkiv v1 operations against actual Rabdi publications and capture live lifecycle evidence."
   ],
   "progress_file": "docs/gates/P11/progress.json"
 }

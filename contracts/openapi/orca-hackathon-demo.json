@@ -6808,6 +6808,64 @@
         ]
       }
     },
+    "/v1/network/operations/{operation_id}/arkiv-recovery": {
+      "post": {
+        "operationId": "recover_arkiv_operation_v1_network_operations__operation_id__arkiv_recovery_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "operation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Operation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkOperation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Recover Arkiv Operation",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
     "/v1/network/tasks": {
       "get": {
         "operationId": "tasks_v1_network_tasks_get",

@@ -1,6 +1,6 @@
 """Purpose: expose the existing dashboard's agent task/claim/assignment/timeline workflow.
 Behavior: require verified project authority and queue durable actions rather than fake completion.
-Refs: api design.md §3.12; main_implementation plan.md P11.2–P11.3; H04-agent-coordination.json. Phase: H04/P11.
+Refs: api design.md §3.12; main_implementation plan.md P11.2–P11.4; H04-agent-coordination.json. Phase: H04/P11.
 """
 
 from collections.abc import Iterator
@@ -237,6 +237,19 @@ def operation(
             raise LookupError("operation not found")
         service.task_row(row["task_id"])
         return operation_view(row)
+
+
+@router.post(
+    "/operations/{operation_id}/arkiv-recovery", response_model=NetworkOperation, status_code=202
+)
+def recover_arkiv_operation(
+    operation_id: UUID, project_id: UUID, request: Request, principal: CurrentPrincipal
+) -> NetworkOperation:
+    runtime(request)
+    db = engine(request)
+    tenant, _ = resolve_project(db, principal, project_id)
+    with network_errors(), TenantUnitOfWork(db, tenant) as session:
+        return Network(session, tenant, project_id, principal).request_arkiv_recovery(operation_id)
 
 
 @router.get("/tasks/{task_id}/timeline")

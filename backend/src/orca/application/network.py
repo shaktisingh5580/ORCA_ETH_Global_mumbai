@@ -1,6 +1,6 @@
 """Purpose: coordinate authorized research delegation with atomic intents and exclusive assignment.
 Behavior: retain tenant isolation, idempotency, current bindings and immutable signed evidence.
-Refs: H04-agent-coordination.json; main_implementation plan.md P11.2–P11.3; api design.md §3.12. Phase: H04/P11.
+Refs: H04-agent-coordination.json; main_implementation plan.md P11.2–P11.4; api design.md §3.12. Phase: H04/P11.
 """
 
 import json
@@ -242,6 +242,50 @@ class Network:
             },
         )
         return self.queue(identifier, "publish_task", key, payload)
+
+    def request_arkiv_recovery(self, identifier: UUID) -> NetworkOperation:
+        self.authorize("project:write")
+        params = {"t": self.tenant, "id": identifier, "s": self.principal.subject}
+        row = (
+            self.session.execute(
+                text("""SELECT * FROM federation.operations
+              WHERE tenant_id=:t AND id=:id AND created_by=:s FOR UPDATE"""),
+                params,
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            raise LookupError("Operation not found for the requesting operator")
+        task = self.task_row(row["task_id"], lock=True)
+        if row["payload"].get("arkiv_readback_only") and row["status"] in {
+            "queued",
+            "running",
+            "succeeded",
+        }:
+            return operation_view(row)
+        if (
+            row["status"] != "reconciliation_required"
+            or row["error_code"] != "ARKIV_V1_RECONCILIATION_REQUIRED"
+            or row["action"] not in {"publish_task", "dispatch"}
+            or task["publication_mode"] != "public_reference"
+            or task["state"] != ("open" if row["action"] == "publish_task" else "assigned")
+            or task["deadline"] <= datetime.now(timezone.utc)
+            or row["attempts"] >= 3
+        ):
+            raise ValueError("This operation cannot resume through Arkiv readback")
+        updated = (
+            self.session.execute(
+                text("""UPDATE federation.operations SET status='queued', error_code=NULL,
+              payload=jsonb_set(payload,'{arkiv_readback_only}','true'::jsonb),
+              updated_at=clock_timestamp()
+              WHERE tenant_id=:t AND id=:id AND created_by=:s RETURNING *"""),
+                params,
+            )
+            .mappings()
+            .one()
+        )
+        return operation_view(updated)
 
     def request_claim(
         self,

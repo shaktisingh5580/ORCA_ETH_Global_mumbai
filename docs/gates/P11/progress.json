@@ -28,7 +28,8 @@
     "P11.4": [
       "The independent verifier runs without the ORCA API. It checks expected public attributes and wallet ownership, and can compare RFC 8785 artifact bytes with the approved digest.",
       "Reconciliation checks a known transaction against its current canonical block and the pinned engine's creation event. Missing or changed receipts cannot promote a held intent, and current absence is reported separately from recorded expiry.",
-      "The Rabdi reader bounds rate-limit backoff and the legacy recovery tool refuses to requeue Arkiv v1 operations."
+      "The Rabdi reader bounds rate-limit backoff and the legacy recovery tool refuses to requeue Arkiv v1 operations.",
+      "An authenticated recovery endpoint queues a readback-only worker attempt for the original requester of a held task or assignment. The worker requires both reserved publications to match current chain evidence before resuming; repeated requests reuse the same operation."
     ]
   },
   "local_checks": [
@@ -37,7 +38,8 @@
     "A later 13-test Node run covered the public schema and outbox, including rejection of an assignment targeting a different claim binding and read-only replay of an accepted assignment reference.",
     "The authenticated HTTP-to-worker integration passed against loopback PostGIS with simulated Arkiv transport. It verified consent gating, exact selected provider attributes, persistence of the task receipt, and assignment companion creation before the intercepted A2A dispatch.",
     "27 focused Node tests passed across the public schema, outbox and dashboard. Two PostgreSQL integration tests passed with separately keyed local A2A processes and simulated Arkiv indexing, including rejection of a private source result, a shared reviewer wallet, substituted attributes, and expired records.",
-    "All 54 Arkiv and ENS Node tests passed. Four Python unit tests and two PostgreSQL worker regressions passed. The worker regressions verify that both the legacy writer and Arkiv v1 remain held after an uncertain write."
+    "All 54 Arkiv and ENS Node tests passed. Four Python unit tests and two PostgreSQL worker regressions passed. The worker regressions verify that both the legacy writer and Arkiv v1 remain held after an uncertain write.",
+    "Six focused Python unit and loopback PostgreSQL tests passed for authenticated recovery. They cover requester isolation, duplicate recovery requests, missing and matching reservations, absence of resubmission, and assignment dispatch after both readbacks."
   ],
   "live_read_only": {
     "chain_id": 7794095,
@@ -86,9 +88,9 @@
   },
   "remaining": {
     "P11.1": "Verify live P11 schema writes and current readback with authorized, separately controlled test wallets.",
-    "P11.2": "Verify the authenticated opt-in path with separately controlled Rabdi wallets and live task, claim and assignment receipts. Institutional eligibility still requires reviewed G10 trust policy. Operator review and read-only CLI reconciliation cover uncertain writes; authenticated recovery of held operations remains open.",
+    "P11.2": "Verify the authenticated opt-in path with separately controlled Rabdi wallets and live task, claim and assignment receipts. Institutional eligibility still requires reviewed G10 trust policy.",
     "P11.3": "Run the signed-in dashboard against separately owned live P11 result and review receipts. Operator-side publication uses the exported intent and existing standalone writer.",
-    "P11.4": "Verify an active P11 entity independently while the ORCA API is offline. Capture authorized live multi-wallet lifecycle and recovery evidence. Add authenticated requeue of held operations only after positive readback of all required publications."
+    "P11.4": "Verify an active P11 entity independently while the ORCA API is offline. Capture the live multi-wallet lifecycle and exercise authenticated recovery against actual Rabdi publications."
   },
   "oracle_deployment": "deferred_by_user"
 }

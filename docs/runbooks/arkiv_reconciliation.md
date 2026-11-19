@@ -30,7 +30,11 @@ Get-Content -Raw <intent.json> | node arkiv/src/public-outbox.mjs reconcile <sta
 
 An absent entity after its recorded creation expiry might have expired, been deleted, or been extended and later removed. Treat the recorded expiry as historical evidence. A changed block hash or missing receipt requires another read after the chain settles.
 
-For an unresolved submission, retain the writer lock and do not start a second write for the intent. The legacy `reconcile_agent_operation.py --resume` command rejects Arkiv v1 operations. If a write has been independently identified, retain its proof and coordinate wallet recovery with the operator while the writer processes are stopped. The development verifier does not requeue held authenticated operations.
+For an unresolved submission, retain the writer lock and preserve its files. The legacy `reconcile_agent_operation.py --resume` command rejects Arkiv v1 operations.
+
+For an authorized ORCA operation with `ARKIV_V1_RECONCILIATION_REQUIRED`, the original requester can call `POST /v1/network/operations/{operation_id}/arkiv-recovery?project_id={project_id}`. The request queues one worker attempt under the existing deadline and attempt budget. Poll the operation with the existing GET route. The worker reconstructs the same intent and checks both the signed publication and its v1 companion from their stored reservations. A missing or unreliable observation leaves the operation on hold. An assignment reaches A2A dispatch only after both observations succeed. Repeated recovery requests while the operation is queued or running reuse the same operation.
+
+The API leaves writer locks and reservations intact. If a write has been independently identified and the wallet remains locked, retain its proof and coordinate wallet recovery with the operator while the writer processes are stopped.
 
 Read-only RPC requests retry recognized rate limits at most twice with a five-second cumulative wait budget. An excessive `Retry-After` or a different transport failure returns an error. Chain submission uses the existing write reservation and never inherits this retry policy.
 
