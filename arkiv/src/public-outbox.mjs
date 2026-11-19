@@ -1,4 +1,4 @@
-/** Purpose: publish consented P11 task and claim references with one durable intent per writer.
+/** Purpose: publish consented P11 task, claim and assignment references with durable intents.
  * Behavior: bind the wallet, reserve the predicted key before send and reconcile by reading only.
  * Refs: main_implementation plan.md P11.2; api design.md §§3.12,4.7,5.2. Phase: P11.
  */
@@ -22,17 +22,30 @@ function address(value) {
 
 function intentFor(input) {
   const {kind, lifetimeSeconds} = input;
-  if (kind !== 'task' && kind !== 'claim') throw new Error('Expected a task or claim intent');
+  if (!['task', 'claim', 'assignment'].includes(kind)) throw new Error('Unsupported publication intent');
   const owner = address(input.owner);
   const attributes = validatePublicAttributes(kind, input.attributes);
   publicationOptions(kind, lifetimeSeconds);
   let parent = null;
-  if (kind === 'claim') {
+  let selectedClaim = null;
+  if (kind !== 'task') {
     if (!entityKey.test(input.parent?.key ?? '')) throw new Error('Expected a public task key');
     parent = {key:input.parent.key.toLowerCase(), owner:address(input.parent.owner)};
-    if (parent.owner === owner) throw new Error('Task and claim require separate wallets');
+    if (kind === 'claim' && parent.owner === owner) throw new Error('Task and claim require separate wallets');
+    if (kind === 'assignment') {
+      selectedClaim = {
+        owner:address(input.selectedClaim?.owner),
+        attributes:validatePublicAttributes('claim', input.selectedClaim?.attributes),
+      };
+      if (parent.owner !== owner || selectedClaim.owner === owner) {
+        throw new Error('Assignment requires the requester wallet and a separately owned claim');
+      }
+      if (selectedClaim.attributes.taskId !== attributes.taskId) {
+        throw new Error('Assignment and selected claim task IDs differ');
+      }
+    }
   }
-  return {kind, owner, attributes, lifetimeSeconds, parent};
+  return {kind, owner, attributes, lifetimeSeconds, parent, ...(selectedClaim && {selectedClaim})};
 }
 
 function pathsFor(root, intent) {
@@ -119,22 +132,21 @@ export async function publishPublicIntent(reader, writer, root, input) {
     if (duplicate) return await reconcile(reader, paths, intent, duplicate);
     await preflight(reader);
     const deadline = intent.parent
-      ? await claimDeadline(reader, intent)
+      ? await parentDeadline(reader, intent)
       : intent.attributes.deadlineRef;
-    if (Date.parse(deadline) <= Date.now() + intent.lifetimeSeconds * 1000) {
-      throw new Error('Publication lifetime must fit the remaining task deadline');
-    }
     const [predicted] = await reader.predictEntityKeys({owner:intent.owner, count:1});
     if (!entityKey.test(predicted?.key ?? '') || typeof predicted.salt !== 'bigint') {
       throw new Error('Invalid predicted entity key');
     }
     const reservation = {chain_id:RABDI_CHAIN_ID, intent, key:predicted.key.toLowerCase(),
       salt:String(predicted.salt)};
+    const remainingSeconds = Math.floor((Date.parse(deadline) - Date.now()) / 2000) * 2;
+    const expiration = publicationOptions(intent.kind, Math.min(intent.lifetimeSeconds, remainingSeconds));
     // Any interruption from this point leaves a lock and allows readback only.
     release = false;
     await reserve(paths.reservation, reservation);
     const created = await writer.createEntity(publicSchema(intent.kind), intent.attributes, {
-      ...publicationOptions(intent.kind, intent.lifetimeSeconds), salt:predicted.salt,
+      ...expiration, salt:predicted.salt,
     });
     await reserve(paths.submitted, {key:created.entityKey?.toLowerCase(), tx_hash:created.txHash});
     release = entityKey.test(created.txHash ?? '') && created.entityKey?.toLowerCase() === reservation.key;
@@ -144,12 +156,20 @@ export async function publishPublicIntent(reader, writer, root, input) {
   }
 }
 
-async function claimDeadline(reader, intent) {
+async function parentDeadline(reader, intent) {
   const task = await readPublicRecord(reader, {
     kind:'task', key:intent.parent.key, expectedOwner:intent.parent.owner,
   });
   if (task.status !== 'observed' || task.attributes.taskId !== intent.attributes.taskId) {
-    throw new Error('Claim requires a current parent task from the expected requester');
+    throw new Error('Publication requires a current parent task from the expected requester');
+  }
+  if (intent.kind === 'assignment') {
+    const claim = await readPublicRecord(reader, {
+      kind:'claim', key:intent.attributes.claimRef, expectedOwner:intent.selectedClaim.owner,
+    });
+    if (claim.status !== 'observed' || !isDeepStrictEqual(claim.attributes, intent.selectedClaim.attributes)) {
+      throw new Error('Assignment requires a current claim on the selected task');
+    }
   }
   return task.attributes.deadlineRef;
 }

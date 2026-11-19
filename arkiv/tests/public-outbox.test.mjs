@@ -17,6 +17,7 @@ const taskId = '12345678-1234-4567-8123-0123456789ab';
 const taskKey = '0x' + '1'.repeat(64);
 const claimKey = '0x' + '2'.repeat(64);
 const transaction = '0x' + '3'.repeat(64);
+const assignmentKey = '0x' + '5'.repeat(64);
 const task = {
   kind:'task', owner:requester, lifetimeSeconds:60,
   attributes:{taskId, capability:'sst_reproduction', regionCode:'indian', status:'open',
@@ -40,7 +41,9 @@ async function setup(t) {
       if (!rows.has(key)) throw new NoEntityFoundError(key);
       return rows.get(key);
     },
-    predictEntityKeys:async ({owner}) => [{key:owner === requester ? taskKey : claimKey, salt:10n}],
+    predictEntityKeys:async ({owner}) => [{
+      key:owner === requester ? (rows.has(taskKey) ? assignmentKey : taskKey) : claimKey, salt:10n,
+    }],
   };
   function writer(owner, outcome = 'success') {
     return {account:{address:owner},chain,async createEntity(schema, attributes, options) {
@@ -124,4 +127,24 @@ test('a mined key inconsistent with the reservation requires operator reconcilia
     returned_entity_key:'0x' + '4'.repeat(64),tx_hash:transaction});
   assert.deepEqual(await reconcilePublicIntent(reader,root,task), result);
   assert.equal(sent.length,1);
+});
+
+test('only the requester can publish a reference for the exact selected claim', async t => {
+  const {root,reader,writer,sent} = await setup(t);
+  await publishPublicIntent(reader,writer(requester),root,task);
+  await publishPublicIntent(reader,writer(provider),root,claim);
+  const assignment = {
+    kind:'assignment', owner:requester, lifetimeSeconds:60,
+    parent:{key:taskKey, owner:requester}, selectedClaim:{owner:provider, attributes:claim.attributes},
+    attributes:{taskId, claimRef:claimKey, status:'selected', assignmentDigest:'sha256:'+'b'.repeat(64)},
+  };
+  const substituted = {...assignment, selectedClaim:{owner:provider,
+    attributes:{...claim.attributes,bindingDigest:'sha256:'+'c'.repeat(64)}}};
+  await assert.rejects(publishPublicIntent(reader,writer(requester),root,substituted), /current claim/);
+  await assert.rejects(publishPublicIntent(reader,writer(provider),root,assignment), /pinned Rabdi wallet/);
+  const result = await publishPublicIntent(reader,writer(requester),root,assignment);
+  assert.equal(result.entity_key, assignmentKey);
+  assert.equal(result.observation.attributes.claimRef, claimKey);
+  assert.equal((await publishPublicIntent(reader,writer(requester),root,assignment)).entity_key, assignmentKey);
+  assert.equal(sent.filter(write => write.kind === 'assignment').length, 1);
 });
