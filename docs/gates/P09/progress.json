@@ -9,7 +9,8 @@
     "P09.1 tenant-scoped GET /v1/network/agents/{agent_id} reads the current registration and qualification expiry while exposing public endpoint and signing metadata with research and ENS trust still disabled",
     "P09.1 capability and endpoint reads project the current immutable registration binding and label self-declared claims, service qualification and research dispatch separately. PATCH /v1/network/agents/{agent_id} replaces the binding through the existing versioned onboarding flow, resetting it to draft so proof and qualification must be repeated.",
     "P09.1 organization operators can request a dedicated check of the registered endpoint through POST /v1/network/agents/{agent_id}/endpoint-checks. It uses bounded public HTTPS egress, checks the card digest, URL, protocol and capability, and records the outcome for the checked binding after a version recheck.",
-    "P09.1 endpoint checks now return 202 and run in the onboarding worker. The GET job route exposes progress and the report. Pending requests for the same binding and version coalesce. Other submissions are limited to one per registration per 60 seconds. The worker rechecks the actor's authority and binding before fetching and before recording the observation.",
+    "P09.1 endpoint checks now return 202 and run in the onboarding worker. The GET job route exposes progress and the report. Pending requests for the same binding, version and endpoint coalesce. Other submissions are limited to one per registration per 60 seconds. The worker rechecks the actor's authority and binding before fetching and before recording the observation.",
+    "P09.1 versioned create and replace-registration APIs accept additional capabilities on the primary endpoint and additional HTTPS endpoints with their own pinned card digests and advertised capabilities. The directory can filter by any declared capability. Endpoint jobs can select only a URL in the current binding. Additional declarations remain unqualified until separately approved.",
     "Earlier H04/F02 work includes an official A2A 0.3.0 SDK client, provider servers, scoped signed requests, durable provider tasks and cancellation; these are reusable foundations for P09.2, not a P09 gate pass",
     "P09.3 signed research-grant policy binds one agent and immutable binding to organization, project, run, task, approved plan/method, dataset allowlist, reserved-budget ceiling and a maximum five-minute lifetime; policy rejects research dispatch unless separately enabled",
     "P09.2/P09.3 research A2A client now uses the official SDK with the existing pinned-public-HTTPS transport, checks the current provider binding, registered Agent Card digest, bearer request digest, completed task, provider-signed grant-bound artifact and task readback. This client is not yet wired to durable run jobs or enabled for production dispatch.",
@@ -41,15 +42,16 @@
     "Disposable PostgreSQL applied migration 0037. A competing revocation could not obtain its update lock during final authority locking, and the dispatch and reconciliation regression passed.",
     "Migration 0038 and the ledger passed disposable PostgreSQL and A2A checks, including HTTP pagination, wrong-run rejection and correlation after reconciliation. The offline verifier ran in a separate process against a real local SDK exchange and detected substituted inputs with the same mean. Three focused wire and grant tests passed.",
     "Four focused directory, onboarding and dispatch regressions passed with disposable PostgreSQL. Endpoint observation matched or rejected the supplied card, rejected stale versions and read-only callers before fetching, and wrote a binding-specific audit entry. The HTTP test injects provider responses.",
-    "Four focused local regressions passed with migration 0039, including 202 queueing, same-binding coalescing, 429 cooldown, job polling, discard on revision during fetch, and qualification and research dispatch regressions."
+    "Four focused local regressions passed with migration 0039, including 202 queueing, same-binding coalescing, 429 cooldown, job polling, discard on revision during fetch, and qualification and research dispatch regressions.",
+    "Four focused local tests passed with migration 0040. They verified secondary capability filtering and removal on revision, selected endpoint inspection, rejection of unregistered targets, no inherited eligibility after a matching secondary card, and unchanged primary qualification and dispatch. Ruff and mypy passed."
   ],
   "remaining": [
-    "P09.1 multi-capability and multi-endpoint CRUD, live endpoint observation, independent verification and revocation acceptance",
+    "P09.1 live endpoint observation, independent verification and revocation acceptance, plus separate qualification if secondary capabilities and endpoints are to receive research traffic",
     "P09.2 complete official A2A task/artifact/status/cancel interoperability with separately keyed external provider processes and live wire evidence",
     "P09.3 separately operated HTTPS provider deployment and live dispatch/reconciliation/cancellation evidence, explicit fallback and approved scientific method execution",
     "P09.4 separately operated scientific reproduction and baseline challenge acceptance on pinned real source bytes. The current offline verifier handles only the bounded temperature-summary method.",
     "G08 prerequisite acceptance and all G09 live external process evidence"
   ],
   "oracle_deployment": "deferred_by_user",
-  "endpoint_check_rollout": "Apply migration 0039 and replace older onboarding workers before enabling the new API. Older workers do not distinguish endpoint jobs from qualifications."
+  "endpoint_check_rollout": "Apply migrations through 0040 and deploy the updated onboarding worker before the new API accepts endpoint targets. Earlier workers check only the primary endpoint."
 }

@@ -13,7 +13,11 @@ from uuid import UUID, uuid4
 import httpx
 from sqlalchemy import Engine, text
 
-from orca.application.agent_onboarding import Onboarding, validate_registered_card
+from orca.application.agent_onboarding import (
+    Onboarding,
+    registered_endpoint,
+    validate_registered_card,
+)
 from orca.config import Settings
 from orca.contracts.network import AgentEndpointObservation
 from orca.domain.identity import ROLE_SCOPES, Principal
@@ -25,16 +29,16 @@ from orca.infrastructure.federation.qualification import qualify
 from orca.infrastructure.federation.runtime import NetworkRuntime, load_runtime
 
 
-def observe_endpoint(row: dict[str, Any]) -> dict[str, Any]:
-    registration = row["registration"]
+def observe_endpoint(row: dict[str, Any], endpoint: str | None) -> dict[str, Any]:
+    selected = registered_endpoint(row["registration"], endpoint)
     status: Literal["matches_registration", "card_mismatch", "unavailable"]
     try:
-        card = fetch_card(registration["endpoint"])
+        card = fetch_card(selected.endpoint)
     except (OSError, ValueError, httpx.HTTPError):
         status = "unavailable"
     else:
         try:
-            validate_registered_card(card, registration)
+            validate_registered_card(card, selected.model_dump(mode="json"))
         except ValueError:
             status = "card_mismatch"
         else:
@@ -44,6 +48,7 @@ def observe_endpoint(row: dict[str, Any]) -> dict[str, Any]:
         binding_version=row["binding_version"],
         observed_at=datetime.now(timezone.utc),
         status=status,
+        endpoint=selected.endpoint,
     ).model_dump(mode="json")
 
 
@@ -82,7 +87,7 @@ def execute(
             ):
                 raise ValueError()
         if job["kind"] == "endpoint_check":
-            report = observe_endpoint(row)
+            report = observe_endpoint(row, job["endpoint"])
         else:
             if isinstance(network, FederationCoordinator):
                 coordinator = network.public_descriptor()

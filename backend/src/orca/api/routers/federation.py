@@ -14,7 +14,7 @@ from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.agents import service as onboarding_service
 from orca.api.routers.projects import engine, resolve_tenant
 from orca.application.agent_onboarding import EndpointCheckRateLimited
-from orca.contracts.agents import AgentRevision, AgentVersion
+from orca.contracts.agents import AgentEndpointCheckRequest, AgentRevision
 from orca.contracts.common import Page
 from orca.contracts.network import (
     AgentCapabilityClaim,
@@ -81,7 +81,11 @@ def list_agents(
                 ON v.tenant_id=r.tenant_id AND v.id=r.binding_version
               WHERE r.tenant_id=:tenant AND r.organization_id=:organization
                 AND (CAST(:after AS uuid) IS NULL OR r.id>:after)
-                AND (CAST(:capability AS text) IS NULL OR v.registration->>'capability'=:capability)
+                AND (CAST(:capability AS text) IS NULL OR v.registration->>'capability'=:capability
+                  OR jsonb_exists(v.registration->'additional_capabilities', :capability)
+                  OR EXISTS (SELECT 1 FROM jsonb_array_elements(
+                    coalesce(v.registration->'additional_endpoints', '[]'::jsonb)) item
+                    WHERE jsonb_exists(item->'capabilities', :capability)))
                 AND (CAST(:mode AS text) IS NULL OR v.registration->>'operator_mode'=:mode)
               ORDER BY r.id LIMIT :limit"""),
                 {
@@ -141,6 +145,8 @@ def get_agent(
         key_id=registration["key_id"],
         public_key=registration["public_key"],
         card_digest=registration["card_digest"],
+        additional_capabilities=registration.get("additional_capabilities", []),
+        additional_endpoints=registration.get("additional_endpoints", []),
     )
 
 
@@ -163,14 +169,23 @@ def get_capabilities(
     agent_id: UUID, organization_id: UUID, request: Request, principal: CurrentPrincipal
 ) -> Page[AgentCapabilityClaim]:
     agent = get_agent(agent_id, organization_id, request, principal)
+    declared = dict.fromkeys(
+        [
+            agent.capability,
+            *agent.additional_capabilities,
+            *(cap for endpoint in agent.additional_endpoints for cap in endpoint.capabilities),
+        ]
+    )
     return Page[AgentCapabilityClaim](
         items=[
             AgentCapabilityClaim(
-                capability_id=agent.capability, qualified_for_service=agent.service_eligible
+                capability_id=capability,
+                qualified_for_service=agent.service_eligible and capability == agent.capability,
             )
+            for capability in declared
         ],
         next_cursor=None,
-        page_size=1,
+        page_size=len(declared),
     )
 
 
@@ -186,10 +201,22 @@ def get_endpoints(
                 card_url=agent.endpoint.removesuffix("/a2a") + "/.well-known/agent-card.json",
                 card_digest=agent.card_digest,
                 service_eligible=agent.service_eligible,
-            )
+                capabilities=[agent.capability, *agent.additional_capabilities],
+            ),
+            *[
+                AgentEndpointClaim(
+                    uri=item.endpoint,
+                    card_url=item.endpoint.removesuffix("/a2a") + "/.well-known/agent-card.json",
+                    card_digest=item.card_digest,
+                    service_eligible=False,
+                    capabilities=item.capabilities,
+                    primary=False,
+                )
+                for item in agent.additional_endpoints
+            ],
         ],
         next_cursor=None,
-        page_size=1,
+        page_size=1 + len(agent.additional_endpoints),
     )
 
 
@@ -197,7 +224,7 @@ def get_endpoints(
 def check_endpoint(
     agent_id: UUID,
     organization_id: UUID,
-    body: AgentVersion,
+    body: AgentEndpointCheckRequest,
     request: Request,
     principal: CurrentPrincipal,
 ) -> AgentEndpointCheckJob:
@@ -207,7 +234,7 @@ def check_endpoint(
     try:
         with onboarding_service(request, organization_id, principal) as app:
             return AgentEndpointCheckJob.model_validate(
-                app.queue_endpoint_check(agent_id, body.expected_version)
+                app.queue_endpoint_check(agent_id, body.expected_version, body.endpoint)
             )
     except EndpointCheckRateLimited as error:
         raise HTTPException(

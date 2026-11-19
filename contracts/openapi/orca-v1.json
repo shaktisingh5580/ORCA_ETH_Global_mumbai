@@ -123,6 +123,40 @@
         "title": "AddProjectMember",
         "type": "object"
       },
+      "AdditionalAgentEndpoint": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:/-]+$",
+              "type": "string"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "card_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "title": "Card Digest",
+            "type": "string"
+          },
+          "endpoint": {
+            "maxLength": 500,
+            "title": "Endpoint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint",
+          "card_digest",
+          "capabilities"
+        ],
+        "title": "AdditionalAgentEndpoint",
+        "type": "object"
+      },
       "AgentCapabilityClaim": {
         "additionalProperties": false,
         "properties": {
@@ -163,6 +197,25 @@
       "AgentDraft": {
         "additionalProperties": false,
         "properties": {
+          "additional_capabilities": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:/-]+$",
+              "type": "string"
+            },
+            "maxItems": 12,
+            "title": "Additional Capabilities",
+            "type": "array"
+          },
+          "additional_endpoints": {
+            "items": {
+              "$ref": "#/components/schemas/AdditionalAgentEndpoint"
+            },
+            "maxItems": 8,
+            "title": "Additional Endpoints",
+            "type": "array"
+          },
           "capability": {
             "const": "temperature_summary_v1",
             "default": "temperature_summary_v1",
@@ -237,6 +290,17 @@
             "title": "Agent Id",
             "type": "string"
           },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
           "error_code": {
             "anyOf": [
               {
@@ -284,9 +348,46 @@
         "title": "AgentEndpointCheckJob",
         "type": "object"
       },
+      "AgentEndpointCheckRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "endpoint": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "AgentEndpointCheckRequest",
+        "type": "object"
+      },
       "AgentEndpointClaim": {
         "additionalProperties": false,
         "properties": {
+          "capabilities": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:/-]+$",
+              "type": "string"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
           "card_digest": {
             "pattern": "^sha256:[0-9a-f]{64}$",
             "title": "Card Digest",
@@ -295,6 +396,11 @@
           "card_url": {
             "title": "Card Url",
             "type": "string"
+          },
+          "primary": {
+            "default": true,
+            "title": "Primary",
+            "type": "boolean"
           },
           "research_dispatch_enabled": {
             "const": false,
@@ -339,6 +445,17 @@
             "title": "Binding Version",
             "type": "string"
           },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
           "observed_at": {
             "title": "Observed At",
             "type": "string"
@@ -379,21 +496,6 @@
           "registration"
         ],
         "title": "AgentRevision",
-        "type": "object"
-      },
-      "AgentVersion": {
-        "additionalProperties": false,
-        "properties": {
-          "expected_version": {
-            "minimum": 1.0,
-            "title": "Expected Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "expected_version"
-        ],
-        "title": "AgentVersion",
         "type": "object"
       },
       "ApprovePlan": {
@@ -1828,6 +1930,23 @@
         "additionalProperties": false,
         "description": "Expose public registration claims while keeping trust decisions explicit.",
         "properties": {
+          "additional_capabilities": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:/-]+$",
+              "type": "string"
+            },
+            "title": "Additional Capabilities",
+            "type": "array"
+          },
+          "additional_endpoints": {
+            "items": {
+              "$ref": "#/components/schemas/AdditionalAgentEndpoint"
+            },
+            "title": "Additional Endpoints",
+            "type": "array"
+          },
           "capability": {
             "title": "Capability",
             "type": "string"
@@ -9388,7 +9507,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentVersion"
+                "$ref": "#/components/schemas/AgentEndpointCheckRequest"
               }
             }
           },

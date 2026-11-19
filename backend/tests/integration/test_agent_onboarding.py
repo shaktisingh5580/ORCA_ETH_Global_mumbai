@@ -224,6 +224,13 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         "key_id": "http-service",
     }
     raw = card(provider).model_dump(mode="json", by_alias=True, exclude_none=True)
+    extra_endpoint = "https://secondary.example/a2a"
+    extra_capability = "sst_review"
+    extra_card = {
+        **raw,
+        "url": extra_endpoint,
+        "skills": [{**raw["skills"][0], "id": extra_capability}],
+    }
     body = {
         "name": provider["name"],
         "endpoint": provider["endpoint"],
@@ -231,6 +238,13 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         "key_id": provider["key_id"],
         "card_digest": digest(raw),
         "operator_mode": "team_controlled",
+        "additional_endpoints": [
+            {
+                "endpoint": extra_endpoint,
+                "card_digest": digest(extra_card),
+                "capabilities": [extra_capability],
+            }
+        ],
     }
     settings = Settings(
         monitoring_token="0123456789abcdefghijklmnopqrstuvwxyz",
@@ -257,18 +271,32 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         path = base + "/" + identifier
         checks_path = f"/v1/network/agents/{identifier}/endpoint-checks"
         checks = f"{checks_path}?organization_id={org}"
+        directory = f"/v1/network/agents?organization_id={org}"
+        assert (
+            client.get(directory + f"&capability={extra_capability}").json()["items"][0]["id"]
+            == identifier
+        )
         requests = []
 
         def fetch_registered(endpoint):
             requests.append(endpoint)
-            return raw
+            assert endpoint == extra_endpoint
+            return extra_card
 
         monkeypatch.setattr(onboarding_worker, "fetch_card", fetch_registered)
         assert client.post(checks, json={"expected_version": 2}).status_code == 412
-        queued = client.post(checks, json={"expected_version": 1})
+        assert (
+            client.post(
+                checks, json={"expected_version": 1, "endpoint": "https://unregistered.example/a2a"}
+            ).status_code
+            == 404
+        )
+        check_request = {"expected_version": 1, "endpoint": extra_endpoint}
+        queued = client.post(checks, json=check_request)
         assert queued.status_code == 202, queued.text
         check_id = queued.json()["id"]
-        assert client.post(checks, json={"expected_version": 1}).json()["id"] == check_id
+        assert client.post(checks, json=check_request).json()["id"] == check_id
+        assert client.post(checks, json={"expected_version": 1}).status_code == 429
         assert requests == []
         poll = f"{checks_path}/{check_id}?organization_id={org}"
         assert client.get(poll).json()["state"] == "queued"
@@ -278,6 +306,7 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         observed = client.get(poll).json()
         assert observed["state"] == "succeeded"
         assert observed["report"]["status"] == "matches_registration"
+        assert observed["endpoint"] == observed["report"]["endpoint"] == extra_endpoint
         assert observed["report"]["binding_version"] == response.json()["binding_version"]
         assert client.get(path + f"/qualifications/{check_id}").status_code == 404
         cooldown = client.post(checks, json={"expected_version": 1})
@@ -345,6 +374,19 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
             client.post(path + "/activate", json={"expected_version": 4}).json()["state"]
             == "active"
         )
+        network_path = f"/v1/network/agents/{identifier}"
+        capabilities = client.get(f"{network_path}/capabilities?organization_id={org}").json()[
+            "items"
+        ]
+        assert {item["capability_id"]: item["qualified_for_service"] for item in capabilities} == {
+            "temperature_summary_v1": True,
+            extra_capability: False,
+        }
+        endpoints = client.get(f"{network_path}/endpoints?organization_id={org}").json()["items"]
+        assert [(item["uri"], item["service_eligible"]) for item in endpoints] == [
+            (provider["endpoint"], True),
+            (extra_endpoint, False),
+        ]
         # Editing an endpoint/key revision invalidates service eligibility and old qualification.
         with psycopg.connect(admin) as connection:
             connection.execute(
@@ -358,7 +400,16 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         def revise_during_fetch(endpoint):
             requests.append(endpoint)
             changed = client.patch(
-                path, json={"expected_version": 5, "registration": {**body, "name": "Revised"}}
+                path,
+                json={
+                    "expected_version": 5,
+                    "registration": {
+                        **body,
+                        "name": "Revised",
+                        "additional_endpoints": [],
+                        "additional_capabilities": ["ocean_metadata"],
+                    },
+                },
             )
             assert changed.status_code == 200 and changed.json()["state"] == "draft"
             assert not changed.json()["service_eligible"]
@@ -370,6 +421,11 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         )
         discarded = client.get(f"{checks_path}/{stale_id}?organization_id={org}").json()
         assert discarded["state"] == "failed" and discarded["report"] is None
+        assert client.get(directory + f"&capability={extra_capability}").json()["items"] == []
+        assert (
+            client.get(directory + "&capability=ocean_metadata").json()["items"][0]["id"]
+            == identifier
+        )
         assert [
             item["data"]["status"]
             for item in client.get(path + "/events").json()

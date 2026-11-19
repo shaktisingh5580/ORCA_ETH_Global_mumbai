@@ -9,6 +9,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from orca.contracts.agents import AdditionalAgentEndpoint, CapabilityID
 from orca.contracts.common import Contract, Digest, UTCDateTime
 
 Capability = Literal["sst_reproduction", "sst_review"]
@@ -19,6 +20,7 @@ class AgentEndpointObservation(Contract):
     binding_version: UUID
     observed_at: UTCDateTime
     status: Literal["matches_registration", "card_mismatch", "unavailable"]
+    endpoint: str | None = None
 
 
 class AgentEndpointCheckJob(Contract):
@@ -27,6 +29,7 @@ class AgentEndpointCheckJob(Contract):
     state: Literal["queued", "running", "succeeded", "failed"]
     report: AgentEndpointObservation | None
     error_code: str | None
+    endpoint: str | None = None
 
 
 class AgentBinding(Contract):
@@ -135,6 +138,8 @@ class FederatedAgentDetail(FederatedAgentSummary):
     key_id: str
     public_key: str
     card_digest: Digest
+    additional_capabilities: list[CapabilityID] = Field(default_factory=list)
+    additional_endpoints: list[AdditionalAgentEndpoint] = Field(default_factory=list)
 
 
 class AgentCapabilityClaim(Contract):
@@ -152,3 +157,5 @@ class AgentEndpointClaim(Contract):
     card_digest: Digest
     service_eligible: bool
     research_dispatch_enabled: Literal[False] = False
+    capabilities: list[CapabilityID] = Field(default_factory=list)
+    primary: bool = True

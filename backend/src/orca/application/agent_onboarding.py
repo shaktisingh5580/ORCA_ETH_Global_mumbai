@@ -7,6 +7,7 @@ import json
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
 from a2a.types import AgentCard
@@ -16,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from orca.application.organizations import Organizations
 from orca.application.projects import IdempotencyConflict, StaleVersion
-from orca.contracts.agents import AgentDraft, AgentProof
+from orca.contracts.agents import AdditionalAgentEndpoint, AgentDraft, AgentProof
 from orca.domain.identity import Principal
 from orca.infrastructure.federation.https_egress import endpoint_origin
 from orca.infrastructure.federation.signing import canonical, digest, unb64
@@ -28,8 +29,47 @@ def validate_registered_card(card: dict[str, Any], registration: dict[str, Any])
     parsed = AgentCard.model_validate(card)
     if parsed.url != registration["endpoint"] or parsed.protocol_version != "0.3.0":
         raise ValueError("Agent Card endpoint or protocol differs")
-    if registration["capability"] not in {skill.id for skill in parsed.skills}:
+    required = registration.get("capabilities") or [
+        registration["capability"],
+        *registration.get("additional_capabilities", []),
+    ]
+    if not set(required) <= {skill.id for skill in parsed.skills}:
         raise ValueError("Agent Card does not declare the requested capability")
+
+
+def registration_data(body: AgentDraft) -> dict[str, Any]:
+    """Validate all endpoint origins and preserve existing single-endpoint request digests."""
+    endpoints = [body.endpoint, *(item.endpoint for item in body.additional_endpoints)]
+    hosts = []
+    for endpoint in endpoints:
+        host = urlsplit(endpoint_origin(endpoint)).hostname
+        assert host
+        hosts.append(host.rstrip(".").encode("idna").decode("ascii").lower())
+    if len(hosts) != len(set(hosts)):
+        raise ValueError("Registered endpoint origins must be distinct")
+    data = body.model_dump(mode="json")
+    for key in ("additional_capabilities", "additional_endpoints"):
+        if not data[key]:
+            del data[key]
+    return data
+
+
+def registered_endpoint(
+    registration: dict[str, Any], endpoint: str | None
+) -> AdditionalAgentEndpoint:
+    if endpoint is None or endpoint == registration["endpoint"]:
+        return AdditionalAgentEndpoint(
+            endpoint=registration["endpoint"],
+            card_digest=registration["card_digest"],
+            capabilities=[
+                registration["capability"],
+                *registration.get("additional_capabilities", []),
+            ],
+        )
+    for item in registration.get("additional_endpoints", []):
+        if item["endpoint"] == endpoint:
+            return AdditionalAgentEndpoint.model_validate(item)
+    raise LookupError("Endpoint is not registered on the current binding")
 
 
 class EndpointCheckRateLimited(Exception):
@@ -122,8 +162,7 @@ class Onboarding:
 
     def create(self, body: AgentDraft, key: str) -> dict[str, Any]:
         params = self.params(True)
-        endpoint_origin(body.endpoint)
-        hashed = digest(body.model_dump(mode="json"))
+        hashed = digest(registration_data(body))
         previous = (
             self.session.execute(
                 text("""SELECT id,request_digest FROM federation.registrations
@@ -164,7 +203,7 @@ class Onboarding:
                 **self.params(True),
                 "binding": binding,
                 "id": identifier,
-                "body": body.model_dump_json(),
+                "body": json.dumps(registration_data(body)),
             },
         )
 
@@ -185,7 +224,6 @@ class Onboarding:
 
     def revise(self, identifier: UUID, version: int, body: AgentDraft) -> dict[str, Any]:
         self.expected(identifier, version)
-        endpoint_origin(body.endpoint)
         binding = uuid4()
         self.insert_version(identifier, binding, body)
         self.session.execute(
@@ -381,7 +419,7 @@ class Onboarding:
         self.row(identifier)
         row = (
             self.session.execute(
-                text("""SELECT id,agent_id,state,report,error_code FROM federation.registration_jobs
+                text("""SELECT id,agent_id,state,report,error_code,endpoint FROM federation.registration_jobs
           WHERE tenant_id=:t AND organization_id=:o AND agent_id=:id AND id=:job AND kind=:kind"""),
                 {**self.params(), "id": identifier, "job": job, "kind": kind},
             )
@@ -390,16 +428,31 @@ class Onboarding:
         )
         if row is None:
             raise LookupError("Registration job not found")
-        return dict(row)
+        return {
+            key: value
+            for key, value in row.items()
+            if key != "endpoint" or kind == "endpoint_check"
+        }
 
-    def queue_endpoint_check(self, identifier: UUID, version: int) -> dict[str, Any]:
+    def queue_endpoint_check(
+        self, identifier: UUID, version: int, endpoint: str | None = None
+    ) -> dict[str, Any]:
         row = self.expected(identifier, version)
-        params = {**self.params(True), "agent": identifier, "binding": row["binding_version"]}
+        selected = registered_endpoint(row["registration"], endpoint).endpoint
+        params = {
+            **self.params(True),
+            "agent": identifier,
+            "binding": row["binding_version"],
+            "endpoint": selected,
+            "primary": row["registration"]["endpoint"],
+        }
         pending = (
             self.session.execute(
-                text("""SELECT id,agent_id,state,report,error_code FROM federation.registration_jobs
+                text("""SELECT id,agent_id,state,report,error_code,coalesce(endpoint,:primary) AS endpoint
+                  FROM federation.registration_jobs
               WHERE tenant_id=:t AND agent_id=:agent AND binding_version=:binding
-                AND expected_version=:version AND kind='endpoint_check' AND state IN ('queued','running')"""),
+                AND expected_version=:version AND kind='endpoint_check' AND state IN ('queued','running')
+                AND coalesce(endpoint,:primary)=:endpoint"""),
                 {**params, "version": version},
             )
             .mappings()
@@ -420,8 +473,8 @@ class Onboarding:
         self.session.execute(
             text("""INSERT INTO federation.registration_jobs
               (id,tenant_id,organization_id,agent_id,actor,idempotency_key,expected_version,
-               binding_version,kind)
-              VALUES(:job,:t,:o,:agent,:actor,:key,:version,:binding,'endpoint_check')"""),
+               binding_version,kind,endpoint)
+              VALUES(:job,:t,:o,:agent,:actor,:key,:version,:binding,'endpoint_check',:endpoint)"""),
             {
                 **params,
                 "job": job,
@@ -433,6 +486,7 @@ class Onboarding:
         return {
             "id": job,
             "agent_id": identifier,
+            "endpoint": selected,
             "state": "queued",
             "report": None,
             "error_code": None,
