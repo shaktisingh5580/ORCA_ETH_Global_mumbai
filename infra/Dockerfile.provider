@@ -1,9 +1,12 @@
 # Purpose: package an independently operated institutional A2A provider without demo fixtures.
 # Behavior: install the pinned runtime and provider entrypoint; mount only provider-local state.
-# Refs: institutional implementation plan F02.4; Phase: F02.
-FROM python:3.12.12-slim-bookworm
+# Refs: institutional implementation plan F02.4; main_implementation plan.md P14.1; Phase: F02, P14.
+FROM python:3.12.16-slim-bookworm@sha256:935c3c5b12357a7e10caa9c1e6ca5692344d97cf229832ef584be2cec9fc03df
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends libstdc++6 ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY backend/pyproject.toml backend/uv.lock backend/README.md ./backend/
 RUN pip install --no-cache-dir uv==0.9.30 && uv sync --project backend --frozen --no-dev --no-install-project
