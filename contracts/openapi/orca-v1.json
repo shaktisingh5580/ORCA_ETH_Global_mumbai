@@ -229,6 +229,61 @@
         "title": "AgentDraft",
         "type": "object"
       },
+      "AgentEndpointCheckJob": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "format": "uuid",
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentEndpointObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "agent_id",
+          "state",
+          "report",
+          "error_code"
+        ],
+        "title": "AgentEndpointCheckJob",
+        "type": "object"
+      },
       "AgentEndpointClaim": {
         "additionalProperties": false,
         "properties": {
@@ -9305,7 +9360,7 @@
     },
     "/v1/network/agents/{agent_id}/endpoint-checks": {
       "post": {
-        "description": "Observe the sole registered endpoint without trusting arbitrary caller URLs.",
+        "description": "Queue an observation of the current registered endpoint.",
         "operationId": "check_endpoint_v1_network_agents__agent_id__endpoint_checks_post",
         "parameters": [
           {
@@ -9340,11 +9395,11 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "202": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentEndpointObservation"
+                  "$ref": "#/components/schemas/AgentEndpointCheckJob"
                 }
               }
             },
@@ -9367,6 +9422,74 @@
           }
         ],
         "summary": "Check Endpoint",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
+    "/v1/network/agents/{agent_id}/endpoint-checks/{job_id}": {
+      "get": {
+        "operationId": "get_endpoint_check_v1_network_agents__agent_id__endpoint_checks__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentEndpointCheckJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Endpoint Check",
         "tags": [
           "federation"
         ]

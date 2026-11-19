@@ -6,18 +6,45 @@ Refs: institutional phase F02.5; main_implementation plan.md P09.1-P09.3; Phase:
 import argparse
 import json
 import time
+from datetime import datetime, timezone
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
+import httpx
 from sqlalchemy import Engine, text
 
-from orca.application.agent_onboarding import Onboarding
+from orca.application.agent_onboarding import Onboarding, validate_registered_card
 from orca.config import Settings
+from orca.contracts.network import AgentEndpointObservation
 from orca.domain.identity import ROLE_SCOPES, Principal
 from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.infrastructure.federation.coordinator import FederationCoordinator, load_coordinator
+from orca.infrastructure.federation.https_egress import fetch_card
 from orca.infrastructure.federation.qualification import qualify
 from orca.infrastructure.federation.runtime import NetworkRuntime, load_runtime
+
+
+def observe_endpoint(row: dict[str, Any]) -> dict[str, Any]:
+    registration = row["registration"]
+    status: Literal["matches_registration", "card_mismatch", "unavailable"]
+    try:
+        card = fetch_card(registration["endpoint"])
+    except (OSError, ValueError, httpx.HTTPError):
+        status = "unavailable"
+    else:
+        try:
+            validate_registered_card(card, registration)
+        except ValueError:
+            status = "card_mismatch"
+        else:
+            status = "matches_registration"
+    return AgentEndpointObservation(
+        agent_id=row["id"],
+        binding_version=row["binding_version"],
+        observed_at=datetime.now(timezone.utc),
+        status=status,
+    ).model_dump(mode="json")
 
 
 def execute(
@@ -50,42 +77,65 @@ def execute(
         with TenantUnitOfWork(db, tenant) as session:
             app = Onboarding(session, tenant, job["organization_id"], principal)
             row = app.expected(job["agent_id"], job["expected_version"])
-            if row["binding_version"] != job["binding_version"] or row["state"] != "verified":
+            if row["binding_version"] != job["binding_version"] or (
+                job["kind"] == "qualification" and row["state"] != "verified"
+            ):
                 raise ValueError()
-        if isinstance(network, FederationCoordinator):
-            coordinator = network.public_descriptor()
+        if job["kind"] == "endpoint_check":
+            report = observe_endpoint(row)
         else:
-            binding = network.configuration.coordinator
-            coordinator = {
-                "id": str(binding.id),
-                "key_id": binding.key_id,
-                "public_key": binding.public_key,
-            }
-        report = qualify(row, coordinator, network.private_key, str(identifier))
+            if isinstance(network, FederationCoordinator):
+                coordinator = network.public_descriptor()
+            else:
+                binding = network.configuration.coordinator
+                coordinator = {
+                    "id": str(binding.id),
+                    "key_id": binding.key_id,
+                    "public_key": binding.public_key,
+                }
+            report = qualify(row, coordinator, network.private_key, str(identifier))
         with TenantUnitOfWork(db, tenant) as session:
             current = session.execute(
                 text("""SELECT id FROM federation.registration_jobs
               WHERE tenant_id=:t AND id=:id AND state='running' AND lease_token=:token
-              AND lease_until>now() FOR UPDATE"""),
+              AND lease_until>clock_timestamp() FOR UPDATE"""),
                 {"t": tenant, "id": identifier, "token": token},
             ).first()
             if current is None:
                 return True
-            Onboarding(session, tenant, job["organization_id"], principal).qualify(
-                job["agent_id"], job["expected_version"], job["binding_version"], report
-            )
-            session.execute(
+            app = Onboarding(session, tenant, job["organization_id"], principal)
+            if job["kind"] == "endpoint_check":
+                latest = app.expected(job["agent_id"], job["expected_version"])
+                if latest["binding_version"] != job["binding_version"]:
+                    raise ValueError("Endpoint check binding has changed")
+                app.event(job["agent_id"], "endpoint_checked", report)
+            else:
+                app.qualify(
+                    job["agent_id"], job["expected_version"], job["binding_version"], report
+                )
+            completed = session.execute(
                 text("""UPDATE federation.registration_jobs SET state='succeeded',report=CAST(:r AS jsonb),
-              lease_until=NULL WHERE tenant_id=:t AND id=:id AND lease_token=:token"""),
+              lease_token=NULL,lease_until=NULL WHERE tenant_id=:t AND id=:id AND lease_token=:token
+                AND lease_until>clock_timestamp() RETURNING id"""),
                 {"t": tenant, "id": identifier, "token": token, "r": json.dumps(report)},
-            )
+            ).scalar_one_or_none()
+            if completed is None:
+                raise ValueError("Registration job lease expired before completion")
     except Exception:
         with TenantUnitOfWork(db, tenant) as session:
             session.execute(
                 text("""UPDATE federation.registration_jobs SET state='failed',
-              error_code='QUALIFICATION_FAILED_OR_BINDING_CHANGED',lease_until=NULL
-              WHERE tenant_id=:t AND id=:id AND state='running' AND lease_token=:token"""),
-                {"t": tenant, "id": identifier, "token": token},
+              error_code=:code,lease_token=NULL,lease_until=NULL
+              WHERE tenant_id=:t AND id=:id AND state='running' AND lease_token=:token
+                AND lease_until>clock_timestamp()"""),
+                {
+                    "t": tenant,
+                    "id": identifier,
+                    "token": token,
+                    "code": "ENDPOINT_CHECK_FAILED_OR_BINDING_CHANGED"
+                    if job["kind"] == "endpoint_check"
+                    else "QUALIFICATION_FAILED_OR_BINDING_CHANGED",
+                },
             )
     return True
 

@@ -195,7 +195,6 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
     from orca.api.app import create_app
     from orca.api.dependencies import current_principal
     from orca.api.routers import agents as routes
-    from orca.api.routers import federation
     from orca.config import Settings
     from orca.infrastructure.federation.coordinator import load_coordinator
 
@@ -256,27 +255,38 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         assert response.status_code == 201, response.text
         identifier = response.json()["id"]
         path = base + "/" + identifier
-        checks = f"/v1/network/agents/{identifier}/endpoint-checks?organization_id={org}"
+        checks_path = f"/v1/network/agents/{identifier}/endpoint-checks"
+        checks = f"{checks_path}?organization_id={org}"
         requests = []
 
         def fetch_registered(endpoint):
             requests.append(endpoint)
-            return raw if len(requests) == 1 else {**raw, "name": "Changed Card"}
+            return raw
 
-        monkeypatch.setattr(federation, "fetch_card", fetch_registered)
+        monkeypatch.setattr(onboarding_worker, "fetch_card", fetch_registered)
         assert client.post(checks, json={"expected_version": 2}).status_code == 412
+        queued = client.post(checks, json={"expected_version": 1})
+        assert queued.status_code == 202, queued.text
+        check_id = queued.json()["id"]
+        assert client.post(checks, json={"expected_version": 1}).json()["id"] == check_id
         assert requests == []
-        observed = client.post(checks, json={"expected_version": 1})
-        assert observed.status_code == 200, observed.text
-        assert observed.json()["status"] == "matches_registration"
-        assert observed.json()["binding_version"] == response.json()["binding_version"]
-        assert client.post(checks, json={"expected_version": 1}).json()["status"] == "card_mismatch"
-        assert requests == [provider["endpoint"], provider["endpoint"]]
+        poll = f"{checks_path}/{check_id}?organization_id={org}"
+        assert client.get(poll).json()["state"] == "queued"
+        assert onboarding_worker.execute(
+            app.state.runtime_engine, federation_coordinator, tenant, UUID(check_id)
+        )
+        observed = client.get(poll).json()
+        assert observed["state"] == "succeeded"
+        assert observed["report"]["status"] == "matches_registration"
+        assert observed["report"]["binding_version"] == response.json()["binding_version"]
+        assert client.get(path + f"/qualifications/{check_id}").status_code == 404
+        cooldown = client.post(checks, json={"expected_version": 1})
+        assert cooldown.status_code == 429 and cooldown.headers["Retry-After"] == "60"
         assert client.get(path).json()["state"] == "draft"
         events = client.get(path + "/events").json()
         assert [
             item["data"]["status"] for item in events if item["event_type"] == "endpoint_checked"
-        ] == ["matches_registration", "card_mismatch"]
+        ] == ["matches_registration"]
         assert client.get(f"/v1/organizations/{other_org}/agents").status_code in (403, 404)
         challenge = client.post(
             path + "/verification-challenges", json={"expected_version": 1}
@@ -336,11 +346,35 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
             == "active"
         )
         # Editing an endpoint/key revision invalidates service eligibility and old qualification.
-        changed = client.patch(
-            path, json={"expected_version": 5, "registration": {**body, "name": "Revised"}}
+        with psycopg.connect(admin) as connection:
+            connection.execute(
+                "UPDATE federation.registration_jobs SET created_at=now()-interval '61 seconds' WHERE id=%s",
+                (check_id,),
+            )
+        stale = client.post(checks, json={"expected_version": 5})
+        assert stale.status_code == 202, stale.text
+        stale_id = stale.json()["id"]
+
+        def revise_during_fetch(endpoint):
+            requests.append(endpoint)
+            changed = client.patch(
+                path, json={"expected_version": 5, "registration": {**body, "name": "Revised"}}
+            )
+            assert changed.status_code == 200 and changed.json()["state"] == "draft"
+            assert not changed.json()["service_eligible"]
+            return {**raw, "name": "Changed Card"}
+
+        monkeypatch.setattr(onboarding_worker, "fetch_card", revise_during_fetch)
+        assert onboarding_worker.execute(
+            app.state.runtime_engine, federation_coordinator, tenant, UUID(stale_id)
         )
-        assert changed.status_code == 200 and changed.json()["state"] == "draft"
-        assert not changed.json()["service_eligible"]
+        discarded = client.get(f"{checks_path}/{stale_id}?organization_id={org}").json()
+        assert discarded["state"] == "failed" and discarded["report"] is None
+        assert [
+            item["data"]["status"]
+            for item in client.get(path + "/events").json()
+            if item["event_type"] == "endpoint_checked"
+        ] == ["matches_registration"]
         assert client.post(path + "/activate", json={"expected_version": 6}).status_code == 409
         # A reader may inspect but cannot register or mutate organizational services.
         with psycopg.connect(admin) as connection:

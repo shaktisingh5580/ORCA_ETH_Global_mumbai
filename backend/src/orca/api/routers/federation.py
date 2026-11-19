@@ -4,28 +4,26 @@ Refs: main_implementation plan.md P09.1; api design.md §3.10; Phase: P09.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Any
 from uuid import UUID
 
-import httpx
 from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import text
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.agents import service as onboarding_service
 from orca.api.routers.projects import engine, resolve_tenant
-from orca.application.agent_onboarding import validate_registered_card
+from orca.application.agent_onboarding import EndpointCheckRateLimited
 from orca.contracts.agents import AgentRevision, AgentVersion
 from orca.contracts.common import Page
 from orca.contracts.network import (
     AgentCapabilityClaim,
+    AgentEndpointCheckJob,
     AgentEndpointClaim,
-    AgentEndpointObservation,
     FederatedAgentDetail,
     FederatedAgentSummary,
 )
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
-from orca.infrastructure.federation.https_egress import fetch_card
 
 router = APIRouter(prefix="/v1/network/agents", tags=["federation"])
 
@@ -195,37 +193,39 @@ def get_endpoints(
     )
 
 
-@router.post("/{agent_id}/endpoint-checks", response_model=AgentEndpointObservation)
+@router.post("/{agent_id}/endpoint-checks", response_model=AgentEndpointCheckJob, status_code=202)
 def check_endpoint(
     agent_id: UUID,
     organization_id: UUID,
     body: AgentVersion,
     request: Request,
     principal: CurrentPrincipal,
-) -> AgentEndpointObservation:
-    """Observe the sole registered endpoint without trusting arbitrary caller URLs."""
-    with onboarding_service(request, organization_id, principal) as app:
-        registration = app.expected(agent_id, body.expected_version)["registration"]
-    status: Literal["matches_registration", "card_mismatch", "unavailable"]
+) -> AgentEndpointCheckJob:
+    """Queue an observation of the current registered endpoint."""
+    if not getattr(request.app.state, "agent_onboarding_enabled", False):
+        raise HTTPException(503, "Agent onboarding worker is not enabled")
     try:
-        observed = fetch_card(registration["endpoint"])
-    except (OSError, ValueError, httpx.HTTPError):
-        status = "unavailable"
-    else:
-        try:
-            validate_registered_card(observed, registration)
-        except ValueError:
-            status = "card_mismatch"
-        else:
-            status = "matches_registration"
-    observed_at = datetime.now(timezone.utc)
+        with onboarding_service(request, organization_id, principal) as app:
+            return AgentEndpointCheckJob.model_validate(
+                app.queue_endpoint_check(agent_id, body.expected_version)
+            )
+    except EndpointCheckRateLimited as error:
+        raise HTTPException(
+            429,
+            "An endpoint check was requested recently or is still running",
+            headers={"Retry-After": "60"},
+        ) from error
+
+
+@router.get("/{agent_id}/endpoint-checks/{job_id}", response_model=AgentEndpointCheckJob)
+def get_endpoint_check(
+    agent_id: UUID,
+    job_id: UUID,
+    organization_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> AgentEndpointCheckJob:
     with onboarding_service(request, organization_id, principal) as app:
-        row = app.expected(agent_id, body.expected_version)
-        observation = AgentEndpointObservation(
-            agent_id=agent_id,
-            binding_version=row["binding_version"],
-            observed_at=observed_at,
-            status=status,
+        return AgentEndpointCheckJob.model_validate(
+            app.registration_job(agent_id, job_id, "endpoint_check")
         )
-        app.event(agent_id, "endpoint_checked", observation.model_dump(mode="json"))
-    return observation

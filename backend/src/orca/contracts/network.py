@@ -21,6 +21,14 @@ class AgentEndpointObservation(Contract):
     status: Literal["matches_registration", "card_mismatch", "unavailable"]
 
 
+class AgentEndpointCheckJob(Contract):
+    id: UUID
+    agent_id: UUID
+    state: Literal["queued", "running", "succeeded", "failed"]
+    report: AgentEndpointObservation | None
+    error_code: str | None
+
+
 class AgentBinding(Contract):
     id: UUID
     binding_version: UUID

@@ -32,6 +32,10 @@ def validate_registered_card(card: dict[str, Any], registration: dict[str, Any])
         raise ValueError("Agent Card does not declare the requested capability")
 
 
+class EndpointCheckRateLimited(Exception):
+    """The registration has a recent or already running endpoint check."""
+
+
 class Onboarding:
     def __init__(self, session: Session, tenant: UUID, organization: UUID, principal: Principal):
         self.session, self.tenant, self.organization, self.principal = (
@@ -326,7 +330,11 @@ class Onboarding:
             .one_or_none()
         )
         if prior:
-            if prior["agent_id"] != identifier or prior["expected_version"] != version:
+            if (
+                prior["agent_id"] != identifier
+                or prior["expected_version"] != version
+                or prior["kind"] != "qualification"
+            ):
                 raise IdempotencyConflict()
             return {k: prior[k] for k in ("id", "agent_id", "state", "report", "error_code")}
         row = self.expected(identifier, version)
@@ -335,7 +343,8 @@ class Onboarding:
         pending = (
             self.session.execute(
                 text("""SELECT id,agent_id,state,report,error_code FROM federation.registration_jobs
-          WHERE tenant_id=:t AND agent_id=:agent AND binding_version=:binding AND state IN ('queued','running')"""),
+          WHERE tenant_id=:t AND agent_id=:agent AND binding_version=:binding
+            AND kind='qualification' AND state IN ('queued','running')"""),
                 {"t": self.tenant, "agent": identifier, "binding": row["binding_version"]},
             )
             .mappings()
@@ -366,26 +375,75 @@ class Onboarding:
         }
 
     def job(self, identifier: UUID, job: UUID) -> dict[str, Any]:
+        return self.registration_job(identifier, job, "qualification")
+
+    def registration_job(self, identifier: UUID, job: UUID, kind: str) -> dict[str, Any]:
         self.row(identifier)
         row = (
             self.session.execute(
                 text("""SELECT id,agent_id,state,report,error_code FROM federation.registration_jobs
-          WHERE tenant_id=:t AND organization_id=:o AND agent_id=:id AND id=:job"""),
-                {**self.params(), "id": identifier, "job": job},
+          WHERE tenant_id=:t AND organization_id=:o AND agent_id=:id AND id=:job AND kind=:kind"""),
+                {**self.params(), "id": identifier, "job": job, "kind": kind},
             )
             .mappings()
             .one_or_none()
         )
         if row is None:
-            raise LookupError("Qualification job not found")
+            raise LookupError("Registration job not found")
         return dict(row)
+
+    def queue_endpoint_check(self, identifier: UUID, version: int) -> dict[str, Any]:
+        row = self.expected(identifier, version)
+        params = {**self.params(True), "agent": identifier, "binding": row["binding_version"]}
+        pending = (
+            self.session.execute(
+                text("""SELECT id,agent_id,state,report,error_code FROM federation.registration_jobs
+              WHERE tenant_id=:t AND agent_id=:agent AND binding_version=:binding
+                AND expected_version=:version AND kind='endpoint_check' AND state IN ('queued','running')"""),
+                {**params, "version": version},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if pending is not None:
+            return dict(pending)
+        recent: bool = self.session.execute(
+            text("""SELECT EXISTS(SELECT 1 FROM federation.registration_jobs
+              WHERE tenant_id=:t AND agent_id=:agent AND kind='endpoint_check'
+                AND (created_at>clock_timestamp()-interval '60 seconds'
+                  OR (binding_version=:binding AND state IN ('queued','running'))))"""),
+            params,
+        ).scalar_one()
+        if recent:
+            raise EndpointCheckRateLimited()
+        job = uuid4()
+        self.session.execute(
+            text("""INSERT INTO federation.registration_jobs
+              (id,tenant_id,organization_id,agent_id,actor,idempotency_key,expected_version,
+               binding_version,kind)
+              VALUES(:job,:t,:o,:agent,:actor,:key,:version,:binding,'endpoint_check')"""),
+            {
+                **params,
+                "job": job,
+                "actor": self.principal.subject,
+                "key": f"endpoint-check/{job}",
+                "version": version,
+            },
+        )
+        return {
+            "id": job,
+            "agent_id": identifier,
+            "state": "queued",
+            "report": None,
+            "error_code": None,
+        }
 
     def jobs(self, identifier: UUID) -> list[dict[str, Any]]:
         self.row(identifier)
         rows = self.session.execute(
             text("""SELECT id,agent_id,state,report,error_code
           FROM federation.registration_jobs WHERE tenant_id=:t AND organization_id=:o
-          AND agent_id=:id ORDER BY created_at DESC LIMIT 20"""),
+          AND agent_id=:id AND kind='qualification' ORDER BY created_at DESC LIMIT 20"""),
             {**self.params(), "id": identifier},
         ).mappings()
         return [dict(r) for r in rows]
