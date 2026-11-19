@@ -117,7 +117,41 @@ def test_resolver_comparison_exposes_no_write_authority(monkeypatch: pytest.Monk
         assert response.json()["delegation_isolation"] == "NOT_PROVEN"
         assert response.json()["authority_verified"] is False
         assert "records" not in response.json()
+        delegate = "0x" + "5" * 40
+        permissions = {
+            **evidence,
+            "delegate": delegate,
+            "key": "org.orca.endpoint",
+            "resource": "0x" + "f" * 64,
+            "names": [
+                {**evidence["names"][0], "root_text_role": False, "endpoint_text_role": True},
+                {**evidence["names"][1], "root_text_role": False, "endpoint_text_role": False},
+            ],
+        }
+        reads = 0
+
+        def read_permissions(left, right, address):
+            nonlocal reads
+            assert (left, right, address) == (first, second, delegate)
+            reads += 1
+            return permissions
+
+        monkeypatch.setattr(ens, "inspect_endpoint_permissions", read_permissions)
+        permission_path = "/v1/identity/ens/endpoint-permissions"
+        permission_request = {**request, "delegate": delegate}
+        current = client.post(permission_path, json=permission_request)
+        assert current.status_code == 200, current.text
+        assert current.json()["names"][0]["endpoint_text_role"] is True
+        assert current.json()["authority_verified"] is False
+        permissions["names"][0]["endpoint_text_role"] = False
+        permissions["block_number"] = "124"
+        after = client.post(permission_path, json=permission_request)
+        assert after.json()["observed_block"] == 124
+        assert after.json()["names"][0]["endpoint_text_role"] is False
+        assert reads == 2
         evidence["status"] = "SHARED_RESOLVER"
         assert client.post(path, json=request).status_code == 503
         roles = {"viewer"}
         assert client.post(path, json=request).status_code == 403
+        assert client.post(permission_path, json=permission_request).status_code == 403
+        assert reads == 2

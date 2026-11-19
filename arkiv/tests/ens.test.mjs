@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { encodeAbiParameters, parseAbiParameters, toHex } from 'viem';
+import { decodeFunctionData, encodeAbiParameters, keccak256, parseAbiParameters, toHex } from 'viem';
 import { namehash, packetToBytes } from 'viem/ens';
 import { EnsReader, checkedName, checkRuntime, pin, RECORD_KEYS } from '../src/ens.mjs';
 
@@ -122,4 +122,58 @@ test('test_resolver_ocean_weather_isolation: compare both dedicated resolver add
   assert.equal((await reader.compareResolvers(ocean,weather)).status,'SHARED_RESOLVER');
   assert.equal(reads.includes('resolve'),false);
   await assert.rejects(reader.compareResolvers(ocean,ocean),/two different/);
+});
+
+test('endpoint permission evidence and unsigned grant, update and revoke use only the selected resolver',async()=>{
+  const ocean='ocean.orca.eth', weather='weather.orca.eth';
+  const other='0x3333333333333333333333333333333333333333';
+  const delegate='0x4444444444444444444444444444444444444444';
+  const endpoint='https://provider.example/a2a';
+  const resource=BigInt(keccak256(toHex('org.orca.endpoint')));
+  const abi=pin.contracts.PermissionedResolverImpl.abi;
+  let granted=false, shared=false, rootRole=false, blockNumber=100n;
+  const simulated=[];
+  const reader=new EnsReader({
+    ...base(),
+    getBlock:async()=>({...block,number:blockNumber}),
+    readContract:async({address,functionName,args,blockNumber:requested})=>{
+      assert.equal(requested,blockNumber);
+      if(functionName==='hasRootRoles') {
+        assert.deepEqual(args,[16n,delegate]);
+        return rootRole && address===RESOLVER;
+      }
+      if(functionName==='hasRoles') {
+        assert.deepEqual(args,[resource,16n,delegate]);
+        return (granted || rootRole) && address===RESOLVER;
+      }
+      throw new Error('Unexpected role read');
+    },
+    simulateContract:async(request)=>{simulated.push(request);return {result:true};},
+  });
+  reader.inspectAtBlock=async name=>({hierarchy:[{owner:OWNER,resolver:name===ocean||shared?RESOLVER:other}]});
+  const grant=await reader.prepareEndpointDelegation('grant',ocean,weather,delegate,OWNER);
+  assert.equal(grant.transaction.to,RESOLVER);
+  const decoded=decodeFunctionData({abi,data:grant.transaction.data});
+  assert.equal(decoded.functionName,'grantSetterRoles');
+  assert.equal(decoded.args[1],delegate);
+  assert.equal(decodeFunctionData({abi,data:decoded.args[0]}).args[1],'org.orca.endpoint');
+  granted=true;blockNumber++;
+  const evidence=await reader.endpointPermissions(ocean,weather,delegate);
+  assert.deepEqual(evidence.names.map(x=>x.endpoint_text_role),[true,false]);
+  assert.equal(evidence.block_number,'101');
+  const update=await reader.prepareEndpointUpdate(ocean,weather,delegate,endpoint);
+  assert.equal(update.transaction.from,delegate);
+  assert.deepEqual(decodeFunctionData({abi,data:update.transaction.data}).args,
+    [toHex(packetToBytes(ocean)),'org.orca.endpoint',endpoint]);
+  await assert.rejects(reader.prepareEndpointUpdate(weather,ocean,delegate,endpoint),/current scoped/);
+  const revoked=await reader.prepareEndpointDelegation('revoke',ocean,weather,delegate,OWNER);
+  assert.deepEqual(decodeFunctionData({abi,data:revoked.transaction.data}).args,[resource,16n,delegate]);
+  granted=false;blockNumber++;
+  assert.equal((await reader.endpointPermissions(ocean,weather,delegate)).names[0].endpoint_text_role,false);
+  await assert.rejects(reader.prepareEndpointUpdate(ocean,weather,delegate,endpoint),/current scoped/);
+  shared=true;
+  await assert.rejects(reader.prepareEndpointDelegation('grant',ocean,weather,delegate,OWNER),/distinct resolver/);
+  shared=false;rootRole=true;
+  await assert.rejects(reader.prepareEndpointDelegation('grant',ocean,weather,delegate,OWNER),/Existing resolver/);
+  assert.equal(simulated.length,3);
 });

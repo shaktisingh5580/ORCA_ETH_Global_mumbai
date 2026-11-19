@@ -3,6 +3,7 @@ Behavior: call pinned read-only verifier, fail closed on errors, and assert no r
 Refs: main_implementation plan.md P10.4; api design.md §3.11; Phase: P10.
 """
 
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
@@ -12,12 +13,18 @@ from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.projects import engine, resolve_tenant
 from orca.contracts.ens import (
     CompareENSResolversRequest,
+    ENSPermissionRequest,
+    ENSPermissionSnapshot,
     ENSResolutionSnapshot,
     ENSResolverBoundary,
     ResolveENSRequest,
 )
 from orca.domain.identity import Principal
-from orca.infrastructure.federation.ens_observation import inspect_name, inspect_resolver_boundary
+from orca.infrastructure.federation.ens_observation import (
+    inspect_endpoint_permissions,
+    inspect_name,
+    inspect_resolver_boundary,
+)
 
 router = APIRouter(prefix="/v1/identity/ens", tags=["ENS identity"])
 _RECORD_KEYS = frozenset(
@@ -37,6 +44,17 @@ def _authorize(request: Request, principal: Principal, organization: UUID) -> No
         principal.require("identity:manage", roles)
     except PermissionError as error:
         raise HTTPException(403, "Identity management scope required") from error
+
+
+def _boundary_fields(observation: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "ens_chain_id": observation.get("chain_id"),
+        "status": observation.get("status"),
+        "names": observation.get("names"),
+        "observed_block": observation.get("block_number"),
+        "block_hash": observation.get("block_hash"),
+        "source_revision": observation.get("source_revision"),
+    }
 
 
 @router.post("/resolutions", response_model=ENSResolutionSnapshot)
@@ -97,15 +115,34 @@ def compare_ens_resolvers(
             503, "Finalized resolver comparison unavailable", headers={"Retry-After": "15"}
         ) from error
     try:
-        return ENSResolverBoundary.model_validate(
+        return ENSResolverBoundary.model_validate(_boundary_fields(observation))
+    except ValidationError as error:
+        raise HTTPException(503, "Resolver comparison returned invalid evidence") from error
+
+
+@router.post("/endpoint-permissions", response_model=ENSPermissionSnapshot)
+def observe_ens_endpoint_permissions(
+    body: ENSPermissionRequest,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> ENSPermissionSnapshot:
+    _authorize(request, principal, body.organization_id)
+    try:
+        observation = inspect_endpoint_permissions(body.first_name, body.second_name, body.delegate)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(
+            503, "Finalized ENS permission observation unavailable", headers={"Retry-After": "15"}
+        ) from error
+    try:
+        return ENSPermissionSnapshot.model_validate(
             {
-                "ens_chain_id": observation.get("chain_id"),
-                "status": observation.get("status"),
-                "names": observation.get("names"),
-                "observed_block": observation.get("block_number"),
-                "block_hash": observation.get("block_hash"),
-                "source_revision": observation.get("source_revision"),
+                **_boundary_fields(observation),
+                "delegate": observation.get("delegate"),
+                "key": observation.get("key"),
+                "resource": observation.get("resource"),
             }
         )
     except ValidationError as error:
-        raise HTTPException(503, "Resolver comparison returned invalid evidence") from error
+        raise HTTPException(503, "Permission observation returned invalid evidence") from error

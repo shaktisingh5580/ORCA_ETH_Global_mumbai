@@ -1,0 +1,14 @@
+{
+  "chain_id": 11155111,
+  "requested_names": ["analyst.orca-research-lab.eth", "reviewer.orca-research-lab.eth"],
+  "status": "INCOMPLETE",
+  "pair_observation": "ENS_NAME_INACTIVE",
+  "separate_name_rechecks": {
+    "analyst.orca-research-lab.eth": "ENS_READ_UNAVAILABLE_OR_UNSUPPORTED",
+    "reviewer.orca-research-lab.eth": "ENS_READ_UNAVAILABLE_OR_UNSUPPORTED"
+  },
+  "finalized_pair_observed": false,
+  "authority_verified": false,
+  "transactions_submitted": false,
+  "note": "The pair check did not identify the inactive hierarchy. The individual follow-up reads were unavailable."
+}

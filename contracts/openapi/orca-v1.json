@@ -1906,6 +1906,176 @@
         "title": "DownloadIntent",
         "type": "object"
       },
+      "ENSPermissionObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "controller": {
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Controller",
+            "type": "string"
+          },
+          "endpoint_text_role": {
+            "title": "Endpoint Text Role",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "resolver": {
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Resolver",
+            "type": "string"
+          },
+          "root_text_role": {
+            "title": "Root Text Role",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "controller",
+          "resolver",
+          "root_text_role",
+          "endpoint_text_role"
+        ],
+        "title": "ENSPermissionObservation",
+        "type": "object"
+      },
+      "ENSPermissionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "delegate": {
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Delegate",
+            "type": "string"
+          },
+          "ens_chain_id": {
+            "const": 11155111,
+            "title": "Ens Chain Id",
+            "type": "integer"
+          },
+          "first_name": {
+            "maxLength": 253,
+            "minLength": 5,
+            "title": "First Name",
+            "type": "string"
+          },
+          "organization_id": {
+            "format": "uuid",
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "second_name": {
+            "maxLength": 253,
+            "minLength": 5,
+            "title": "Second Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "first_name",
+          "second_name",
+          "ens_chain_id",
+          "delegate"
+        ],
+        "title": "ENSPermissionRequest",
+        "type": "object"
+      },
+      "ENSPermissionSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_verified": {
+            "const": false,
+            "default": false,
+            "title": "Authority Verified",
+            "type": "boolean"
+          },
+          "block_hash": {
+            "pattern": "^0x[0-9a-fA-F]{64}$",
+            "title": "Block Hash",
+            "type": "string"
+          },
+          "delegate": {
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Delegate",
+            "type": "string"
+          },
+          "delegation_isolation": {
+            "const": "NOT_PROVEN",
+            "default": "NOT_PROVEN",
+            "title": "Delegation Isolation",
+            "type": "string"
+          },
+          "ens_chain_id": {
+            "const": 11155111,
+            "title": "Ens Chain Id",
+            "type": "integer"
+          },
+          "key": {
+            "const": "org.orca.endpoint",
+            "title": "Key",
+            "type": "string"
+          },
+          "names": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/components/schemas/ENSPermissionObservation"
+              },
+              {
+                "$ref": "#/components/schemas/ENSPermissionObservation"
+              }
+            ],
+            "title": "Names",
+            "type": "array"
+          },
+          "observed_block": {
+            "minimum": 0.0,
+            "title": "Observed Block",
+            "type": "integer"
+          },
+          "research_dispatch_enabled": {
+            "const": false,
+            "default": false,
+            "title": "Research Dispatch Enabled",
+            "type": "boolean"
+          },
+          "resource": {
+            "pattern": "^0x[0-9a-fA-F]{64}$",
+            "title": "Resource",
+            "type": "string"
+          },
+          "source_revision": {
+            "pattern": "^[0-9a-f]{40}$",
+            "title": "Source Revision",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DISTINCT_RESOLVERS",
+              "SHARED_RESOLVER"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ens_chain_id",
+          "status",
+          "names",
+          "observed_block",
+          "block_hash",
+          "source_revision",
+          "delegate",
+          "key",
+          "resource"
+        ],
+        "title": "ENSPermissionSnapshot",
+        "type": "object"
+      },
       "ENSResolutionSnapshot": {
         "additionalProperties": false,
         "properties": {
@@ -9276,6 +9446,52 @@
         "summary": "Get Probe",
         "tags": [
           "operator source probes"
+        ]
+      }
+    },
+    "/v1/identity/ens/endpoint-permissions": {
+      "post": {
+        "operationId": "observe_ens_endpoint_permissions_v1_identity_ens_endpoint_permissions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ENSPermissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ENSPermissionSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Observe Ens Endpoint Permissions",
+        "tags": [
+          "ENS identity"
         ]
       }
     },

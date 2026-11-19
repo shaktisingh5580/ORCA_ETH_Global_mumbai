@@ -75,17 +75,33 @@ def inspect_name(name: str) -> dict[str, Any]:
 
 
 def inspect_resolver_boundary(first: str, second: str) -> dict[str, Any]:
+    return _inspect_pair("compare-resolvers", first, second)
+
+
+def _inspect_pair(command: str, first: str, second: str, *args: str) -> dict[str, Any]:
     _validate_agent_name(first)
     _validate_agent_name(second)
     if first == second:
         raise ValueError("Choose two different agent names")
-    result = _run_verifier("compare-resolvers", first, second, timeout=50)
+    result = _run_verifier(command, first, second, *args, timeout=50)
     names = result.get("names")
     if (
         not isinstance(names, list)
         or len(names) != 2
         or not all(isinstance(observation, dict) for observation in names)
         or [observation.get("name") for observation in names] != [first, second]
+    ):
+        raise RuntimeError("ENS_OBSERVATION_INVALID")
+    return result
+
+
+def inspect_endpoint_permissions(first: str, second: str, delegate: str) -> dict[str, Any]:
+    if not re.fullmatch(r"0x[0-9a-fA-F]{40}", delegate) or int(delegate, 16) == 0:
+        raise ValueError("A nonzero delegate address is required")
+    result = _inspect_pair("endpoint-permissions", first, second, delegate.lower())
+    if (
+        not isinstance(result.get("delegate"), str)
+        or result["delegate"].lower() != delegate.lower()
     ):
         raise RuntimeError("ENS_OBSERVATION_INVALID")
     return result

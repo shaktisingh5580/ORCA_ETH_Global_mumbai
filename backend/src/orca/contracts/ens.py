@@ -68,3 +68,25 @@ class ENSResolverBoundary(Contract):
         if first.name == second.name or shared != (self.status == "SHARED_RESOLVER"):
             raise ValueError("Inconsistent resolver comparison")
         return self
+
+
+class ENSPermissionRequest(CompareENSResolversRequest):
+    delegate: Address
+
+
+class ENSPermissionObservation(ENSResolverObservation):
+    root_text_role: bool = Field(strict=True)
+    endpoint_text_role: bool = Field(strict=True)
+
+    @model_validator(mode="after")
+    def consistent_roles(self) -> Self:
+        if self.root_text_role and not self.endpoint_text_role:
+            raise ValueError("Root text role must imply endpoint permission")
+        return self
+
+
+class ENSPermissionSnapshot(ENSResolverBoundary):
+    names: tuple[ENSPermissionObservation, ENSPermissionObservation]
+    delegate: Address
+    key: Literal["org.orca.endpoint"]
+    resource: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")

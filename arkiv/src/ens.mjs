@@ -6,7 +6,7 @@
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { createPublicClient, http, keccak256, toHex, encodeFunctionData, decodeFunctionResult, parseAbi } from 'viem';
+import { createPublicClient, http, keccak256, toHex, encodeFunctionData, decodeFunctionResult, parseAbi, getAddress } from 'viem';
 import { normalize, namehash, packetToBytes } from 'viem/ens';
 import { sepolia } from 'viem/chains';
 
@@ -17,6 +17,9 @@ const same = (a,b) => a.toLowerCase() === b.toLowerCase();
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const profile = parseAbi(['function text(bytes32 node,string key) view returns (string)']);
 export const RECORD_KEYS = ['org.orca.endpoint','org.orca.cardDigest','org.orca.serviceKey','org.orca.arkivWallet','org.orca.manifestDigest'];
+const ENDPOINT_KEY='org.orca.endpoint';
+const SET_TEXT=1n<<4n;
+const ENDPOINT_RESOURCE=BigInt(keccak256(toHex(ENDPOINT_KEY)));
 
 export function checkedName(input) {
   if (typeof input !== 'string' || input.length > 253 || !/^[a-z0-9.-]+$/.test(input)) throw new Error('Normalized ASCII ENS name required');
@@ -139,19 +142,106 @@ export class EnsReader {
       research_dispatch_enabled:false
     };
   }
+  async endpointPermissions(firstInput, secondInput, delegateInput) {
+    const names=[checkedName(firstInput),checkedName(secondInput)];
+    if (names[0]===names[1]) throw new Error('Choose two different ENS names');
+    const delegate=getAddress(delegateInput);
+    if (same(delegate,ZERO)) throw new Error('A nonzero delegate address is required');
+    await this.start();
+    const abi=this.deployment.contracts.PermissionedResolverImpl.abi;
+    const namesWithPermissions=[];
+    for (const name of names) {
+      const leaf=(await this.inspectAtBlock(name,false)).hierarchy.at(-1);
+      const root_text_role=await this.read(leaf.resolver,abi,'hasRootRoles',[SET_TEXT,delegate]);
+      const endpoint_text_role=await this.read(leaf.resolver,abi,'hasRoles',[ENDPOINT_RESOURCE,SET_TEXT,delegate]);
+      if (typeof root_text_role!=='boolean' || typeof endpoint_text_role!=='boolean'
+          || (root_text_role && !endpoint_text_role)) throw new Error('Inconsistent resolver roles');
+      namesWithPermissions.push({
+        name,controller:leaf.owner,resolver:leaf.resolver,root_text_role,endpoint_text_role,
+      });
+    }
+    return {
+      status:same(namesWithPermissions[0].resolver,namesWithPermissions[1].resolver)?
+        'SHARED_RESOLVER':'DISTINCT_RESOLVERS',
+      names:namesWithPermissions,delegate,key:ENDPOINT_KEY,
+      resource:toHex(ENDPOINT_RESOURCE,{size:32}),
+      ...await this.finish(),
+      authority_verified:false,delegation_isolation:'NOT_PROVEN',research_dispatch_enabled:false,
+    };
+  }
+  async prepareEndpointDelegation(action, first, second, delegate, controllerInput) {
+    if (action!=='grant' && action!=='revoke') throw new Error('Unsupported delegation action');
+    const controller=getAddress(controllerInput);
+    const observed=await this.endpointPermissions(first,second,delegate);
+    const [target,other]=observed.names;
+    if (observed.status!=='DISTINCT_RESOLVERS' || !same(target.controller,controller)) {
+      throw new Error('Controller and distinct resolver evidence required');
+    }
+    if (target.root_text_role || (action==='grant' && (target.endpoint_text_role || other.endpoint_text_role))) {
+      throw new Error('Existing resolver permissions prevent this scoped delegation');
+    }
+    if (action==='revoke' && !target.endpoint_text_role) throw new Error('No endpoint role to revoke');
+    const abi=this.deployment.contracts.PermissionedResolverImpl.abi;
+    const setter=encodeFunctionData({abi,functionName:'setText',args:['0x',ENDPOINT_KEY,'']});
+    const functionName=action==='grant'?'grantSetterRoles':'revokeRoles';
+    const args=action==='grant'?[setter,observed.delegate]:[ENDPOINT_RESOURCE,SET_TEXT,observed.delegate];
+    const data=encodeFunctionData({abi,functionName,args});
+    const simulated=await this.client.simulateContract({
+      address:target.resolver,abi,functionName,args,account:controller,
+      blockNumber:this.block.number,
+    });
+    if (simulated.result!==true) throw new Error('Simulation did not change the endpoint role');
+    await this.finish();
+    return {
+      ...observed,action,simulation:'FINALIZED_BLOCK_SIMULATION',
+      transaction:{from:controller,to:target.resolver,value:'0x0',data},
+    };
+  }
+  async prepareEndpointUpdate(first, second, delegate, endpoint) {
+    const url=new URL(endpoint);
+    if (endpoint.length>500 || !/^https:\/\//.test(endpoint) || /[\s\\?#]/.test(endpoint)
+        || url.username || url.password || url.port || url.pathname!=='/a2a') {
+      throw new Error('A public HTTPS /a2a endpoint without query or credentials is required');
+    }
+    const observed=await this.endpointPermissions(first,second,delegate);
+    const [target,other]=observed.names;
+    if (observed.status!=='DISTINCT_RESOLVERS' || target.root_text_role
+        || !target.endpoint_text_role || other.endpoint_text_role) {
+      throw new Error('A current scoped endpoint role on only the target resolver is required');
+    }
+    const abi=this.deployment.contracts.PermissionedResolverImpl.abi;
+    const args=[toHex(packetToBytes(target.name)),ENDPOINT_KEY,endpoint];
+    await this.client.simulateContract({
+      address:target.resolver,abi,functionName:'setText',args,account:observed.delegate,
+      blockNumber:this.block.number,
+    });
+    await this.finish();
+    return {
+      ...observed,action:'update',simulation:'FINALIZED_BLOCK_SIMULATION',endpoint,
+      transaction:{
+        from:observed.delegate,to:target.resolver,value:'0x0',
+        data:encodeFunctionData({abi,functionName:'setText',args}),
+      },
+    };
+  }
 }
 
-export async function main(command, name, secondName) {
+export async function main(command, name, secondName, delegate, controller) {
   // Public fixed transport; caller cannot choose RPC, URL, chain or signing material.
   const client=createPublicClient({chain:sepolia,transport:http(sepolia.rpcUrls.default.http[0],{timeout:12000,retryCount:0}),ccipRead:false});
   const reader=new EnsReader(client);
   if (command==='preflight') return reader.preflight();
   if (command==='inspect') return reader.inspect(name);
   if (command==='compare-resolvers') return reader.compareResolvers(name,secondName);
-  throw new Error('Commands: preflight | inspect name.eth | compare-resolvers first.eth second.eth');
+  if (command==='endpoint-permissions') return reader.endpointPermissions(name,secondName,delegate);
+  if (command==='prepare-endpoint-update') return reader.prepareEndpointUpdate(name,secondName,delegate,controller);
+  if (command==='prepare-endpoint-grant' || command==='prepare-endpoint-revoke') {
+    return reader.prepareEndpointDelegation(command.split('-').at(-1),name,secondName,delegate,controller);
+  }
+  throw new Error('Unknown ENS reader command');
 }
 if (process.argv[1]===fileURLToPath(import.meta.url)) {
-  try { console.log(JSON.stringify(await main(process.argv[2],process.argv[3],process.argv[4]))); }
+  try { console.log(JSON.stringify(await main(...process.argv.slice(2)))); }
   catch (error) {
     const code = error.message === 'Name is not actively registered at every hierarchy level' ? 'ENS_NAME_INACTIVE' : 'ENS_READ_UNAVAILABLE_OR_UNSUPPORTED';
     console.log(JSON.stringify({code,authority_verified:false}));
