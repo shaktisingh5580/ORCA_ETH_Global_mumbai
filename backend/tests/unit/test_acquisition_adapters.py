@@ -172,3 +172,17 @@ def test_cloud_snapshot_readback_and_corruption_rejection():
 def test_acquisition_configuration_fails_closed():
     with pytest.raises(ValueError, match="acquisition requires"):
         Settings(monitoring_token="0123456789abcdefghijklmnopqrstuvwxyz", acquisition_enabled=True)
+
+
+@pytest.mark.parametrize(
+    ("status", "code"),
+    [(429, "SOURCE_RATE_LIMITED"), (404, "SOURCE_UNAVAILABLE"), (410, "SOURCE_UNAVAILABLE")],
+)
+def test_source_429_graceful(status, code):
+    from orca.infrastructure.connectors.erddap import SourceError
+
+    source, body, version, _, _ = source_case()
+    source.client._get.side_effect = SourceError("SOURCE_HTTP_ERROR", status, "30")
+    with pytest.raises(AcquisitionFailed, match=f"^{code}$"):
+        source.fetch(body, version)
+    source.client._get.assert_called_once()

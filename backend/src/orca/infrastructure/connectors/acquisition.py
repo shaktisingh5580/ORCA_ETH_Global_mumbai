@@ -13,7 +13,11 @@ from urllib.parse import quote
 
 from shapely.geometry import box, shape
 
-from orca.application.acquisition_worker import AcquisitionFailed, AcquisitionResult
+from orca.application.acquisition_worker import (
+    AcquisitionFailed,
+    AcquisitionResult,
+    SourceUnavailable,
+)
 from orca.contracts.acquisition import SourceBinding
 from orca.contracts.catalog import ProductVersion
 from orca.contracts.erddap_metadata import parse_metadata
@@ -29,7 +33,13 @@ class ERDDAPAcquisition:
     def fetch(self, request: SnapshotRequest, version: ProductVersion) -> AcquisitionResult:
         try:
             return self._fetch(request, version)
-        except (SourceError, ValueError, KeyError, TypeError, csv.Error) as exc:
+        except SourceError as exc:
+            if exc.status == 429:
+                raise SourceUnavailable("SOURCE_RATE_LIMITED") from exc
+            if exc.status in (404, 410):
+                raise SourceUnavailable("SOURCE_UNAVAILABLE") from exc
+            raise AcquisitionFailed("SOURCE_VALIDATION_FAILED") from exc
+        except (ValueError, KeyError, TypeError, csv.Error) as exc:
             raise AcquisitionFailed("SOURCE_VALIDATION_FAILED") from exc
 
     def _fetch(self, request: SnapshotRequest, version: ProductVersion) -> AcquisitionResult:

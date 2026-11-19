@@ -1,6 +1,6 @@
 """Purpose: execute one durable snapshot acquisition without holding a network transaction.
 Behavior: commit a lease, fetch through a configured port, then publish with fencing atomically.
-Refs: main implementation plan P03.3/P03.5; API 3.4; Phase: P03.
+Refs: main implementation plan P03.3/P03.5/P14.2; API 3.4; Phase: P03, P14.
 """
 
 from collections.abc import Callable
@@ -36,6 +36,14 @@ class AcquisitionSource(Protocol):
 
 class AcquisitionFailed(Exception):
     """Expected adapter failure; details are never exposed to API clients."""
+
+
+class SourceUnavailable(AcquisitionFailed):
+    """An upstream response prevents retrieval without invalidating preserved evidence."""
+
+    def __init__(self, code: Literal["SOURCE_RATE_LIMITED", "SOURCE_UNAVAILABLE"]) -> None:
+        super().__init__(code)
+        self.code = code
 
 
 class LeaseLost(Exception):
@@ -82,10 +90,11 @@ class AcquisitionWorker:
                 retrieved_at=datetime.now(timezone.utc),
                 acquisition_request_digest=result.request_digest,
             )
-        except (AcquisitionFailed, ValueError, PermissionError):
+        except (AcquisitionFailed, ValueError, PermissionError) as error:
+            code = error.code if isinstance(error, SourceUnavailable) else "ACQUISITION_REJECTED"
             with self.transaction() as session:
                 failed = SnapshotRequests(session, self.tenant).fail(
-                    claim["id"], claim["lease_token"], "ACQUISITION_REJECTED"
+                    claim["id"], claim["lease_token"], code
                 )
             return "failed" if failed else "lease_lost"
         # Unexpected infrastructure errors propagate; the expired lease remains recoverable.

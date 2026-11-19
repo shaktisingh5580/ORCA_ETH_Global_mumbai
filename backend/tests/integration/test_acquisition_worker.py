@@ -27,6 +27,8 @@ from orca.contracts.acquisition import SourceBinding
 from orca.contracts.catalog import ProductVersion, ScientificProduct
 from orca.contracts.snapshot_requests import SnapshotRequest, request_digest
 from orca.contracts.source_probes import ProbeRequest
+from orca.infrastructure.connectors.acquisition import ERDDAPAcquisition
+from orca.infrastructure.connectors.erddap import SourceError
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.infrastructure.storage.snapshot_files import SnapshotFiles
 from orca.probe_worker import run_once as run_probe
@@ -51,7 +53,9 @@ def worker_schema():
 
 
 @pytest.mark.live
-@pytest.mark.parametrize("outcome", ["success", "rejected", "mismatch", "crash", "expired"])
+@pytest.mark.parametrize(
+    "outcome", ["success", "rejected", "mismatch", "crash", "expired", "rate_limited", "gone"]
+)
 def test_acquisition_atomic_publication_and_recovery(tmp_path, outcome, worker_schema):
     admin = os.environ.get("ORCA_TEST_DATABASE_URL", "")
     runtime = os.environ.get("ORCA_TEST_RUNTIME_DATABASE_URL", "")
@@ -136,6 +140,20 @@ def test_acquisition_atomic_publication_and_recovery(tmp_path, outcome, worker_s
                         assert SnapshotRequests(session, tenant).claim()["attempts"] == 2
                 if outcome == "rejected":
                     raise AcquisitionFailed("private provider details")
+                if outcome in {"rate_limited", "gone"}:
+                    adapter = ERDDAPAcquisition(
+                        SourceBinding(
+                            tenant_id=tenant,
+                            version_id=pinned.id,
+                            host="coastwatch.pfeg.noaa.gov",
+                            dataset="test",
+                        )
+                    )
+                    code = 429 if outcome == "rate_limited" else 410
+                    with patch.object(
+                        adapter.client, "_get", side_effect=SourceError("SOURCE_HTTP_ERROR", code)
+                    ):
+                        return adapter.fetch(request, pinned)
                 if outcome == "crash" and self.calls == 1:
                     raise OSError("temporary storage or network interruption")
                 digest = (
@@ -173,6 +191,8 @@ def test_acquisition_atomic_publication_and_recovery(tmp_path, outcome, worker_s
                     "rejected": "failed",
                     "mismatch": "failed",
                     "expired": "lease_lost",
+                    "rate_limited": "failed",
+                    "gone": "failed",
                 }[outcome]
             )
         with transaction() as session:
@@ -185,9 +205,11 @@ def test_acquisition_atomic_publication_and_recovery(tmp_path, outcome, worker_s
                 assert status.attempts == (2 if outcome == "crash" else 1)
             else:
                 assert snapshots == [] and status.snapshot_id is None
-                assert status.error_code == (
-                    None if outcome == "expired" else "ACQUISITION_REJECTED"
-                )
+                assert status.error_code == {
+                    "expired": None,
+                    "rate_limited": "SOURCE_RATE_LIMITED",
+                    "gone": "SOURCE_UNAVAILABLE",
+                }.get(outcome, "ACQUISITION_REJECTED")
         if outcome != "expired":
             assert worker.run_once() == "idle"
         with transaction() as session:
