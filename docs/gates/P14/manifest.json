@@ -1,0 +1,34 @@
+{
+  "phase": "P14",
+  "gate": "G14",
+  "status": "BLOCKED",
+  "selected_profile": "research-federated",
+  "prerequisites": [
+    {"gate": "G11", "status": "NOT_PASSED"},
+    {"gate": "G13", "status": "BLOCKED"}
+  ],
+  "development_status": {
+    "P14.1": {
+      "status": "LOCAL_SECURITY_CHECKS_PASSED",
+      "gate_status": "BLOCKED",
+      "evidence": "docs/gates/P14/security-audit.json",
+      "runbooks": [
+        "docs/runbooks/security_incident.md",
+        "docs/runbooks/key_rotation.md"
+      ],
+      "required_cases": [
+        "test_leaked_key_revoked",
+        "test_erc1271_if_deployed",
+        "test_rls_against_live_roles",
+        "test_browser_sse_auth",
+        "test_no_private_payload_on_arkiv"
+      ],
+      "remaining": "Resolve or document the remaining OS advisory matches, verify exact deployed images and live rotation and authority, and obtain independent security signoff."
+    },
+    "P14.2": {"status": "NOT_STARTED"},
+    "P14.3": {"status": "NOT_STARTED"},
+    "P14.4": {"status": "NOT_STARTED"},
+    "P14.5": {"status": "NOT_STARTED"}
+  },
+  "oracle_deployment": "deferred_by_user"
+}

@@ -1,0 +1,465 @@
+{
+  "phase": "P14.1",
+  "profile": "research-federated",
+  "status": "LOCAL_SECURITY_CHECKS_PASSED",
+  "gate_status": "BLOCKED",
+  "recorded_at_utc": "2026-11-19T19:37:23+00:00",
+  "test_revision": "e58da04",
+  "required_cases": {
+    "test_leaked_key_revoked": {
+      "scope": "Local OIDC issuer with ephemeral RSA keys",
+      "observed": "After refreshing JWKS, the verifier rejected the old key and accepted the replacement. The default cache lasts 300 seconds unless the verifier refreshes earlier."
+    },
+    "test_erc1271_if_deployed": {
+      "scope": "EOA-only verifier negative control. Live contract-signature validation is outside this local check.",
+      "observed": "An EOA signature for a different named controller was rejected. Current implementation uses address recovery and does not validate ERC-1271 signatures.",
+      "reference": "https://eips.ethereum.org/EIPS/eip-1271"
+    },
+    "test_rls_against_live_roles": {
+      "scope": "Disposable PostgreSQL 17, original migrations and actual test migrator/runtime roles",
+      "observed": "Forced RLS, no runtime superuser or bypass, and no cross-tenant update in either direction."
+    },
+    "test_browser_sse_auth": {
+      "scope": "Headless Chrome 157.0.8103.79, local FastAPI SSE route, signed local OIDC tokens and simulated project access",
+      "observed": "Missing and expired bearer rejected with 401; authenticated cursor replay emitted one event and closed when project access was revoked in the test."
+    },
+    "test_no_private_payload_on_arkiv": {
+      "scope": "Public intent and durable outbox with a test writer and reader",
+      "observed": "Private indexed fields were rejected before a write. Private payload data stayed outside the stored reservation and public projection."
+    }
+  },
+  "focused_passed_cases": {
+    "oidc_browser_and_redaction": 11,
+    "postgresql_rls": 6,
+    "grants_egress_and_storage": 22,
+    "arkiv_ens_node": 56
+  },
+  "dependency_advisories": {
+    "python": {
+      "input": "backend/uv.lock",
+      "input_digest": "sha256:d227c6d2f0ae77f93bd7d7160315813cae8bc210b1d9901bf854639f64a6add9",
+      "registry_name_version_pairs": 81,
+      "pypi_advisories": 0,
+      "osv_affected_packages": 0,
+      "query_errors": 0,
+      "coverage": "All registry entries in the lock, including development entries.",
+      "sources": [
+        "https://pypi.org/",
+        "https://google.github.io/osv.dev/post-v1-querybatch/"
+      ]
+    },
+    "node": {
+      "input": "arkiv/package-lock.json",
+      "input_digest": "sha256:d15661cc7eb82649ec18fc1c57cf05f4138dffa78f6fca41f37ad402a11426a6",
+      "audit": "npm audit --omit=dev --json",
+      "dependencies_excluding_root": 14,
+      "advisories": 0,
+      "source": "https://docs.npmjs.com/cli/audit/"
+    },
+    "containers": {
+      "status": "PATCHED_AND_RESCANNED_LOCAL_CANDIDATES",
+      "method": "Collect installed Debian source package versions with dpkg-query in network-disabled containers and match with OSV Debian:12.",
+      "scope_limits": "Matches require a runtime applicability and severity disposition. Scanner coverage is limited to packages in the reported inventory. No release image has been certified.",
+      "scout_status": "Sign-in required. OSV advisory queries used for installed Debian packages.",
+      "python_base": {
+        "before": "3.12.12",
+        "after": "3.12.16",
+        "source": "https://www.python.org/downloads/release/python-31216/"
+      },
+      "node_render_runtime": {
+        "version": "22.23.5",
+        "source": "https://nodejs.org/en/blog/release/v22.23.5"
+      },
+      "installed_os_source_versions_per_image": 73,
+      "affected_os_source_packages_per_image": 28,
+      "remaining_matches_per_image": 159,
+      "remaining_matches_with_osv_listed_bookworm_fix": 0,
+      "coverage_reference": "https://google.github.io/osv-scanner/supported-languages-and-lockfiles/",
+      "images": {
+        "render": {
+          "local_digest": "sha256:578161e306419302326ee36963484585cbce7a9422c8747327dd03365a501a32",
+          "prior_match_count": 237,
+          "checks": [
+            "Coordinator runtime import",
+            "Node version",
+            "fixture and dotenv exclusion"
+          ]
+        },
+        "provider": {
+          "local_digest": "sha256:b110680bbb41d5acd7c327baec73f799da2dee896771f5de5909e202d4b7b759",
+          "prior_match_count": 237,
+          "checks": [
+            "Provider CLI help",
+            "Python version",
+            "fixture and dotenv exclusion"
+          ]
+        }
+      },
+      "shared_open_matches": [
+        {
+          "package": "acl",
+          "version": "2.3.1-3",
+          "ids": [
+            "DEBIAN-CVE-2026-54369",
+            "DEBIAN-CVE-2026-54370"
+          ]
+        },
+        {
+          "package": "apt",
+          "version": "2.6.2",
+          "ids": [
+            "DEBIAN-CVE-2011-3374"
+          ]
+        },
+        {
+          "package": "attr",
+          "version": "1:2.5.1-4",
+          "ids": [
+            "DEBIAN-CVE-2026-54371"
+          ]
+        },
+        {
+          "package": "bzip2",
+          "version": "1.0.8-5",
+          "ids": [
+            "DEBIAN-CVE-2026-42250"
+          ]
+        },
+        {
+          "package": "coreutils",
+          "version": "9.1-1",
+          "ids": [
+            "DEBIAN-CVE-2016-2781",
+            "DEBIAN-CVE-2017-18018",
+            "DEBIAN-CVE-2025-5278",
+            "DEBIAN-CVE-2026-56391",
+            "DEBIAN-CVE-2026-56392"
+          ]
+        },
+        {
+          "package": "dash",
+          "version": "0.5.12-2",
+          "ids": [
+            "DEBIAN-CVE-2026-102473",
+            "DEBIAN-CVE-2026-102474"
+          ]
+        },
+        {
+          "package": "diffutils",
+          "version": "1:3.8-4",
+          "ids": [
+            "DEBIAN-CVE-2026-53910"
+          ]
+        },
+        {
+          "package": "dpkg",
+          "version": "1.21.23",
+          "ids": [
+            "DEBIAN-CVE-2026-91094"
+          ]
+        },
+        {
+          "package": "gcc-12",
+          "version": "12.2.0-14+deb12u1",
+          "ids": [
+            "DEBIAN-CVE-2022-27943",
+            "DEBIAN-CVE-2026-102010",
+            "DEBIAN-CVE-2026-114690",
+            "DEBIAN-CVE-2026-114691",
+            "DEBIAN-CVE-2026-115456",
+            "DEBIAN-CVE-2026-125709",
+            "DEBIAN-CVE-2026-95619"
+          ]
+        },
+        {
+          "package": "glibc",
+          "version": "2.36-9+deb12u14",
+          "ids": [
+            "DEBIAN-CVE-2010-4756",
+            "DEBIAN-CVE-2018-20796",
+            "DEBIAN-CVE-2019-1010022",
+            "DEBIAN-CVE-2019-1010023",
+            "DEBIAN-CVE-2019-1010024",
+            "DEBIAN-CVE-2019-1010025",
+            "DEBIAN-CVE-2019-9192",
+            "DEBIAN-CVE-2026-100290",
+            "DEBIAN-CVE-2026-115819",
+            "DEBIAN-CVE-2026-121757",
+            "DEBIAN-CVE-2026-121758",
+            "DEBIAN-CVE-2026-124024",
+            "DEBIAN-CVE-2026-18374",
+            "DEBIAN-CVE-2026-19499",
+            "DEBIAN-CVE-2026-19542",
+            "DEBIAN-CVE-2026-5435",
+            "DEBIAN-CVE-2026-5450",
+            "DEBIAN-CVE-2026-5928",
+            "DEBIAN-CVE-2026-6238",
+            "DEBIAN-CVE-2026-6368",
+            "DEBIAN-CVE-2026-6791",
+            "DEBIAN-CVE-2026-77117",
+            "DEBIAN-CVE-2026-80489",
+            "DEBIAN-CVE-2026-84243",
+            "DEBIAN-CVE-2026-8674",
+            "DEBIAN-CVE-2026-86805",
+            "DEBIAN-CVE-2026-89092",
+            "DEBIAN-CVE-2026-95818",
+            "DEBIAN-CVE-2026-97399"
+          ]
+        },
+        {
+          "package": "gnupg2",
+          "version": "2.2.40-1.1+deb12u2",
+          "ids": [
+            "DEBIAN-CVE-2022-3219",
+            "DEBIAN-CVE-2025-30258",
+            "DEBIAN-CVE-2025-68972",
+            "DEBIAN-CVE-2026-105712",
+            "DEBIAN-CVE-2026-57062"
+          ]
+        },
+        {
+          "package": "gnutls28",
+          "version": "3.7.9-2+deb12u7",
+          "ids": [
+            "DEBIAN-CVE-2011-3389",
+            "DEBIAN-CVE-2026-127039",
+            "DEBIAN-CVE-2026-127040",
+            "DEBIAN-CVE-2026-127231",
+            "DEBIAN-CVE-2026-67693",
+            "DEBIAN-CVE-2026-88647",
+            "DEBIAN-CVE-2026-88648",
+            "DEBIAN-CVE-2026-95184",
+            "DEBIAN-CVE-2026-95209",
+            "DEBIAN-CVE-2026-95210"
+          ]
+        },
+        {
+          "package": "gzip",
+          "version": "1.12-1",
+          "ids": [
+            "DEBIAN-CVE-2026-41991",
+            "DEBIAN-CVE-2026-41992"
+          ]
+        },
+        {
+          "package": "krb5",
+          "version": "1.20.1-2+deb12u5",
+          "ids": [
+            "DEBIAN-CVE-2018-5709",
+            "DEBIAN-CVE-2024-26458",
+            "DEBIAN-CVE-2024-26461",
+            "DEBIAN-CVE-2026-107364",
+            "DEBIAN-CVE-2026-107708",
+            "DEBIAN-CVE-2026-107778",
+            "DEBIAN-CVE-2026-107884",
+            "DEBIAN-CVE-2026-111423",
+            "DEBIAN-CVE-2026-112314",
+            "DEBIAN-CVE-2026-112315",
+            "DEBIAN-CVE-2026-112316",
+            "DEBIAN-CVE-2026-112317",
+            "DEBIAN-CVE-2026-112318",
+            "DEBIAN-CVE-2026-112319",
+            "DEBIAN-CVE-2026-112320",
+            "DEBIAN-CVE-2026-112321",
+            "DEBIAN-CVE-2026-112322",
+            "DEBIAN-CVE-2026-112323",
+            "DEBIAN-CVE-2026-118380",
+            "DEBIAN-CVE-2026-11850",
+            "DEBIAN-CVE-2026-119079",
+            "DEBIAN-CVE-2026-71199",
+            "DEBIAN-CVE-2026-71200"
+          ]
+        },
+        {
+          "package": "libgcrypt20",
+          "version": "1.10.1-3+deb12u1",
+          "ids": [
+            "DEBIAN-CVE-2018-6829",
+            "DEBIAN-CVE-2024-2236"
+          ]
+        },
+        {
+          "package": "libtasn1-6",
+          "version": "4.19.0-2+deb12u1",
+          "ids": [
+            "DEBIAN-CVE-2025-13151"
+          ]
+        },
+        {
+          "package": "libtirpc",
+          "version": "1.3.3+ds-1",
+          "ids": [
+            "DEBIAN-CVE-2026-85231",
+            "DEBIAN-CVE-2026-85977"
+          ]
+        },
+        {
+          "package": "ncurses",
+          "version": "6.4-4",
+          "ids": [
+            "DEBIAN-CVE-2023-50495",
+            "DEBIAN-CVE-2025-6141",
+            "DEBIAN-CVE-2025-69720"
+          ]
+        },
+        {
+          "package": "openssl",
+          "version": "3.0.22-1~deb12u2",
+          "ids": [
+            "DEBIAN-CVE-2025-27587",
+            "DEBIAN-CVE-2026-107493",
+            "DEBIAN-CVE-2026-107496",
+            "DEBIAN-CVE-2026-84786",
+            "DEBIAN-CVE-2026-95690"
+          ]
+        },
+        {
+          "package": "p11-kit",
+          "version": "0.24.1-2",
+          "ids": [
+            "DEBIAN-CVE-2026-13757",
+            "DEBIAN-CVE-2026-18938"
+          ]
+        },
+        {
+          "package": "pam",
+          "version": "1.5.2-6+deb12u2",
+          "ids": [
+            "DEBIAN-CVE-2024-10041",
+            "DEBIAN-CVE-2025-6020",
+            "DEBIAN-CVE-2025-8941",
+            "DEBIAN-CVE-2026-54411"
+          ]
+        },
+        {
+          "package": "perl",
+          "version": "5.36.0-7+deb12u4",
+          "ids": [
+            "DEBIAN-CVE-2011-4116",
+            "DEBIAN-CVE-2023-31486",
+            "DEBIAN-CVE-2026-15534",
+            "DEBIAN-CVE-2026-82560",
+            "DEBIAN-CVE-2026-9538"
+          ]
+        },
+        {
+          "package": "shadow",
+          "version": "1:4.13+dfsg1-1+deb12u2",
+          "ids": [
+            "DEBIAN-CVE-2007-5686",
+            "DEBIAN-CVE-2024-56433"
+          ]
+        },
+        {
+          "package": "sqlite3",
+          "version": "3.40.1-2+deb12u2",
+          "ids": [
+            "DEBIAN-CVE-2021-45346",
+            "DEBIAN-CVE-2025-29088",
+            "DEBIAN-CVE-2025-70873",
+            "DEBIAN-CVE-2025-7458",
+            "DEBIAN-CVE-2025-7709",
+            "DEBIAN-CVE-2026-11822",
+            "DEBIAN-CVE-2026-11824",
+            "DEBIAN-CVE-2026-119371",
+            "DEBIAN-CVE-2026-119372",
+            "DEBIAN-CVE-2026-119373",
+            "DEBIAN-CVE-2026-119374",
+            "DEBIAN-CVE-2026-119375",
+            "DEBIAN-CVE-2026-119376",
+            "DEBIAN-CVE-2026-119377",
+            "DEBIAN-CVE-2026-119378",
+            "DEBIAN-CVE-2026-119379",
+            "DEBIAN-CVE-2026-119586",
+            "DEBIAN-CVE-2026-119591",
+            "DEBIAN-CVE-2026-50812",
+            "DEBIAN-CVE-2026-50813"
+          ]
+        },
+        {
+          "package": "systemd",
+          "version": "252.39-1~deb12u2",
+          "ids": [
+            "DEBIAN-CVE-2013-4392",
+            "DEBIAN-CVE-2023-31437",
+            "DEBIAN-CVE-2023-31438",
+            "DEBIAN-CVE-2023-31439",
+            "DEBIAN-CVE-2026-15059",
+            "DEBIAN-CVE-2026-16742",
+            "DEBIAN-CVE-2026-40228"
+          ]
+        },
+        {
+          "package": "tar",
+          "version": "1.34+dfsg-1.2+deb12u1",
+          "ids": [
+            "DEBIAN-CVE-2005-2541",
+            "DEBIAN-CVE-2026-18477",
+            "DEBIAN-CVE-2026-18508",
+            "DEBIAN-CVE-2026-5704"
+          ]
+        },
+        {
+          "package": "util-linux",
+          "version": "2.38.1-5+deb12u3",
+          "ids": [
+            "DEBIAN-CVE-2022-0563",
+            "DEBIAN-CVE-2025-14104",
+            "DEBIAN-CVE-2026-13595",
+            "DEBIAN-CVE-2026-27456",
+            "DEBIAN-CVE-2026-3184",
+            "DEBIAN-CVE-2026-53613",
+            "DEBIAN-CVE-2026-53615",
+            "DEBIAN-CVE-2026-78410"
+          ]
+        },
+        {
+          "package": "zlib",
+          "version": "1:1.2.13.dfsg-1",
+          "ids": [
+            "DEBIAN-CVE-2023-45853",
+            "DEBIAN-CVE-2026-27171",
+            "DEBIAN-CVE-2026-76844",
+            "DEBIAN-CVE-2026-85091"
+          ]
+        }
+      ]
+    }
+  },
+  "tracked_secret_search": {
+    "directories": [
+      "backend",
+      "arkiv",
+      "infra",
+      ".github"
+    ],
+    "patterns": [
+      "private key header",
+      "recognized credential prefixes",
+      "compact JWT shape"
+    ],
+    "matched_paths": 0,
+    "coverage": "Selected patterns on tracked files at the checked revision. Git history, local secret stores, and externally shared credentials are outside this check."
+  },
+  "static_checks": [
+    "Ruff lint and format",
+    "Strict mypy on OIDC and run API",
+    "Purpose headers",
+    "Import boundaries",
+    "Node syntax"
+  ],
+  "runbooks": [
+    "docs/runbooks/security_incident.md",
+    "docs/runbooks/key_rotation.md"
+  ],
+  "independent_reviewer_signoff": "PENDING",
+  "live_credential_rotation": "PENDING_OPERATOR_WORKFLOW",
+  "remaining": [
+    "Review the remaining installed-package advisory matches for runtime applicability and severity. For applicable findings with no Bookworm fix, evaluate a supported base-image change or another approved mitigation. Critical unmitigated findings block production.",
+    "Verify issuer, database, storage and wallet rotation using the selected deployment and authorized operator workflow.",
+    "Review deployed role grants, provider trust boundaries and selected-network disclosure; document the exact supported ENS controller profile.",
+    "Obtain independent reviewer signoff and close affected threat records before release.",
+    "Selected-profile prerequisite G11 and pilot gate G13 remain open. Oracle rollout is deferred."
+  ],
+  "image_configuration_revision": "7a12e0077f926cabbf00fec6b93313d1d559f6f5"
+}

@@ -1,0 +1,13 @@
+# ORCA key rotation
+
+Record the operator, affected component, key IDs or public addresses, UTC cutover time, and authorized rollback owner. Store new material in the operator's secret store. Verify recovery using ephemeral credentials on a disposable system before changing the selected deployment.
+
+| Credential | Containment and replacement | Verification |
+| --- | --- | --- |
+| OIDC JWT signing key | Revoke the compromised signing key at the issuer and publish the replacement JWKS. Invalidate affected sessions at the issuer, then reload verifier instances so cached keys cannot extend acceptance. The local OIDC verifier's default cache is 300 seconds. | Confirm the retired key ID and existing affected sessions are rejected on every instance. Confirm fresh authenticated requests and SSE reopen with a valid token. |
+| Database and storage credentials | Disable compromised roles or access keys and issue least-privilege replacements. Update API, worker and backup configuration through the secret store. Restart affected pools and services and invalidate pre-issued access where supported. | Confirm old credentials fail, new credentials work only within their scopes, and tenant and storage-access checks still pass. |
+| A2A service or coordinator signing key | Suspend the affected binding and revoke scoped authorizations. Keep old public verification metadata for authorized historical evidence. Register the replacement key and complete proof and qualification before reactivation. | Submit an authorized test with the replacement and verify that old-key tasks and late replies no longer produce accepted results. |
+| ENS controller or delegate, Arkiv wallet | Revoke the affected role or authorization through the owner's approved wallet workflow. Verify finalized ENS authorization and the writer identity before updating any binding. Reconcile in-flight Arkiv operations by readback. | Verify the replacement role on the selected network, confirm the old role lacks current authority, and preserve immutable receipt linkage. |
+| Provider API or monitoring credential | Revoke affected provider keys or monitoring tokens, replace them through the secret store, and reload the affected service processes. | Verify old credentials fail and run a scoped request with the replacement. Inspect redacted logs and quota state. |
+
+For a suspected compromise, keep compromised credentials revoked during rollback. If a replacement fails, restore service using a newly issued credential or keep the affected feature disabled. Record signoff and evidence in the incident store and put only redacted references in the release gate.
