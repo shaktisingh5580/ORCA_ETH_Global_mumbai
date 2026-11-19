@@ -4,6 +4,7 @@ Refs: main plan P02.2; API sections 2.2,16; Phase: P02.
 """
 
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 from typing import Any
 
 import jwt
@@ -122,3 +123,29 @@ def test_unknown_workspace_denied():
     principal = Principal("user", ISSUER, frozenset({"org:read", "project:read"}))
     with pytest.raises(PermissionError):
         principal.require("project:read", set())
+
+
+def test_leaked_key_revoked(monkeypatch: pytest.MonkeyPatch) -> None:
+    old = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    new = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    document = {"keys": [json_web_key(old.public_key(), "local-key")]}
+    clock = SimpleNamespace(monotonic=lambda: 100.0)
+    monkeypatch.setattr("orca.infrastructure.auth.oidc.time", clock)
+    verifier = OIDCVerifier(ISSUER, AUDIENCE, ISSUER + "/jwks", lambda: document)
+    original = token(old)
+    assert verifier.verify(original).subject == "user-123"
+
+    document["keys"] = [json_web_key(new.public_key(), "replacement")]
+    clock.monotonic = lambda: 401.0
+    with pytest.raises(InvalidTokenError, match="Unknown signing key"):
+        verifier.verify(original)
+
+    replacement = jwt.encode(
+        jwt.decode(original, options={"verify_signature": False}),
+        new,
+        algorithm="RS256",
+        headers={"kid": "replacement"},
+    )
+    assert verifier.verify(replacement).subject == "user-123"
+    with pytest.raises(InvalidTokenError):
+        verifier.verify(original)

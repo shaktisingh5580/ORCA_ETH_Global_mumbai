@@ -87,6 +87,25 @@ async function setup(t) {
   return {root, reader, writer, rows, sent};
 }
 
+test('test_no_private_payload_on_arkiv', async t => {
+  const {root,reader,writer,rows,sent} = await setup(t);
+  const privateText='P14 private evidence marker';
+  const client=writer(requester);
+  await assert.rejects(publishPublicIntent(reader,client,root,{
+    ...task,attributes:{...task.attributes,privateNote:privateText},
+  }), /attributes/i);
+  assert.equal(sent.length,0);
+  await publishPublicIntent(reader,client,root,{
+    ...task,privatePayload:{observations:[privateText]},
+  });
+  assert.equal(sent.length,1);
+  assert.deepEqual(Object.keys(rows.get(taskKey).$attributes).sort(),
+    ['arkiv.schema', ...Object.keys(task.attributes)].sort());
+  const reservation=await readFile(join(root,requester,`task-${taskId}.reserved.json`),'utf8');
+  assert.ok(!reservation.includes(privateText));
+  assert.ok(!JSON.stringify(rows.get(taskKey).$attributes).includes(privateText));
+});
+
 test('test_wallet_a_task_wallet_b_claim', async t => {
   const {root,reader,writer,sent} = await setup(t);
   await assert.rejects(publishPublicIntent(reader,writer(provider),root,claim), /current parent/);

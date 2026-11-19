@@ -135,3 +135,34 @@ def test_default_deny_no_context():
                     "INSERT INTO research.projects(id,tenant_id,slug,name) VALUES(%s,%s,'bad','Bad')",
                     (uuid4(), tenant_b),
                 )
+
+
+@pytest.mark.live
+def test_rls_against_live_roles():
+    admin, runtime, tenant_a, tenant_b, project_a, project_b = prepare()
+    with psycopg.connect(admin) as connection:
+        assert connection.execute(
+            "SELECT id FROM research.projects WHERE id IN (%s,%s)", (project_a, project_b)
+        ).fetchall()
+        assert connection.execute(
+            """SELECT relrowsecurity,relforcerowsecurity
+            FROM pg_class WHERE oid='research.projects'::regclass"""
+        ).fetchone() == (True, True)
+    with psycopg.connect(runtime) as connection:
+        assert connection.execute(
+            "SELECT rolname,rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user"
+        ).fetchone() == ("orca_runtime", False, False)
+        for tenant, own, other in (
+            (tenant_a, project_a, project_b),
+            (tenant_b, project_b, project_a),
+        ):
+            with connection.transaction():
+                connection.execute("SELECT set_config('orca.tenant_id', %s, true)", (str(tenant),))
+                assert connection.execute("SELECT id FROM research.projects").fetchall() == [(own,)]
+                assert (
+                    connection.execute(
+                        "UPDATE research.projects SET name='denied' WHERE id=%s RETURNING id",
+                        (other,),
+                    ).fetchone()
+                    is None
+                )

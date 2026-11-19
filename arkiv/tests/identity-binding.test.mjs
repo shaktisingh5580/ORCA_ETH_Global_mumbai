@@ -49,6 +49,15 @@ test('test_expired_binding',async()=>{
   await assert.rejects(verifyBindingSignatures(manifest,manifest,signatures,1100),/expired/);
 });
 
+test('test_erc1271_if_deployed',async()=>{
+  const {controller,manifest,signatures}=await binding();
+  const unsupported={...manifest,ensController:'0x'+'3'.repeat(40)};
+  const controllerSignature=await controller.signTypedData(bindingTypedData(unsupported).ens);
+  await assert.rejects(verifyBindingSignatures(unsupported,unsupported,{
+    ...signatures,controller:controllerSignature,
+  },1001),/Wallet signature differs/);
+});
+
 test('test_stolen_wallet_spoof',async()=>{
   const {controller,manifest,signatures,typed}=await binding();
   const wallet=await controller.signTypedData(typed.arkiv);
