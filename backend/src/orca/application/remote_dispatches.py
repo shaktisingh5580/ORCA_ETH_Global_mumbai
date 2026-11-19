@@ -10,6 +10,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from orca.application.agent_onboarding import secondary_registration
 from orca.application.projects import IdempotencyConflict
 from orca.application.workspace_access import authorize_project
 from orca.contracts.remote_dispatch import RemoteDispatchEvent, RemoteDispatchHistory
@@ -43,7 +44,7 @@ class RemoteDispatches:
         row = (
             self.session.execute(
                 text("""SELECT id,run_id,agent_id,binding_version,capability_id,method_id,
-              plan_digest,dataset_ids,budget_usd::text AS budget_usd,state,generation,grant_digest,result_digest,
+              plan_digest,dataset_ids,budget_usd::text AS budget_usd,state,generation,grant_digest,result_digest,endpoint,
               verified_response,error_code,created_at,updated_at,
               remote_cancel_confirmed_at IS NOT NULL AS remote_cancellation_confirmed
               FROM federation.research_dispatches WHERE tenant_id=:tenant AND project_id=:project
@@ -119,6 +120,8 @@ class RemoteDispatches:
         method_id: str,
         budget_usd: Decimal,
         idempotency_key: str,
+        *,
+        endpoint: str | None = None,
     ) -> DispatchReceipt:
         authorize_project(self.session, self.tenant, self.project, self.principal, "research:run")
         if not 1 <= len(idempotency_key) <= 128 or not 1 <= len(capability_id) <= 100:
@@ -141,6 +144,7 @@ class RemoteDispatches:
                 "capability_id": capability_id,
                 "method_id": method_id,
                 "budget_usd": format(budget_usd, "f"),
+                **({"endpoint": endpoint} if endpoint is not None else {}),
             }
         )
         existing = (
@@ -188,30 +192,38 @@ class RemoteDispatches:
         agent = (
             self.session.execute(
                 text("""SELECT r.organization_id,r.state,r.binding_version,v.registration,
+              CASE WHEN CAST(:endpoint AS text) IS NULL THEN
               (SELECT max(q.expires_at) FROM federation.agent_qualifications q
                 WHERE q.tenant_id=r.tenant_id AND q.agent_id=r.id
                   AND q.binding_version=r.binding_version AND q.report->>'status'='PASS')
+              ELSE (SELECT max(q.expires_at) FROM federation.endpoint_qualifications q
+                WHERE q.tenant_id=r.tenant_id AND q.agent_id=r.id
+                  AND q.binding_version=r.binding_version AND q.report->>'status'='PASS'
+                  AND q.endpoint=:endpoint AND q.capability=:capability) END
                   AS qualified_until
               FROM federation.registrations r JOIN federation.registration_versions v
                 ON v.tenant_id=r.tenant_id AND v.id=r.binding_version
               WHERE r.tenant_id=:tenant AND r.id=:agent FOR UPDATE OF r"""),
-                {**params, "agent": agent_id},
+                {**params, "agent": agent_id, "endpoint": endpoint, "capability": capability_id},
             )
             .mappings()
             .one_or_none()
         )
-        if (
-            agent is None
-            or agent["state"] != "active"
-            or agent["registration"]["capability"] != capability_id
-            or agent["qualified_until"] is None
-        ):
+        if agent is None or agent["state"] != "active" or agent["qualified_until"] is None:
+            raise PermissionError("Provider is not active and qualified for this capability")
+        target = (
+            agent["registration"]
+            if endpoint is None
+            else secondary_registration(agent["registration"], endpoint)
+        )
+        if target["capability"] != capability_id:
             raise PermissionError("Provider is not active and qualified for this capability")
         authorization = self.session.execute(
             text("""SELECT id FROM federation.research_authorizations
               WHERE tenant_id=:tenant AND project_id=:project AND agent_id=:agent
                 AND organization_id=:organization AND binding_version=:binding
                 AND capability_id=:capability AND method_id=:method
+                AND endpoint IS NOT DISTINCT FROM CAST(:endpoint AS text)
                 AND revoked_at IS NULL AND expires_at>clock_timestamp()
                 AND :qualified_until>clock_timestamp()"""),
             {
@@ -222,6 +234,7 @@ class RemoteDispatches:
                 "capability": capability_id,
                 "method": method_id,
                 "qualified_until": agent["qualified_until"],
+                "endpoint": endpoint,
             },
         ).scalar_one_or_none()
         if authorization is None:
@@ -249,9 +262,9 @@ class RemoteDispatches:
             text("""INSERT INTO federation.research_dispatches
               (id,tenant_id,organization_id,project_id,run_id,agent_id,binding_version,
                authorization_id,capability_id,method_id,plan_digest,dataset_ids,budget_usd,
-               request_digest,idempotency_key,created_by)
+               request_digest,idempotency_key,created_by,endpoint)
               VALUES(:id,:tenant,:organization,:project,:run,:agent,:binding,:authorization,
-                :capability,:method,:plan_digest,:datasets,:budget,:request,:key,:actor)"""),
+                :capability,:method,:plan_digest,:datasets,:budget,:request,:key,:actor,:endpoint)"""),
             {
                 **params,
                 "id": identifier,
@@ -267,6 +280,7 @@ class RemoteDispatches:
                 "request": request_digest,
                 "key": idempotency_key,
                 "actor": self.principal.subject,
+                "endpoint": endpoint,
             },
         )
         return DispatchReceipt(identifier, run_id, agent_id, "queued")

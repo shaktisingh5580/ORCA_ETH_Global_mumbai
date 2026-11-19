@@ -67,6 +67,7 @@ def create_remote_dispatch(
                 body.method_id,
                 Decimal(body.budget_usd),
                 idempotency_key,
+                endpoint=body.endpoint,
             )
             row = service.get(run_id, receipt.id)
     except HTTPException:

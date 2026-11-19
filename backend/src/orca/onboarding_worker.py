@@ -16,6 +16,7 @@ from sqlalchemy import Engine, text
 from orca.application.agent_onboarding import (
     Onboarding,
     registered_endpoint,
+    secondary_registration,
     validate_registered_card,
 )
 from orca.config import Settings
@@ -82,13 +83,17 @@ def execute(
         with TenantUnitOfWork(db, tenant) as session:
             app = Onboarding(session, tenant, job["organization_id"], principal)
             row = app.expected(job["agent_id"], job["expected_version"])
-            if row["binding_version"] != job["binding_version"] or (
-                job["kind"] == "qualification" and row["state"] != "verified"
+            if (
+                row["binding_version"] != job["binding_version"]
+                or (job["kind"] == "qualification" and row["state"] != "verified")
+                or (job["kind"] == "endpoint_qualification" and row["state"] != "active")
             ):
                 raise ValueError()
         if job["kind"] == "endpoint_check":
             report = observe_endpoint(row, job["endpoint"])
         else:
+            if job["kind"] == "endpoint_qualification":
+                row["registration"] = secondary_registration(row["registration"], job["endpoint"])
             if isinstance(network, FederationCoordinator):
                 coordinator = network.public_descriptor()
             else:
@@ -114,6 +119,10 @@ def execute(
                 if latest["binding_version"] != job["binding_version"]:
                     raise ValueError("Endpoint check binding has changed")
                 app.event(job["agent_id"], "endpoint_checked", report)
+            elif job["kind"] == "endpoint_qualification":
+                app.qualify_secondary(
+                    job["agent_id"], job["expected_version"], job["endpoint"], report
+                )
             else:
                 app.qualify(
                     job["agent_id"], job["expected_version"], job["binding_version"], report

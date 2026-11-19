@@ -112,6 +112,13 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
                         "endpoint": "https://provider.example/a2a",
                         "key_id": "provider-1",
                         "public_key": provider_public,
+                        "additional_endpoints": [
+                            {
+                                "endpoint": "https://secondary.example/a2a",
+                                "card_digest": "sha256:" + "c" * 64,
+                                "capabilities": ["temperature_summary_v1"],
+                            }
+                        ],
                     }
                 ),
             ),
@@ -471,13 +478,78 @@ def test_remote_dispatch_requires_current_authority_and_reserved_budget(
             assert events[-1].remote_task_id == "remote-task-1"
             assert events[-1].result_digest == view["result_digest"]
 
+        secondary_target = "https://secondary.example/a2a"
+        with TenantUnitOfWork(db, tenant) as session:
+            with pytest.raises(PermissionError, match="not active and qualified"):
+                RemoteDispatches(session, tenant, project, principal).enqueue(
+                    run.run_id,
+                    agent_id,
+                    "temperature_summary_v1",
+                    "sst.seasonal_anomaly",
+                    Decimal("0.10"),
+                    "remote-secondary",
+                    endpoint=secondary_target,
+                )
+        with psycopg.connect(admin) as connection:
+            connection.execute(
+                "INSERT INTO federation.endpoint_qualifications "
+                "(id,tenant_id,agent_id,binding_version,endpoint,capability,report,expires_at) "
+                "VALUES(%s,%s,%s,%s,%s,'temperature_summary_v1',%s,now()+interval '1 hour')",
+                (uuid4(), tenant, agent_id, binding, secondary_target, Jsonb({"status": "PASS"})),
+            )
+        with TenantUnitOfWork(db, tenant) as session:
+            with pytest.raises(PermissionError, match="approval is missing"):
+                RemoteDispatches(session, tenant, project, principal).enqueue(
+                    run.run_id,
+                    agent_id,
+                    "temperature_summary_v1",
+                    "sst.seasonal_anomaly",
+                    Decimal("0.10"),
+                    "remote-secondary",
+                    endpoint=secondary_target,
+                )
+        with psycopg.connect(admin) as connection:
+            connection.execute(
+                "INSERT INTO federation.research_authorizations "
+                "(id,tenant_id,organization_id,project_id,agent_id,binding_version,capability_id,method_id,expires_at,approved_by,endpoint) "
+                "VALUES(%s,%s,%s,%s,%s,%s,'temperature_summary_v1','sst.seasonal_anomaly',now()+interval '1 hour','test-reviewer',%s)",
+                (uuid4(), tenant, organization, project, agent_id, binding, secondary_target),
+            )
+        with TenantUnitOfWork(db, tenant) as session:
+            service = RemoteDispatches(session, tenant, project, principal)
+            secondary_dispatch = service.enqueue(
+                run.run_id,
+                agent_id,
+                "temperature_summary_v1",
+                "sst.seasonal_anomaly",
+                Decimal("0.10"),
+                "remote-secondary",
+                endpoint=secondary_target,
+            )
+            assert service.get(run.run_id, secondary_dispatch.id)["endpoint"] == secondary_target
+
+        async def respond_secondary(signed, agent, scope):
+            assert signed.grant.endpoint == agent["registration"]["endpoint"] == secondary_target
+            return await respond(signed, agent, scope)
+
+        assert (
+            RemoteDispatchWorker(
+                tenant,
+                project,
+                lambda: TenantUnitOfWork(db, tenant),
+                coordinator,
+                respond_secondary,
+            ).run_once()
+            == "completed"
+        )
+
         with TenantUnitOfWork(db, tenant) as session:
             revoked_dispatch = RemoteDispatches(session, tenant, project, principal).enqueue(
                 run.run_id,
                 agent_id,
                 "temperature_summary_v1",
                 "sst.seasonal_anomaly",
-                Decimal("0.40"),
+                Decimal("0.30"),
                 "remote-revoke",
             )
 

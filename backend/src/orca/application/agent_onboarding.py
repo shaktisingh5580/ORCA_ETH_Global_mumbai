@@ -72,6 +72,21 @@ def registered_endpoint(
     raise LookupError("Endpoint is not registered on the current binding")
 
 
+def secondary_registration(registration: dict[str, Any], endpoint: str) -> dict[str, Any]:
+    selected = registered_endpoint(registration, endpoint)
+    if (
+        endpoint == registration["endpoint"]
+        or "temperature_summary_v1" not in selected.capabilities
+    ):
+        raise ValueError("Secondary endpoint must declare the supported temperature capability")
+    return {
+        **registration,
+        "endpoint": selected.endpoint,
+        "card_digest": selected.card_digest,
+        "capability": "temperature_summary_v1",
+    }
+
+
 class EndpointCheckRateLimited(Exception):
     """The registration has a recent or already running endpoint check."""
 
@@ -429,29 +444,35 @@ class Onboarding:
         if row is None:
             raise LookupError("Registration job not found")
         return {
-            key: value
-            for key, value in row.items()
-            if key != "endpoint" or kind == "endpoint_check"
+            key: value for key, value in row.items() if key != "endpoint" or kind != "qualification"
         }
 
     def queue_endpoint_check(
-        self, identifier: UUID, version: int, endpoint: str | None = None
+        self, identifier: UUID, version: int, endpoint: str | None = None, *, qualify: bool = False
     ) -> dict[str, Any]:
         row = self.expected(identifier, version)
         selected = registered_endpoint(row["registration"], endpoint).endpoint
+        kind = "endpoint_qualification" if qualify else "endpoint_check"
+        if qualify:
+            if row["state"] != "active":
+                raise ValueError(
+                    "Activate the primary binding before qualifying a secondary endpoint"
+                )
+            secondary_registration(row["registration"], selected)
         params = {
             **self.params(True),
             "agent": identifier,
             "binding": row["binding_version"],
             "endpoint": selected,
             "primary": row["registration"]["endpoint"],
+            "kind": kind,
         }
         pending = (
             self.session.execute(
                 text("""SELECT id,agent_id,state,report,error_code,coalesce(endpoint,:primary) AS endpoint
                   FROM federation.registration_jobs
               WHERE tenant_id=:t AND agent_id=:agent AND binding_version=:binding
-                AND expected_version=:version AND kind='endpoint_check' AND state IN ('queued','running')
+                AND expected_version=:version AND kind=:kind AND state IN ('queued','running')
                 AND coalesce(endpoint,:primary)=:endpoint"""),
                 {**params, "version": version},
             )
@@ -462,7 +483,7 @@ class Onboarding:
             return dict(pending)
         recent: bool = self.session.execute(
             text("""SELECT EXISTS(SELECT 1 FROM federation.registration_jobs
-              WHERE tenant_id=:t AND agent_id=:agent AND kind='endpoint_check'
+              WHERE tenant_id=:t AND agent_id=:agent AND kind=:kind
                 AND (created_at>clock_timestamp()-interval '60 seconds'
                   OR (binding_version=:binding AND state IN ('queued','running'))))"""),
             params,
@@ -474,7 +495,7 @@ class Onboarding:
             text("""INSERT INTO federation.registration_jobs
               (id,tenant_id,organization_id,agent_id,actor,idempotency_key,expected_version,
                binding_version,kind,endpoint)
-              VALUES(:job,:t,:o,:agent,:actor,:key,:version,:binding,'endpoint_check',:endpoint)"""),
+              VALUES(:job,:t,:o,:agent,:actor,:key,:version,:binding,:kind,:endpoint)"""),
             {
                 **params,
                 "job": job,
@@ -491,6 +512,42 @@ class Onboarding:
             "report": None,
             "error_code": None,
         }
+
+    def qualify_secondary(
+        self, identifier: UUID, version: int, endpoint: str, report: dict[str, Any]
+    ) -> None:
+        row = self.expected(identifier, version)
+        selected = secondary_registration(row["registration"], endpoint)
+        if (
+            row["state"] != "active"
+            or report.get("status") != "PASS"
+            or report.get("capability") != selected["capability"]
+        ):
+            raise ValueError("Secondary endpoint did not pass conformance")
+        self.session.execute(
+            text("""INSERT INTO federation.endpoint_qualifications
+              (id,tenant_id,agent_id,binding_version,endpoint,capability,report,expires_at)
+              VALUES(:report,:t,:agent,:binding,:endpoint,:capability,CAST(:data AS jsonb),
+                clock_timestamp()+interval '1 day')"""),
+            {
+                **self.params(True),
+                "report": uuid4(),
+                "agent": identifier,
+                "binding": row["binding_version"],
+                "endpoint": endpoint,
+                "capability": selected["capability"],
+                "data": json.dumps(report),
+            },
+        )
+        self.event(
+            identifier,
+            "endpoint_qualified",
+            {
+                "endpoint": endpoint,
+                "binding_version": str(row["binding_version"]),
+                "capability": selected["capability"],
+            },
+        )
 
     def jobs(self, identifier: UUID) -> list[dict[str, Any]]:
         self.row(identifier)

@@ -32,6 +32,7 @@ class ResearchGrant(Contract):
     dataset_ids: list[UUID] = Field(min_length=1, max_length=20)
     max_cost_usd: Decimal = Field(gt=0, le=100)
     expires_at: datetime
+    endpoint: str | None = Field(default=None, max_length=500)
 
 
 class SignedResearchGrant(Contract):
@@ -60,7 +61,7 @@ class ResearchDispatchScope(Contract):
 
 
 def _payload(grant: ResearchGrant) -> dict[str, object]:
-    return grant.model_dump(mode="json")
+    return grant.model_dump(mode="json", exclude_none=True)
 
 
 def _statement(grant_digest: str, key_id: str) -> dict[str, str]:

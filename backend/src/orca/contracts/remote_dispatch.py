@@ -16,6 +16,7 @@ class CreateRemoteDispatch(Contract):
     capability_id: str = Field(min_length=1, max_length=100)
     method_id: str = Field(min_length=1, max_length=120)
     budget_usd: Money
+    endpoint: str | None = Field(default=None, max_length=500)
 
 
 class RemoteDispatchView(Contract):
@@ -40,6 +41,7 @@ class RemoteDispatchView(Contract):
     updated_at: UTCDateTime
     scientific_acceptance: Literal["not_evaluated"] = "not_evaluated"
     remote_cancellation_confirmed: bool = False
+    endpoint: str | None = None
 
 
 class RemoteDispatchEvent(Contract):

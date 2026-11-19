@@ -50,7 +50,11 @@ async def qualify_async(
         if digest(raw) != registration["card_digest"]:
             raise ValueError("Agent Card changed since proof")
         parsed = AgentCard.model_validate(raw)
-        if parsed.url != registration["endpoint"] or parsed.protocol_version != "0.3.0":
+        if (
+            parsed.url != registration["endpoint"]
+            or parsed.protocol_version != "0.3.0"
+            or "temperature_summary_v1" not in {skill.id for skill in parsed.skills}
+        ):
             raise ValueError("Card changed")
         client = A2AClient(http, agent_card=parsed)
         evidence: list[dict[str, Any]] = []

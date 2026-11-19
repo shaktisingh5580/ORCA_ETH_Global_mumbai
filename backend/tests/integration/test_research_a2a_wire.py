@@ -52,6 +52,7 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
                 )
             )
 
+        endpoint = "https://provider.example/a2a"
         grant = ResearchGrant(
             audience_agent_id=uuid4(),
             binding_version=uuid4(),
@@ -65,6 +66,7 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
             dataset_ids=[uuid4()],
             max_cost_usd=Decimal("1.00"),
             expires_at=now + timedelta(minutes=2),
+            endpoint=endpoint,
         )
         signed = sign_grant(grant, private(coordinator_key), "coordinator-v1")
         scope = ResearchDispatchScope(
@@ -82,7 +84,6 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
             service_eligible=True,
             research_dispatch_enabled=True,
         )
-        endpoint = "https://provider.example/a2a"
         agent_card = card({"name": "Wire test", "endpoint": endpoint})
         card_data = agent_card.model_dump(mode="json", by_alias=True, exclude_none=True)
         agent = {
@@ -123,7 +124,7 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
                 if body["method"] == "message/send"
                 else {
                     "schema_version": "orca.scientific_task/1.0",
-                    "grant": signed.model_dump(mode="json"),
+                    "grant": signed.model_dump(mode="json", exclude_none=True),
                 }
             )
             claims = jwt.decode(
@@ -356,6 +357,16 @@ def test_scoped_research_task_uses_official_a2a_wire(tmp_path) -> None:
         )
         assert recovered["a2a_task_id"] == remote_id
         assert methods[-2:] == ["tasks/get", "tasks/get"]
+        call_count = len(calls)
+        with pytest.raises(PermissionError, match="another endpoint"):
+            await read_research_result(
+                signed,
+                {**agent["registration"], "endpoint": "https://wrong.example/a2a"},
+                coordinator,
+                None,
+                transport=httpx.MockTransport(handler),
+            )
+        assert len(calls) == call_count
         agent["binding_version"] = uuid4()
         with pytest.raises(PermissionError):
             await dispatch_research_task(

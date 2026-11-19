@@ -23,13 +23,20 @@ class AgentEndpointObservation(Contract):
     endpoint: str | None = None
 
 
-class AgentEndpointCheckJob(Contract):
+class AgentEndpointJob(Contract):
     id: UUID
     agent_id: UUID
     state: Literal["queued", "running", "succeeded", "failed"]
-    report: AgentEndpointObservation | None
     error_code: str | None
     endpoint: str | None = None
+
+
+class AgentEndpointCheckJob(AgentEndpointJob):
+    report: AgentEndpointObservation | None
+
+
+class AgentEndpointQualificationJob(AgentEndpointJob):
+    report: dict[str, Any] | None
 
 
 class AgentBinding(Contract):
@@ -140,6 +147,7 @@ class FederatedAgentDetail(FederatedAgentSummary):
     card_digest: Digest
     additional_capabilities: list[CapabilityID] = Field(default_factory=list)
     additional_endpoints: list[AdditionalAgentEndpoint] = Field(default_factory=list)
+    qualified_secondary_endpoints: list[str] = Field(default_factory=list)
 
 
 class AgentCapabilityClaim(Contract):

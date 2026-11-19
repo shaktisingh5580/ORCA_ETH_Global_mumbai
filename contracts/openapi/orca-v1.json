@@ -342,8 +342,8 @@
           "id",
           "agent_id",
           "state",
-          "report",
-          "error_code"
+          "error_code",
+          "report"
         ],
         "title": "AgentEndpointCheckJob",
         "type": "object"
@@ -477,6 +477,74 @@
           "status"
         ],
         "title": "AgentEndpointObservation",
+        "type": "object"
+      },
+      "AgentEndpointQualificationJob": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "format": "uuid",
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "agent_id",
+          "state",
+          "error_code",
+          "report"
+        ],
+        "title": "AgentEndpointQualificationJob",
         "type": "object"
       },
       "AgentRevision": {
@@ -1485,6 +1553,18 @@
             "title": "Capability Id",
             "type": "string"
           },
+          "endpoint": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
           "method_id": {
             "maxLength": 120,
             "minLength": 1,
@@ -2013,6 +2093,13 @@
               }
             ],
             "title": "Qualification Expires At"
+          },
+          "qualified_secondary_endpoints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Qualified Secondary Endpoints",
+            "type": "array"
           },
           "research_dispatch_enabled": {
             "const": false,
@@ -5276,6 +5363,17 @@
             },
             "title": "Dataset Ids",
             "type": "array"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
           },
           "error_code": {
             "anyOf": [
@@ -9609,6 +9707,142 @@
           }
         ],
         "summary": "Get Endpoint Check",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
+    "/v1/network/agents/{agent_id}/endpoint-qualifications": {
+      "post": {
+        "operationId": "qualify_endpoint_v1_network_agents__agent_id__endpoint_qualifications_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentEndpointCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentEndpointQualificationJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Qualify Endpoint",
+        "tags": [
+          "federation"
+        ]
+      }
+    },
+    "/v1/network/agents/{agent_id}/endpoint-qualifications/{job_id}": {
+      "get": {
+        "operationId": "get_endpoint_qualification_v1_network_agents__agent_id__endpoint_qualifications__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentEndpointQualificationJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Get Endpoint Qualification",
         "tags": [
           "federation"
         ]

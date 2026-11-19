@@ -118,11 +118,16 @@ async def _research_client(
     readback_task_id: str | None = None,
 ) -> AsyncIterator[tuple[A2AClient, dict[str, Any]]]:
     grant = verify_grant(signed, coordinator.public_key, coordinator.key_id)
+    if grant.endpoint is not None and grant.endpoint != registration["endpoint"]:
+        raise PermissionError("Research grant belongs to another endpoint")
     now = datetime.now(timezone.utc)
     if readback_task_id is None and not now < grant.expires_at:
         raise PermissionError("Research grant expired")
     origin = endpoint_origin(registration["endpoint"])
-    data = {"schema_version": "orca.scientific_task/1.0", "grant": signed.model_dump(mode="json")}
+    data = {
+        "schema_version": "orca.scientific_task/1.0",
+        "grant": signed.model_dump(mode="json", exclude_none=True),
+    }
     claims = {
         "iss": str(coordinator.id),
         "aud": str(grant.audience_agent_id),

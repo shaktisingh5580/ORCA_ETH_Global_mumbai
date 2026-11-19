@@ -80,6 +80,7 @@ def approved_inputs(
         or grant.binding_version != UUID(config["research_binding_version"])
         or str(grant.task_id) != auth["jti"]
         or signed.grant_digest != auth["grant_digest"]
+        or (grant.endpoint is not None and grant.endpoint != config["endpoint"])
         or not now < grant.expires_at
         or grant.capability_id != "temperature_summary_v1"
         or grant.method_id != "arithmetic_mean/1.0"

@@ -20,6 +20,7 @@ from orca.contracts.network import (
     AgentCapabilityClaim,
     AgentEndpointCheckJob,
     AgentEndpointClaim,
+    AgentEndpointQualificationJob,
     FederatedAgentDetail,
     FederatedAgentSummary,
 )
@@ -122,6 +123,10 @@ def get_agent(
         row = (
             session.execute(
                 text("""SELECT r.id,r.organization_id,r.state,r.version,v.registration,
+              ARRAY(SELECT DISTINCT q.endpoint FROM federation.endpoint_qualifications q
+                WHERE q.tenant_id=r.tenant_id AND q.agent_id=r.id AND q.binding_version=r.binding_version
+                  AND q.expires_at>clock_timestamp() AND q.report->>'status'='PASS'
+                ORDER BY q.endpoint) AS qualified_secondary_endpoints,
               (SELECT max(q.expires_at) FROM federation.agent_qualifications q
                WHERE q.tenant_id=r.tenant_id AND q.agent_id=r.id
                  AND q.binding_version=r.binding_version AND q.report->>'status'='PASS')
@@ -147,6 +152,9 @@ def get_agent(
         card_digest=registration["card_digest"],
         additional_capabilities=registration.get("additional_capabilities", []),
         additional_endpoints=registration.get("additional_endpoints", []),
+        qualified_secondary_endpoints=list(row.get("qualified_secondary_endpoints", []))
+        if row["state"] == "active"
+        else [],
     )
 
 
@@ -208,7 +216,7 @@ def get_endpoints(
                     uri=item.endpoint,
                     card_url=item.endpoint.removesuffix("/a2a") + "/.well-known/agent-card.json",
                     card_digest=item.card_digest,
-                    service_eligible=False,
+                    service_eligible=item.endpoint in agent.qualified_secondary_endpoints,
                     capabilities=item.capabilities,
                     primary=False,
                 )
@@ -255,4 +263,47 @@ def get_endpoint_check(
     with onboarding_service(request, organization_id, principal) as app:
         return AgentEndpointCheckJob.model_validate(
             app.registration_job(agent_id, job_id, "endpoint_check")
+        )
+
+
+@router.post(
+    "/{agent_id}/endpoint-qualifications",
+    response_model=AgentEndpointQualificationJob,
+    status_code=202,
+)
+def qualify_endpoint(
+    agent_id: UUID,
+    organization_id: UUID,
+    body: AgentEndpointCheckRequest,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> AgentEndpointQualificationJob:
+    if not getattr(request.app.state, "agent_onboarding_enabled", False):
+        raise HTTPException(503, "Agent onboarding worker is not enabled")
+    try:
+        with onboarding_service(request, organization_id, principal) as app:
+            return AgentEndpointQualificationJob.model_validate(
+                app.queue_endpoint_check(
+                    agent_id, body.expected_version, body.endpoint, qualify=True
+                )
+            )
+    except EndpointCheckRateLimited as error:
+        raise HTTPException(
+            429, "An endpoint qualification was requested recently", headers={"Retry-After": "60"}
+        ) from error
+
+
+@router.get(
+    "/{agent_id}/endpoint-qualifications/{job_id}", response_model=AgentEndpointQualificationJob
+)
+def get_endpoint_qualification(
+    agent_id: UUID,
+    job_id: UUID,
+    organization_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> AgentEndpointQualificationJob:
+    with onboarding_service(request, organization_id, principal) as app:
+        return AgentEndpointQualificationJob.model_validate(
+            app.registration_job(agent_id, job_id, "endpoint_qualification")
         )

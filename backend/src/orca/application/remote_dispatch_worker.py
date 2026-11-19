@@ -17,6 +17,7 @@ from a2a.client.errors import A2AClientError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from orca.application.agent_onboarding import secondary_registration
 from orca.application.federation import (
     ResearchDispatchScope,
     ResearchGrant,
@@ -116,7 +117,7 @@ class RemoteDispatchWorker:
                   SET remote_cancel_attempted_at=clock_timestamp(),updated_at=clock_timestamp()
                   FROM candidate c WHERE d.id=c.id
                   RETURNING d.id,d.agent_id,d.binding_version,d.generation,d.signed_grant,
-                    d.grant_digest,d.remote_task_id,d.remote_context_id,c.registration"""),
+                    d.grant_digest,d.remote_task_id,d.remote_context_id,d.endpoint,c.registration"""),
                     {"tenant": self.tenant, "project": self.project},
                 )
                 .mappings()
@@ -130,6 +131,7 @@ class RemoteDispatchWorker:
             or signed.grant.project_id != self.project
             or signed.grant.audience_agent_id != row["agent_id"]
             or signed.grant.binding_version != row["binding_version"]
+            or signed.grant.endpoint != row["endpoint"]
             or signed.grant_digest != row["grant_digest"]
         ):
             return True
@@ -138,7 +140,9 @@ class RemoteDispatchWorker:
             async with asyncio.timeout(90):
                 return await cancel_research_task(
                     signed,
-                    row["registration"],
+                    row["registration"]
+                    if row["endpoint"] is None
+                    else secondary_registration(row["registration"], row["endpoint"]),
                     self.coordinator,
                     (row["remote_task_id"], row["remote_context_id"]),
                 )
@@ -181,6 +185,7 @@ class RemoteDispatchWorker:
                     or signed.grant.organization_id != row["organization_id"]
                     or signed.grant.audience_agent_id != row["agent_id"]
                     or signed.grant.binding_version != row["binding_version"]
+                    or signed.grant.endpoint != row["endpoint"]
                     or signed.grant.approved_plan_digest != row["plan_digest"]
                     or signed.grant.method_id != row["method_id"]
                     or signed.grant.capability_id != row["capability_id"]
@@ -214,6 +219,7 @@ class RemoteDispatchWorker:
                     "generation",
                     "signed_grant",
                     "grant_digest",
+                    "endpoint",
                     "remote_task_id",
                     "remote_context_id",
                 )
@@ -245,9 +251,21 @@ class RemoteDispatchWorker:
 
     @staticmethod
     def _lock_authority(session: Session, identifier: UUID) -> bool:
-        return (
+        locked = (
             session.execute(
                 text("SELECT federation.lock_dispatch_authority(:id)"), {"id": identifier}
+            ).scalar_one()
+            is True
+        )
+        return (
+            locked
+            and session.execute(
+                text("""SELECT EXISTS(
+              SELECT 1 FROM federation.research_dispatches d
+              JOIN federation.research_authorizations a
+                ON a.id=d.authorization_id AND a.tenant_id=d.tenant_id
+              WHERE d.id=:id AND a.endpoint IS NOT DISTINCT FROM d.endpoint)"""),
+                {"id": identifier},
             ).scalar_one()
             is True
         )
@@ -291,15 +309,26 @@ class RemoteDispatchWorker:
         agent = (
             session.execute(
                 text("""SELECT r.id,r.organization_id,r.state,r.binding_version,v.registration,
+              CASE WHEN CAST(:endpoint AS text) IS NULL THEN
               (SELECT max(q.expires_at) FROM federation.agent_qualifications q
                WHERE q.tenant_id=r.tenant_id AND q.agent_id=r.id
                  AND q.binding_version=r.binding_version AND q.report->>'status'='PASS')
+              ELSE (SELECT max(q.expires_at) FROM federation.endpoint_qualifications q
+                WHERE q.tenant_id=r.tenant_id AND q.agent_id=r.id
+                  AND q.binding_version=r.binding_version AND q.report->>'status'='PASS'
+                  AND q.endpoint=:endpoint AND q.capability=:capability) END
                  AS qualification_expires_at
               FROM federation.registrations r JOIN federation.registration_versions v
                 ON v.tenant_id=r.tenant_id AND v.id=r.binding_version
               WHERE r.tenant_id=:tenant AND r.organization_id=:organization AND r.id=:agent
               FOR SHARE OF r"""),
-                {**params, "organization": row["organization_id"], "agent": row["agent_id"]},
+                {
+                    **params,
+                    "organization": row["organization_id"],
+                    "agent": row["agent_id"],
+                    "endpoint": row["endpoint"],
+                    "capability": row["capability_id"],
+                },
             )
             .mappings()
             .one_or_none()
@@ -309,17 +338,24 @@ class RemoteDispatchWorker:
             agent is None
             or agent["state"] != "active"
             or agent["binding_version"] != row["binding_version"]
-            or agent["registration"].get("capability") != row["capability_id"]
             or agent["qualification_expires_at"] is None
             or agent["qualification_expires_at"] <= now
         ):
             raise PermissionError("Current agent binding is not qualified")
+        registration = (
+            agent["registration"]
+            if row["endpoint"] is None
+            else secondary_registration(agent["registration"], row["endpoint"])
+        )
+        if registration.get("capability") != row["capability_id"]:
+            raise PermissionError("Current endpoint capability differs")
         authorized = session.execute(
             text("""SELECT 1 FROM federation.research_authorizations
               WHERE id=:authorization AND tenant_id=:tenant AND project_id=:project
                 AND organization_id=:organization AND agent_id=:agent
                 AND binding_version=:binding AND capability_id=:capability
-                AND method_id=:method AND revoked_at IS NULL AND expires_at>clock_timestamp()"""),
+                AND method_id=:method AND endpoint IS NOT DISTINCT FROM CAST(:endpoint AS text)
+                AND revoked_at IS NULL AND expires_at>clock_timestamp()"""),
             {
                 **params,
                 "authorization": row["authorization_id"],
@@ -328,6 +364,7 @@ class RemoteDispatchWorker:
                 "binding": row["binding_version"],
                 "capability": row["capability_id"],
                 "method": row["method_id"],
+                "endpoint": row["endpoint"],
             },
         ).scalar_one_or_none()
         if authorized is None:
@@ -359,7 +396,11 @@ class RemoteDispatchWorker:
             service_eligible=True,
             research_dispatch_enabled=True,
         )
-        return scope, {**dict(agent), "research_dispatch_enabled": True}
+        return scope, {
+            **dict(agent),
+            "registration": registration,
+            "research_dispatch_enabled": True,
+        }
 
     def _row(
         self, session: Session, identifier: UUID, *, lock: bool = False
@@ -449,6 +490,7 @@ class RemoteDispatchWorker:
             dataset_ids=list(item["dataset_ids"]),
             max_cost_usd=item["budget_usd"],
             expires_at=datetime.now(timezone.utc) + timedelta(minutes=3),
+            endpoint=item["endpoint"],
         )
         signed = sign_grant(grant, self.coordinator.private_key, self.coordinator.key_id)
         session.execute(

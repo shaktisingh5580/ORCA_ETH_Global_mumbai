@@ -225,6 +225,12 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
     }
     raw = card(provider).model_dump(mode="json", by_alias=True, exclude_none=True)
     extra_endpoint = "https://secondary.example/a2a"
+    qualified_endpoint = "https://qualified-secondary.example/a2a"
+    qualified_card = card({**provider, "endpoint": qualified_endpoint}).model_dump(
+        mode="json",
+        by_alias=True,
+        exclude_none=True,
+    )
     extra_capability = "sst_review"
     extra_card = {
         **raw,
@@ -243,7 +249,12 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
                 "endpoint": extra_endpoint,
                 "card_digest": digest(extra_card),
                 "capabilities": [extra_capability],
-            }
+            },
+            {
+                "endpoint": qualified_endpoint,
+                "card_digest": digest(qualified_card),
+                "capabilities": ["temperature_summary_v1"],
+            },
         ],
     }
     settings = Settings(
@@ -338,13 +349,22 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         provider.update(coordinator=coordinator, agent_id=identifier)
 
         def qualify(agent, coordinator, secret, key):
+            target = agent["registration"]["endpoint"]
             return asyncio.run(
                 qualify_async(
                     agent,
                     coordinator,
                     secret,
                     key,
-                    httpx.ASGITransport(app=create_provider(provider, tmp_path / "provider")),
+                    httpx.ASGITransport(
+                        app=create_provider(
+                            {**provider, "endpoint": target},
+                            tmp_path
+                            / (
+                                "secondary-provider" if target == qualified_endpoint else "provider"
+                            ),
+                        )
+                    ),
                 )
             )
 
@@ -386,7 +406,29 @@ def test_http_qualification_job_is_durable_and_org_admin_only(tmp_path, monkeypa
         assert [(item["uri"], item["service_eligible"]) for item in endpoints] == [
             (provider["endpoint"], True),
             (extra_endpoint, False),
+            (qualified_endpoint, False),
         ]
+        qualification_path = f"{network_path}/endpoint-qualifications"
+        unsupported = client.post(
+            f"{qualification_path}?organization_id={org}",
+            json={"expected_version": 5, "endpoint": extra_endpoint},
+        )
+        assert unsupported.status_code == 409
+        secondary = client.post(
+            f"{qualification_path}?organization_id={org}",
+            json={"expected_version": 5, "endpoint": qualified_endpoint},
+        )
+        assert secondary.status_code == 202, secondary.text
+        secondary_id = secondary.json()["id"]
+        assert onboarding_worker.execute(
+            app.state.runtime_engine, federation_coordinator, tenant, UUID(secondary_id)
+        )
+        qualification = client.get(
+            f"{qualification_path}/{secondary_id}?organization_id={org}"
+        ).json()
+        assert qualification["state"] == "succeeded" and qualification["report"]["status"] == "PASS"
+        endpoints = client.get(f"{network_path}/endpoints?organization_id={org}").json()["items"]
+        assert endpoints[2]["uri"] == qualified_endpoint and endpoints[2]["service_eligible"]
         # Editing an endpoint/key revision invalidates service eligibility and old qualification.
         with psycopg.connect(admin) as connection:
             connection.execute(
