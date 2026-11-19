@@ -1,0 +1,248 @@
+{
+  "phase": "P13.3",
+  "status": "LOCAL_BENCHMARKS_PASSED",
+  "recorded_at_utc": "2026-11-19T18:55:14+00:00",
+  "code_revision": "b0535c64c4ddc7989aea6f9aeb6bd2a2e5c6a2cb",
+  "preregistered_profile": {
+    "path": "infra/observability/p13-benchmark-profile.json",
+    "revision": "eaacaf3",
+    "sha256": "a307e1359ec031379e45a7bb8951ce9749be3bd39ba5adfae7d77d7bb70e38db"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.12",
+    "database": "Disposable local PostgreSQL 17 with PostGIS and the ORCA runtime role",
+    "storage": "Botocore stub with an injected 503 during snapshot readback",
+    "source": "21 exact checksummed NOAA MUR CSV snapshots preserved for P03.4"
+  },
+  "required_cases": {
+    "test_concurrent_enqueues_exactly_once": {
+      "status": "PASS",
+      "measurements": {
+        "attempt_ms": [
+          427.177,
+          442.841,
+          479.479,
+          502.849,
+          538.844,
+          563.748,
+          585.937,
+          621.104
+        ],
+        "p50_ms": 520.846,
+        "p95_ms": 621.104,
+        "attempts_per_second": 12.72,
+        "durable_counts": {
+          "compute_runs": 1,
+          "job_outbox": 1,
+          "job_queue": 1,
+          "run_budget_reservations": 1
+        },
+        "reserved_usd": "2.00"
+      }
+    },
+    "test_budget_quota_spike": {
+      "status": "PASS",
+      "measurements": {
+        "attempt_ms": [
+          132.237,
+          363.941,
+          428.538,
+          488.004,
+          562.842,
+          638.464,
+          702.742,
+          768.344
+        ],
+        "p50_ms": 525.423,
+        "p95_ms": 768.344,
+        "attempts_per_second": 10.17,
+        "budget_rejections": 6,
+        "durable_counts": {
+          "compute_runs": 2,
+          "job_outbox": 2,
+          "job_queue": 2,
+          "run_budget_reservations": 2
+        },
+        "reserved_usd": "4.00"
+      }
+    },
+    "test_real_sst_volume_with_mem_budget": {
+      "status": "PASS",
+      "measurements": {
+        "metadata_sha256": "sha256:7c2df14ba2f7ec5cbb3455fa771766fb93eb5830982b7f121525c161112e7fd4",
+        "cells": 78771,
+        "months": [
+          {
+            "year": 2025,
+            "bytes": 176308,
+            "sha256": "sha256:b04e1b8002f474894fec0a85b0a67f08a44dd73204c96df35684fd10cbd1fa63",
+            "parse_ms": 678.987
+          },
+          {
+            "year": 2003,
+            "bytes": 176018,
+            "sha256": "sha256:ea76ac38737c23f8a9ce0fb5351833a6d104f1070d51f294fa6b9cfbbea431b0",
+            "parse_ms": 1022.82
+          },
+          {
+            "year": 2004,
+            "bytes": 176065,
+            "sha256": "sha256:a5a44d660a99b569b49789940a7db298ec250a9a352ce6300b6490d8e75c9170",
+            "parse_ms": 867.399
+          },
+          {
+            "year": 2005,
+            "bytes": 175781,
+            "sha256": "sha256:3006b18cfd69f3134bdccd1a6dea870b0e0cc1cf25b8efc22cf583126f4f878a",
+            "parse_ms": 725.212
+          },
+          {
+            "year": 2006,
+            "bytes": 175533,
+            "sha256": "sha256:d3748b457449fd87fddde3bce82548cd31b89fdad3e5730b783dc54037196acc",
+            "parse_ms": 751.819
+          },
+          {
+            "year": 2007,
+            "bytes": 175823,
+            "sha256": "sha256:0a175bc74ce45de8fb87c83816b15c6cbfd78ac7a763ff333449d97006b83e0a",
+            "parse_ms": 692.379
+          },
+          {
+            "year": 2008,
+            "bytes": 175519,
+            "sha256": "sha256:7d2dbc80c300d72365e216d7646525b608b87b7f0e4ba2c5a54d9d9a01e6f7f8",
+            "parse_ms": 652.927
+          },
+          {
+            "year": 2009,
+            "bytes": 176974,
+            "sha256": "sha256:9eb81ec687cd1d36f522522c803d76527ad75292e506217940f3fda58b3ddbc4",
+            "parse_ms": 842.367
+          },
+          {
+            "year": 2010,
+            "bytes": 175619,
+            "sha256": "sha256:1bfb987edb944ed06274a58112e6cbe790adc9ebc1484e0c4f42d120928c9de0",
+            "parse_ms": 660.36
+          },
+          {
+            "year": 2011,
+            "bytes": 175544,
+            "sha256": "sha256:1e5875498c944c12c583f1369b4cc309c86cc3d0087aeda0e6880c707494c00b",
+            "parse_ms": 678.675
+          },
+          {
+            "year": 2012,
+            "bytes": 175488,
+            "sha256": "sha256:2e95d5a04dcbe65bcdbad02744411eaac61612ed0660aea384802279f91d5754",
+            "parse_ms": 736.931
+          },
+          {
+            "year": 2013,
+            "bytes": 175662,
+            "sha256": "sha256:86321d67ed3edacfec165f8b6293777b0df05b4b6d43e3318bd6fb016e861acd",
+            "parse_ms": 966.821
+          },
+          {
+            "year": 2014,
+            "bytes": 175607,
+            "sha256": "sha256:4680ceecd8bcb6eaea96be5dcbe9b1a3f7666fc56f813422ff238b9c63b7d134",
+            "parse_ms": 890.3
+          },
+          {
+            "year": 2015,
+            "bytes": 175449,
+            "sha256": "sha256:51e63fef8405077c9d6ddac284cbc30278c81487f4fac5c29c3f166b67e548dc",
+            "parse_ms": 966.333
+          },
+          {
+            "year": 2016,
+            "bytes": 176050,
+            "sha256": "sha256:3b79442e7f8a1383d25c9972557d41256af6de8772dd4b2fef0c8040d5665afe",
+            "parse_ms": 1023.186
+          },
+          {
+            "year": 2017,
+            "bytes": 175996,
+            "sha256": "sha256:bceba529fede43b15043061682f373564354a058772bdd07254c355a9541cbbe",
+            "parse_ms": 1042.96
+          },
+          {
+            "year": 2018,
+            "bytes": 175573,
+            "sha256": "sha256:99a79a54d8cc1b1d0dfec2264e88af07aa0c9cb5204ca6eb1d0dde2d28ef85d0",
+            "parse_ms": 920.528
+          },
+          {
+            "year": 2019,
+            "bytes": 175920,
+            "sha256": "sha256:aa632f6a5eb271f328ea2c2504a17c048d4416d1497e7125af88fd26c4242e67",
+            "parse_ms": 1120.535
+          },
+          {
+            "year": 2020,
+            "bytes": 175574,
+            "sha256": "sha256:455c96abfddfe9734a7cbb8ef5ea1a62e9c08d9c39b0f11d0fb107bbfcf6e5c6",
+            "parse_ms": 1059.371
+          },
+          {
+            "year": 2021,
+            "bytes": 176071,
+            "sha256": "sha256:fd687cafdd342cb60228b7f6f80abab9f243757085650fad88c8a1f02abcaaf7",
+            "parse_ms": 1034.306
+          },
+          {
+            "year": 2022,
+            "bytes": 175696,
+            "sha256": "sha256:56f4c3a8a98ea6ce99b6bc795c3feba11ae7bcd495589ecf19cb8b43634dec88",
+            "parse_ms": 969.976
+          }
+        ],
+        "peak_traced_python_bytes": 16604163,
+        "elapsed_seconds": 19.31,
+        "qualification_ms": 286.745,
+        "reduction_with_validation_ms": 625.926,
+        "reduction_method": "orca.native-seasonal-sst/hackathon-v1",
+        "source_csv_bytes": 3692270,
+        "parse_throughput_cells_per_second": 4303.44
+      }
+    },
+    "test_s3_object_lifecycle_under_failure": {
+      "status": "PASS",
+      "measurements": {
+        "elapsed_ms": 8.698,
+        "recovery_and_read_ms": 1.064,
+        "verified_put_calls": 1,
+        "verified_recovered_snapshots": 1
+      }
+    }
+  },
+  "workload_notes": [
+    "The duplicate burst synchronizes clients ahead of the tenant row lock. Before the fix the benchmark reproduced an erroneous rate-limit rejection instead of replaying the winning receipt.",
+    "Queue latency starts after the client barrier and includes connection checkout, the SQL transaction and commit or rollback. With eight samples nearest-rank p95 is the slowest attempt.",
+    "The per-file SST spans include disk read, SHA-256, validation and parsing. They dominate this run. Qualification and the prototype reduction with its internal validation are timed separately.",
+    "SST peak uses tracemalloc and measures Python heap allocations during parsing, qualification and reduction. Process RSS and remote retrieval are outside this workload.",
+    "The approved plan ledger values are reserved limits in USD. Actual billing and provider costs are outside this workload."
+  ],
+  "focused_checks": {
+    "required_cases_passed": 4,
+    "queue_and_quota_regressions_passed": 4,
+    "tenant_isolation_regressions_passed": 5,
+    "real_reference_replay_regressions_passed": 6,
+    "snapshot_storage_and_cache_regressions_passed": 15,
+    "snapshot_http_contracts_passed": 7,
+    "static": [
+      "Ruff lint and format",
+      "strict mypy for the changed runtime module",
+      "header and import boundary checks"
+    ],
+    "test_database_note": "The tenant suite was rerun in a clean database after its reset collided with immutable data left by queue tests in a shared scratch database."
+  },
+  "remaining_acceptance": [
+    "Measure representative regional source acquisition and approved-method execution with the deployment infrastructure, including process RSS, end-to-end worker throughput and storage recovery on a real provider.",
+    "Collect multiple trials and deployment traces before making percentile or production SLO claims.",
+    "Cloud recovery and Oracle deployment are deferred. Scientific method approval, G11 and the pilot's institutional evidence are tracked separately."
+  ]
+}

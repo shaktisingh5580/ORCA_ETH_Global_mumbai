@@ -45,8 +45,18 @@
       "remaining": "Verify a separately operated HTTPS provider and real source rights, registration, release, revocation and storage separation."
     },
     "P13.3": {
-      "status": "NOT_STARTED",
-      "deliverable": "Preregistered resource, queue, durability and cost benchmarks."
+      "status": "LOCAL_BENCHMARKS_PASSED",
+      "deliverable": "Preregistered resource, queue, durability and cost benchmarks.",
+      "benchmark_profile": "infra/observability/p13-benchmark-profile.json",
+      "benchmark_evidence": "docs/gates/P13/benchmarks.json",
+      "test_file": "backend/tests/performance/test_p13_benchmarks.py",
+      "required_cases": [
+        "test_concurrent_enqueues_exactly_once",
+        "test_real_sst_volume_with_mem_budget",
+        "test_s3_object_lifecycle_under_failure",
+        "test_budget_quota_spike"
+      ],
+      "remaining": "Measure representative authorized production workloads and recover against a real object store. Cloud acceptance remains deferred."
     },
     "P13.4": {
       "status": "NOT_STARTED",
