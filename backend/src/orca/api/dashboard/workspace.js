@@ -1,6 +1,6 @@
 /* Purpose: connect ORCA's research, agent onboarding, review and provenance tabs to existing APIs.
 Behavior: restore same-tab sessions, share account state across views, escape untrusted data and require approvals.
-Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: dashboard UX increment. */
+Refs: main_implementation plan.md P10.4; api design.md §3.11; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: P10 dashboard integration. */
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pretty = value => JSON.stringify(value, null, 2);
@@ -70,9 +70,9 @@ async function token() {
   }
   return state.token;
 }
-async function api(path, body, method = body === undefined ? 'GET' : 'POST') {
+async function api(path, body, method = body === undefined ? 'GET' : 'POST', timeout = 45000) {
   const access = await token();
-  const response = await fetch(path, {method, headers:{Authorization:`Bearer ${access}`, ...(body !== undefined ? {'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()} : {})}, ...(body !== undefined ? {body:JSON.stringify(body)} : {}), signal:AbortSignal.timeout(45000)});
+  const response = await fetch(path, {method, headers:{Authorization:`Bearer ${access}`, ...(body !== undefined ? {'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()} : {})}, ...(body !== undefined ? {body:JSON.stringify(body)} : {}), signal:AbortSignal.timeout(timeout)});
   if (response.status === 401 && state.token === access) clearSession();
   return responseBody(response);
 }
@@ -152,6 +152,137 @@ function renderEnsObservation(observation) {
   const binding = ['endpoint','public_key','card_digest'].every(key => matches[key] === true);
   return `<div class="review-card"><strong>${esc(summary)}</strong><p class="muted">${active ? `Owner ${esc(observation.hierarchy.at(-1).owner)} · block ${esc(observation.block_number)}` : esc(observation.message || 'Retry after ENS finality.')}</p><p>Service records ${binding ? 'match registration' : 'do not yet match registration'} · Agent authority ${observation.authority_verified === true ? 'verified' : 'not verified'} · Research dispatch ${observation.research_dispatch_enabled === true ? 'enabled' : 'disabled'}</p>${detail('Finalized ENS observation and service comparison',observation)}</div>`;
 }
+function renderEnsPermissions(snapshot) {
+  const roles = snapshot.names.map(name => `<p><strong>${esc(name.name)}</strong><br>Resolver <span class="hash">${esc(name.resolver)}</span><br>Endpoint text role: ${name.endpoint_text_role ? 'present' : 'absent'} · Resolver-wide text role: ${name.root_text_role ? 'present' : 'absent'}</p>`).join('');
+  return `<div class="review-card"><strong>${snapshot.status === 'DISTINCT_RESOLVERS' ? 'Distinct resolvers' : 'Shared resolver'}</strong><p>Finalized Sepolia block ${esc(snapshot.observed_block)} · Delegate <span class="hash">${esc(snapshot.delegate)}</span></p>${roles}<p>Delegation isolation unproven · Research dispatch disabled</p>${detail('Permission evidence', snapshot)}</div>`;
+}
+function renderBindingEvidence(evidence) {
+  return `<div class="review-card"><strong>Binding signatures verified</strong><p>Finalized Sepolia block ${esc(evidence.observed_block)}</p><p>Institutional affiliation unverified · Research dispatch disabled</p>${detail('Saved signature evidence', evidence)}</div>`;
+}
+function bindingSignatures(raw) {
+  let signatures;
+  try { signatures = JSON.parse(raw); }
+  catch { throw new Error('Paste the three signatures as a JSON object.'); }
+  const {controller, wallet, service} = signatures || {};
+  const walletSignature = /^0x[0-9a-fA-F]{130}$/;
+  if (Object.keys(signatures || {}).length !== 3 ||
+      ![controller, wallet].every(value => typeof value === 'string' && walletSignature.test(value)) ||
+      typeof service !== 'string' || !/^[A-Za-z0-9_-]{86}$/.test(service)) {
+    throw new Error('Expected controller and wallet signatures in hex and a service signature in base64url.');
+  }
+  return {controller, wallet, service};
+}
+function downloadAgentJson(filename, payload) {
+  const url = URL.createObjectURL(new Blob([pretty(payload)], {type:'application/json'}));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function mountAgentIdentity(agent) {
+  const organization = $('organization').value;
+  const section = document.createElement('section');
+  section.innerHTML = `<h3>ENSv2 identity · Sepolia</h3>
+    <p class="muted">Compare finalized ENS records with this service registration.</p>
+    <label>Agent ENS name<input id="agent-ens-name" placeholder="analyst.orca-research-lab.eth" autocomplete="off"></label>
+    <button class="secondary" id="agent-ens-inspect">Inspect ENS records</button>
+    <div id="agent-ens-result" role="status"></div>
+    <details><summary>Resolver permissions</summary>
+      <p class="muted">Check which roles the same delegate holds on this name and a second agent name at one finalized block.</p>
+      <label>Second ENS name<input id="agent-ens-peer" autocomplete="off"></label>
+      <label>Delegate address<input id="agent-ens-delegate" autocomplete="off"></label>
+      <button class="secondary" id="agent-ens-permissions">Check permissions</button>
+      <div id="agent-ens-permissions-result" role="status"></div>
+    </details>
+    <details><summary>ENS, Arkiv and service signatures</summary>
+      <p class="muted">${agent.state === 'active' ? 'Create a five-minute challenge after the public ENS records match this service and the Arkiv wallet.' : 'Activate the service to create a new signature challenge.'}</p>
+      <label>Arkiv wallet address<input id="agent-binding-wallet" autocomplete="off"></label>
+      <button class="secondary" id="agent-binding-create" ${agent.state === 'active' ? '' : 'disabled'}>Create challenge</button>
+      <button class="secondary" id="agent-binding-download" disabled>Download signing manifest</button>
+      <div id="agent-binding-challenge" role="status"></div>
+      <label>Public signatures JSON<textarea id="agent-binding-signatures" rows="4" spellcheck="false" placeholder='{"controller":"…","wallet":"…","service":"…"}'></textarea></label>
+      <button class="secondary" id="agent-binding-submit" disabled>Verify signatures</button>
+      <label>Saved challenge ID<input id="agent-binding-id" autocomplete="off"></label>
+      <button class="secondary" id="agent-binding-read">Load saved evidence</button>
+      <div id="agent-binding-result" role="status"></div>
+    </details>`;
+  $('agent-detail').append(section);
+  const field = id => section.querySelector(`#${id}`);
+  const value = id => field(id).value.trim();
+  const current = () => section.isConnected && $('organization').value === organization &&
+    selectedAgent?.id === agent.id && selectedAgent.version === agent.version;
+  const ensName = () => {
+    const name = value('agent-ens-name');
+    if (!name) throw new Error('Enter the agent ENS name above.');
+    return name;
+  };
+  const identity = '/v1/identity/agent-bindings';
+  let challenge = null;
+  let busy = false;
+  // Serialize operations for this panel so replies cannot displace a newer challenge or inspection.
+  const bind = (buttonId, outputId, work) => {
+    const button = field(buttonId);
+    button.onclick = async () => {
+      if (busy || button.disabled || !current()) return;
+      busy = button.disabled = true;
+      const output = field(outputId);
+      output.textContent = 'Working…';
+      try { await work(output); }
+      catch (error) { if (current()) output.textContent = error.message; }
+      finally {
+        busy = false;
+        button.disabled = buttonId === 'agent-binding-submit' && !challenge;
+      }
+    };
+  };
+  bind('agent-ens-inspect', 'agent-ens-result', async output => {
+    const observation = await api(`${agentsBase()}/${agent.id}/ens-observation?name=${encodeURIComponent(ensName())}`);
+    if (current()) output.innerHTML = renderEnsObservation(observation);
+  });
+  bind('agent-ens-permissions', 'agent-ens-permissions-result', async output => {
+    const permission = await api('/v1/identity/ens/endpoint-permissions', {
+      organization_id:organization, ens_chain_id:11155111,
+      first_name:ensName(), second_name:value('agent-ens-peer'), delegate:value('agent-ens-delegate'),
+    }, 'POST', 60000);
+    if (current()) output.innerHTML = renderEnsPermissions(permission);
+  });
+  bind('agent-binding-create', 'agent-binding-challenge', async output => {
+    const issued = await api(`${identity}/challenges`, {
+      organization_id:organization, agent_id:agent.id, expected_version:agent.version,
+      ens_chain_id:11155111, name:ensName(), arkiv_wallet:value('agent-binding-wallet'),
+    });
+    if (!current()) return;
+    challenge = issued;
+    field('agent-binding-signatures').value = '';
+    field('agent-binding-result').textContent = '';
+    field('agent-binding-id').value = challenge.id;
+    field('agent-binding-download').disabled = field('agent-binding-submit').disabled = false;
+    const expires = new Date(challenge.manifest.expiresAt * 1000).toLocaleTimeString();
+    output.textContent = `Challenge expires at ${expires}. Download the manifest and return signatures from the ENS controller, Arkiv wallet and provider.`;
+  });
+  field('agent-binding-download').onclick = () => {
+    if (current() && challenge) downloadAgentJson('orca-binding-manifest.json', challenge.manifest);
+  };
+  bind('agent-binding-submit', 'agent-binding-result', async output => {
+    const signatures = bindingSignatures(value('agent-binding-signatures'));
+    const evidence = await api(identity, {organization_id:organization, challenge_id:challenge.id, ...signatures}, 'POST', 60000);
+    if (!current()) return;
+    challenge = null;
+    field('agent-binding-download').disabled = true;
+    field('agent-binding-signatures').value = '';
+    field('agent-binding-challenge').textContent = 'Challenge consumed. The issuing operator can load its saved evidence.';
+    output.innerHTML = renderBindingEvidence(evidence);
+  });
+  bind('agent-binding-read', 'agent-binding-result', async output => {
+    const id = value('agent-binding-id');
+    if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) throw new Error('Enter a valid challenge ID.');
+    const evidence = await api(`${identity}/${encodeURIComponent(id)}?organization_id=${encodeURIComponent(organization)}`);
+    if (!current()) return;
+    if (evidence.agent_id !== agent.id) throw new Error('This challenge belongs to a different agent.');
+    output.innerHTML = renderBindingEvidence(evidence);
+  });
+}
 async function loadOwnedAgents() {
   const generation = state.generation;
   if (!state.token || !state.project) return;
@@ -177,12 +308,7 @@ function renderAgent() {
 }
 async function refreshAgentDetail() {
   const a = selectedAgent, generation = state.generation; if (!a) return;
-  if (!document.getElementById('agent-ens-inspect')) {
-    const section = document.createElement('section');
-    section.innerHTML = '<h3>ENSv2 identity · Sepolia</h3><p class="muted">Inspect an agent subname and compare its public records with this service. Lookup does not grant controller authority or research access.</p><label>Agent ENS name<input id="agent-ens-name" placeholder="analyst.orca-research-lab.eth" autocomplete="off"></label><button class="secondary" id="agent-ens-inspect">Inspect ENS records</button><div id="agent-ens-result" role="status"></div>';
-    $('agent-detail').append(section);
-    $('agent-ens-inspect').onclick=e=>action(e.currentTarget,async()=>{const target=a.id;const observation=await api(`${agentsBase()}/${target}/ens-observation?name=${encodeURIComponent($('agent-ens-name').value.trim())}`);if(generation!==state.generation||selectedAgent?.id!==target)return;$('agent-ens-result').innerHTML=renderEnsObservation(observation);});
-  }
+  if (!$('agent-ens-inspect')) mountAgentIdentity(a);
   const events = await api(`${agentsBase()}/${a.id}/events`);
   if (generation !== state.generation || selectedAgent?.id !== a.id) return;
   $('agent-events').innerHTML = detail('Registration activity',events);
@@ -199,7 +325,7 @@ async function pollQualification(agent,job,generation) {
 }
 async function agentAction(actionName) {
   const a = selectedAgent; if (!a) return; const path = `${agentsBase()}/${a.id}`; const version = {expected_version:a.version};
-  if (actionName === 'download') { const challenge = await api(`${path}/verification-challenges`); const url=URL.createObjectURL(new Blob([pretty(challenge.payload)],{type:'application/json'})); const link=document.createElement('a'); link.href=url; link.download='orca-agent-challenge.json'; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); return; }
+  if (actionName === 'download') { const challenge = await api(`${path}/verification-challenges`); downloadAgentJson('orca-agent-challenge.json', challenge.payload); return; }
   if (actionName === 'proof') { const file=$('agent-proof-file').files[0]; if (!file || file.size>8192) throw new Error('Choose the small signed proof JSON file.'); const proof=JSON.parse(await file.text()); await api(`${path}/verification-proofs`,{...version,challenge_id:proof.challenge_id,signature:proof.signature}); }
   else if (actionName === 'challenge') await api(`${path}/verification-challenges`,version);
   else if (actionName === 'qualify') { const job=await api(`${path}/qualifications`,version); $('agent-job').textContent=`Qualification ${job.state}`; clearTimeout(qualificationTimer); qualificationTimer=setTimeout(()=>pollQualification(a.id,job.id,state.generation),3000); return; }

@@ -23,6 +23,12 @@ not a transaction receipt or proof of a live state change. Capture readback afte
 grant, update and revocation on later finalized blocks. Retain the receipt hashes
 and the denied cross-resolver and post-revocation checks for G10 acceptance.
 
+In the workspace, go to Agent onboarding, select an owned service, and
+open Resolver permissions under ENSv2 identity. Enter the selected agent's
+ENS name, a second agent name and the delegate address, then select Check
+permissions. The panel shows the endpoint text role and resolver-wide text
+role for each name alongside the finalized block and full observation.
+
 The identity binding signature verifier in arkiv/src/identity-binding.mjs
 requires an independently expected manifest. It checks distinct Sepolia and
 Rabdi EIP-712 signatures and an Ed25519 service signature. It returns signature
@@ -31,6 +37,18 @@ POST /v1/identity/agent-bindings/challenges. Supply organization_id, agent_id,
 expected_version, name, ens_chain_id and arkiv_wallet. The current active
 registration must match the finalized endpoint, card digest and service key
 records. The wallet must match the finalized Arkiv wallet text record.
+
+The ENS, Arkiv and service signatures panel issues the same challenge and
+downloads its public manifest. To generate the signing payloads in PowerShell:
+
+    Get-Content -Raw <path-to-orca-binding-manifest.json> | node arkiv/src/identity-binding.mjs prepare
+
+Use the ENS and Arkiv typed data with their respective wallets. Sign the
+UTF-8 service_statement on the provider host with the service's registered
+Ed25519 key. Return the signatures as a JSON object with controller and
+wallet as 0x-prefixed hex, and service as unpadded base64url. Paste only
+that object in Public signatures JSON and choose Verify signatures. Save
+the challenge ID to look up the receipt later as its issuing operator.
 
 Have the controller and wallet sign the manifest with bindingTypedData and the
 service sign serviceBindingStatement. Submit organization_id, challenge_id,

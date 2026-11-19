@@ -1,6 +1,6 @@
 /* Purpose: exercise dashboard account continuity through real UI handlers and isolated HTTP responses.
 Behavior: test tabs, reload restoration, refresh races and sign-out without real credentials or services.
-Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: dashboard session repair. */
+Refs: main_implementation plan.md P10.4; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md. */
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -20,14 +20,23 @@ class Element {
   constructor(id) {
     this.id = id; this.value = ''; this.textContent = ''; this.hidden = false; this.disabled = false;
     this.children = []; this.dataset = {}; this._html = '';
+    this.isConnected = true;
     this.classList = {add(){},remove(){},toggle(){}};
   }
   set innerHTML(value) {
+    for (const child of this.children) child.isConnected = false;
+    this.children = [];
     this._html = value;
     const options = this.options;
     if (options.length) this.value = options[0].value;
   }
   get innerHTML() { return this._html; }
+  append(child) { this.children.push(child); }
+  querySelector(query) {
+    this.fields ??= new Map([...this._html.matchAll(/\bid="([^"]+)"([^>]*)>/g)]
+      .map(match => [match[1], Object.assign(new Element(match[1]), {disabled:/\bdisabled\b/.test(match[2])})]));
+    return this.fields.get(query.slice(1));
+  }
   get options() { return [...this._html.matchAll(/<option(?: value="([^"]*)")?[^>]*>([^<]*)<\/option>/g)].map(x=>({value:x[1] ?? x[2],textContent:x[2]})); }
   get selectedOptions() { return this.options.filter(x=>x.value === this.value); }
   setAttribute(key, value) { this[key] = value; }
@@ -43,7 +52,7 @@ async function boot({storage = new Map(), override} = {}) {
   const panels = names.map(name=>Object.assign(elements.get(`view-${name}`),{dataset:{viewPanel:name}}));
   const calls = [];
   const context = {
-    document:{getElementById:id=>elements.get(id),querySelectorAll:query=>query === '[data-view]' ? tabs : query === '[data-view-panel]' ? panels : []},
+    document:{createElement:tag=>new Element(tag),getElementById:id=>elements.get(id),querySelectorAll:query=>query === '[data-view]' ? tabs : query === '[data-view-panel]' ? panels : []},
     sessionStorage:{getItem:key=>storage.get(key) ?? null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
     location:{hash:''}, history:{replaceState(_state,_title,value){context.location.hash=value;}},
     window:{addEventListener(){}}, crypto:{randomUUID}, AbortSignal,
@@ -63,7 +72,7 @@ async function boot({storage = new Map(), override} = {}) {
       throw new Error(`Unhandled isolated request: ${url}`);
     },
   };
-  const api = await vm.runInNewContext(`(async()=>{${script}\nreturn {state,selectView,authRequest,token,api,clearSession,loadProjects,loadProject,loadNetwork,renderEnsObservation};})()`,context);
+  const api = await vm.runInNewContext(`(async()=>{${script}\nreturn {state,selectView,authRequest,token,api,clearSession,loadProjects,loadProject,loadNetwork,renderEnsObservation, mountIdentity(agent) { selectedAgent = agent; renderAgent(); mountAgentIdentity(agent); }};})()`,context);
   return {...api,elements,tabs,panels,calls,storage};
 }
 
@@ -186,4 +195,85 @@ test('malformed storage and sessions for another auth issuer are discarded', asy
     assert.equal(page.storage.has(sessionKey),false);
     assert.equal(page.calls.some(c=>c.url === '/v1/me'),false);
   }
+});
+
+test('identity panel reads permission roles and submits only signatures for its issued challenge', async () => {
+  const agent = {id:'agent-one', state:'active', version:2, registration:{name:'Ocean'}};
+  const challengeId = randomUUID();
+  const evidence = {agent_id:agent.id, observed_block:123, status:'SIGNATURES_VALID'};
+  const delegate = '0x' + '1'.repeat(40);
+  const page = await boot({override:url => {
+    if (url.endsWith('/endpoint-permissions')) return response({
+      status:'DISTINCT_RESOLVERS', delegate, observed_block:123,
+      names:[{name:'analyst.example.eth',resolver:delegate,endpoint_text_role:true},
+        {name:'<img>',resolver:delegate,endpoint_text_role:false}],
+    });
+    if (url.endsWith('/agent-bindings/challenges')) return response({
+      id:challengeId, manifest:{expiresAt:Math.floor(Date.now()/1000)+300},
+    }, 201);
+    if (url.endsWith('/agent-bindings') || url.includes(`/agent-bindings/${challengeId}`)) return response(evidence);
+  }});
+  await login(page);
+  page.mountIdentity(agent);
+  const panel = page.elements.get('agent-detail').children[0];
+  const field = id => panel.querySelector(`#agent-${id}`);
+  field('ens-name').value = 'analyst.example.eth';
+  field('ens-peer').value = 'reviewer.example.eth';
+  field('ens-delegate').value = delegate;
+  await field('ens-permissions').onclick();
+  assert.deepEqual(JSON.parse(page.calls.at(-1).options.body), {
+    organization_id:'org-one', ens_chain_id:11155111,
+    first_name:'analyst.example.eth', second_name:'reviewer.example.eth', delegate,
+  });
+  assert.match(field('ens-permissions-result').innerHTML, /Endpoint text role: present/);
+  assert.match(field('ens-permissions-result').innerHTML, /&lt;img&gt;/);
+  assert.doesNotMatch(field('ens-permissions-result').innerHTML, /<img>/);
+
+  field('binding-wallet').value = delegate;
+  await field('binding-create').onclick();
+  assert.deepEqual(JSON.parse(page.calls.at(-1).options.body), {
+    organization_id:'org-one', agent_id:agent.id, expected_version:2, ens_chain_id:11155111,
+    name:'analyst.example.eth', arkiv_wallet:delegate,
+  });
+  assert.equal(field('binding-id').value, challengeId);
+  const signatures = {controller:'0x'+'a'.repeat(130), wallet:'0x'+'b'.repeat(130), service:'c'.repeat(86)};
+  field('binding-signatures').value = JSON.stringify({...signatures, private_key:'invalid'});
+  await field('binding-submit').onclick();
+  assert.match(field('binding-result').textContent, /Expected controller and wallet signatures/);
+  assert.match(page.calls.at(-1).url, /\/challenges$/);
+  field('binding-signatures').value = JSON.stringify(signatures);
+  await field('binding-submit').onclick();
+  assert.deepEqual(JSON.parse(page.calls.at(-1).options.body), {
+    organization_id:'org-one', challenge_id:challengeId, ...signatures,
+  });
+  assert.equal(field('binding-submit').disabled, true);
+  assert.equal(field('binding-signatures').value, '');
+  await field('binding-read').onclick();
+  assert.equal(page.calls.at(-1).url, `/v1/identity/agent-bindings/${challengeId}?organization_id=org-one`);
+  assert.match(field('binding-result').innerHTML, /Binding signatures verified.*Research dispatch disabled/);
+});
+
+test('switching agents during a permission check ignores the detached response', async () => {
+  let released, started;
+  const ready = new Promise(resolve => started = resolve);
+  const page = await boot({override:url => {
+    if (url.endsWith('/endpoint-permissions')) {
+      started();
+      return new Promise(resolve => released = resolve);
+    }
+  }});
+  await login(page);
+  page.mountIdentity({id:'first', state:'active', version:1, registration:{name:'First'}});
+  const container = page.elements.get('agent-detail');
+  const panel = container.children[0];
+  panel.querySelector('#agent-ens-name').value = 'analyst.example.eth';
+  const pending = panel.querySelector('#agent-ens-permissions').onclick();
+  await ready;
+  page.mountIdentity({id:'second', state:'draft', version:1, registration:{name:'Second'}});
+  released(response({names:[], observed_block:123}));
+  await pending;
+  const nextPanel = container.children[0];
+  assert.equal(nextPanel.querySelector('#agent-ens-permissions-result').innerHTML, '');
+  assert.equal(nextPanel.querySelector('#agent-binding-create').disabled, true);
+  assert.equal(panel.querySelector('#agent-ens-permissions-result').innerHTML, '');
 });

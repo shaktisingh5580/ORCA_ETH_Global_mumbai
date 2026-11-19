@@ -8,20 +8,22 @@
     "P10.1/P10.4 the pinned ENS reader and authorized identity API compare two agent names at one finalized block and report whether they share a resolver. The comparison exposes addresses and block evidence without copying text records or asserting delegation authority.",
     "P10.2/P10.4 finalized endpoint permission reads report key-specific and root text roles on both resolvers. Operator CLI prepares unsigned and simulated endpoint-only grant, record update and revocation requests.",
     "P10.3 cross-chain signature verifier binds the expected challenge to separate Sepolia controller and Rabdi wallet EIP-712 domains and an Ed25519 service signature. Signature evidence alone does not enable authority or dispatch.",
-    "P10.3 the authenticated binding API issues five-minute, tenant- and operator-bound challenges from the active agent registration and matching finalized ENS records. It rechecks the agent version, resolver, owner and records before atomically consuming the nonce. The issuing operator can read the stored digests and final observation block."
+    "P10.3 the authenticated binding API issues five-minute, tenant- and operator-bound challenges from the active agent registration and matching finalized ENS records. It rechecks the agent version, resolver, owner and records before atomically consuming the nonce. The issuing operator can read the stored digests and final observation block. The prepare CLI exports the public wallet payloads and service signing statement.",
+    "P10.4 the agent onboarding panel exposes finalized role comparisons, challenge creation, public manifest download, three-signature verification and saved evidence lookup through the authenticated organization APIs. Inactive-name conflicts are distinct from retryable provider failures."
   ],
   "verified": [
     "Live finalized Sepolia inspection of analyst.orca-research-lab.eth observed an active name controlled by 0x16D94BCDD5eF1F40de5C83B40dd33E92175166E8 at block 12156525; all five ORCA text records are empty, so authority and research dispatch remain unverified. Public readback: docs/gates/P10/live-name-inspection.json. No live registration, delegation, revocation or wallet-binding acceptance is claimed.",
     "Live Sepolia deployment preflight passed at finalized block 12166281 using the existing pinned deployment revision. Evidence is in live-deployment-preflight.json.",
     "34 local Node tests passed, including scope and unsigned transaction checks, post-revocation refresh, wrong-domain and wrong-nonce rejection, expiry, and substituted signers. Six Python tests verify current permission reads and API scope.",
     "Live permission comparison returned ENS_NAME_INACTIVE, and individual follow-ups were unavailable. See live-permission-attempt.json. There was no finalized pair evidence and no write was submitted.",
-    "Seven focused Python tests passed after applying migration 0043 to disposable PostgreSQL, including an HTTP exchange using actual EIP-712 and Ed25519 signatures, rejection of another operator, signature substitution, changed finalized controller and replay. A follow-up integration test verified saved evidence access. A fresh live pair comparison still returned ENS_NAME_INACTIVE."
+    "Seven focused Python tests passed after applying migration 0043 to disposable PostgreSQL, including an HTTP exchange using actual EIP-712 and Ed25519 signatures, rejection of another operator, signature substitution, changed finalized controller and replay. A follow-up integration test verified saved evidence access. A fresh live pair comparison still returned ENS_NAME_INACTIVE.",
+    "35 ENS and binding Node tests, 11 dashboard session and identity interaction tests, and 16 Python dashboard, ENS reader and API contract checks passed. The live signed-in portal has not been verified. A subsequent live attempt to compare analyst.orca-research-lab.eth and reviewer.orca-research-lab.eth returned ENS_READ_UNAVAILABLE_OR_UNSUPPORTED. No finalized resolver pair or transaction was observed."
   ],
   "remaining": [
     "P10.1 dedicated protocol adapter and live readback for two agent names using distinct resolvers",
     "P10.2 wallet-signed grant, scoped write, denied cross-resolver write and revocation with finalized Sepolia receipt and readback evidence",
     "P10.3 institutional trust policy, ERC-1271, and live rotation/revocation checks before granting any active binding authority",
-    "P10.4 portal integration for permission snapshots and live revocation tests",
+    "P10.4 live signed-in portal verification with finalized name, permission and revocation evidence, and the outstanding named acceptance checks",
     "G09 prerequisite acceptance and all G10 live chain evidence"
   ],
   "oracle_deployment": "deferred_by_user"
