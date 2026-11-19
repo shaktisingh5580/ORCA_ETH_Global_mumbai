@@ -1,0 +1,38 @@
+{
+  "phase": "P11",
+  "status": "development_in_progress",
+  "acceptance": "not_passed",
+  "prerequisite": {
+    "gate": "G10",
+    "status": "not_passed",
+    "development": "Authorized to continue while acceptance is pending"
+  },
+  "implemented": {
+    "P11.1": [
+      "Six separate named public schemas from API design section 4.7, with exact attribute sets, explicit indexes, a coarse ocean-basin allowlist and bounded readonly publication options.",
+      "Independent read-only Rabdi adapter using pinned @arkiv-network/sdk 1.0.1, expected creator and current owner, creation flags and expiration.",
+      "Bounded task-index lookup filtered by schema, task and wallet. Reports query block, observed head, lag and truncation."
+    ]
+  },
+  "live_read_only": {
+    "chain_id": 7794095,
+    "preflight_observed_block": "843659",
+    "task_query": {
+      "schema": "orca.task.v1",
+      "task_id": "84410849-a102-4269-b52f-d7d3333ec626",
+      "expected_wallet": "0x8cBFE2bD01C7FDfc500e62A1cF99A01B6A11bCBe",
+      "index_block": "847407",
+      "observed_block": "847408",
+      "index_lag_blocks": "1",
+      "records": 0
+    },
+    "note": "The query checks a historical H04 task ID against the new P11 schema. The result establishes RPC compatibility with the query. No P11 transaction was sent and no P11 record was read back."
+  },
+  "remaining": {
+    "P11.1": "Verify live P11 schema writes and current readback with authorized, separately controlled test wallets.",
+    "P11.2": "Integrate the new schema with durable task and claim intents, wallet isolation, exclusive local assignment and reconciliation.",
+    "P11.3": "Connect approved artifact and review publications, pagination and live dashboard timeline.",
+    "P11.4": "Cross-check independent verifier against live records and capture expiry, outage, nonce and ambiguous-submission recovery."
+  },
+  "oracle_deployment": "deferred_by_user"
+}
