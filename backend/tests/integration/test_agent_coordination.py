@@ -1,6 +1,6 @@
 """Purpose: exercise durable agent coordination over official A2A in separate real processes.
 Behavior: use only synthetic local-test captures/DB, verify claims, exclusive assignment and review.
-Refs: H04 gate and canonical protocol rules; Phase: H04; no cloud/chain writes in this test.
+Refs: H04 gate, main_implementation plan.md P11.2 and api design.md §5.2. Phase: H04 and P11 regression.
 """
 
 import json
@@ -29,10 +29,12 @@ from orca.network_worker import process
 
 
 @pytest.fixture
-def network_http(tmp_path):
+def network_http(tmp_path, request):
     admin, runtime_url, tenant, _, project, foreign = prepare_database()
     subject = str(uuid4())
-    runtime, configfile, secrets = configuration(tmp_path)
+    runtime, configfile, secrets = configuration(
+        tmp_path, two_claimants=getattr(request, "param", False)
+    )
     source, result = source_recipe(tmp_path)
     investigation, run = uuid4(), uuid4()
     with psycopg.connect(admin) as db:
@@ -349,27 +351,41 @@ def test_real_a2a_reproduction_then_separately_keyed_review_with_durable_artifac
 
 @pytest.mark.live
 @pytest.mark.enable_socket
-def test_two_assignment_requests_choose_one_winner_and_revocation_blocks_dispatch(network_http):
+@pytest.mark.parametrize("network_http", [True], indirect=True)
+def test_two_claimants_one_explicit_assignment(network_http):
     client, tenant, project, _, run, _ = network_http
     task, claim = begin_claimed(client, tenant, project, run)
+    other = client.app.state.network_runtime.configuration.agents[1]
+    execute(
+        client,
+        tenant,
+        post(client, f"/v1/network/tasks/{task}/claims", {"provider_id": str(other.id)}, project),
+    )
+    details = client.get(f"/v1/network/tasks/{task}", params={"project_id": str(project)}).json()
+    competing_claims = {item["provider_id"]: item["id"] for item in details["claims"]}
+    assert len(competing_claims) == 2
+    assert competing_claims[str(other.id)] != claim
     with ThreadPoolExecutor(max_workers=2) as pool:
         futures = [
             pool.submit(
                 post,
                 client,
                 f"/v1/network/tasks/{task}/assignments",
-                {"claim_id": claim, "expected_generation": 0},
+                {"claim_id": candidate, "expected_generation": 0},
                 project,
             )
-            for _ in range(2)
+            for candidate in competing_claims.values()
         ]
         replies = [future.result() for future in futures]
     assert sorted(response.status_code for response in replies) == [202, 409]
     selected = next(response for response in replies if response.status_code == 202)
+    detail = client.get(f"/v1/network/tasks/{task}", params={"project_id": str(project)}).json()
+    assert len(detail["assignments"]) == 1
+    winner = detail["assignments"][0]["provider_id"]
     with TenantUnitOfWork(client.app.state.runtime_engine, tenant) as session:
         session.execute(
             text("UPDATE federation.agents SET revoked=true WHERE tenant_id=:t AND id=:id"),
-            {"t": tenant, "id": client.app.state.network_runtime.configuration.agents[0].id},
+            {"t": tenant, "id": uuid_from(winner)},
         )
     assert process(
         client.app.state.runtime_engine,

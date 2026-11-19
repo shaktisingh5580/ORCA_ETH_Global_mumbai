@@ -57,13 +57,16 @@ def unused_port():
         return stream.getsockname()[1]
 
 
-def configuration(folder):
+def configuration(folder, *, two_claimants=False):
     coordinator, secret = identity("test-coordinator", "sst_reproduction", 8000, "0x" + "11" * 20)
     ocean, ocean_secret = identity(
         "test-ocean", "sst_reproduction", unused_port(), "0x" + "22" * 20
     )
     reviewer, reviewer_secret = identity(
-        "test-reviewer", "sst_review", unused_port(), "0x" + "33" * 20
+        "test-reviewer",
+        "sst_reproduction" if two_claimants else "sst_review",
+        unused_port(),
+        "0x" + "33" * 20,
     )
     config = NetworkConfiguration(coordinator=coordinator, agents=(ocean, reviewer))
     configfile = folder / "bindings.json"

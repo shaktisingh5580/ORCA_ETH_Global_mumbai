@@ -12,8 +12,17 @@
       "Six separate named public schemas from API design section 4.7, with exact attribute sets, explicit indexes, a coarse ocean-basin allowlist and bounded readonly publication options.",
       "Independent read-only Rabdi adapter using pinned @arkiv-network/sdk 1.0.1, expected creator and current owner, creation flags and expiration.",
       "Bounded task-index lookup filtered by schema, task and wallet. Reports query block, observed head, lag and truncation."
+    ],
+    "P11.2": [
+      "Operator adapter publishes task and claim intents with exact public attributes and independently pinned requester and claimant wallets. Claims require a current matching task record.",
+      "Each wallet serializes its writes in a durable operator-owned directory. A reservation binds the task or claim intent to a predicted entity key before broadcast. Replays read the reserved key and compare attributes. An ambiguous send or inconsistent key keeps the writer fenced for operator review.",
+      "The existing ORCA assignment service was exercised with two separately keyed A2A providers. Each had a distinct claim on the same task, and concurrent assignment attempts produced one winner."
     ]
   },
+  "local_checks": [
+    "Five focused P11.2 Node tests passed for separate writers, duplicate claims, uncertain sends, read-only recovery, and a mismatched returned key.",
+    "Two PostgreSQL integration cases passed using loopback PostGIS and local provider processes, covering competing claims and the existing worker hold after an ambiguous chain submission."
+  ],
   "live_read_only": {
     "chain_id": 7794095,
     "preflight_observed_block": "843659",
@@ -30,7 +39,7 @@
   },
   "remaining": {
     "P11.1": "Verify live P11 schema writes and current readback with authorized, separately controlled test wallets.",
-    "P11.2": "Integrate the new schema with durable task and claim intents, wallet isolation, exclusive local assignment and reconciliation.",
+    "P11.2": "Connect the new writer to the authenticated task and claim workflow, bind claims to the reviewed institutional trust policy, publish the selected assignment reference, and verify live multi-wallet receipts and readback. The current operator adapter and historical backend workflow are both available for their respective scopes.",
     "P11.3": "Connect approved artifact and review publications, pagination and live dashboard timeline.",
     "P11.4": "Cross-check independent verifier against live records and capture expiry, outage, nonce and ambiguous-submission recovery."
   },
