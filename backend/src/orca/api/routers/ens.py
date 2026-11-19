@@ -10,23 +10,31 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
 
 from orca.api.dependencies import CurrentPrincipal
+from orca.api.routers.agents import service as onboarding_service
 from orca.api.routers.projects import engine, resolve_tenant
+from orca.application.identity_bindings import IdentityBindings
 from orca.contracts.ens import (
     CompareENSResolversRequest,
+    CreateIdentityBinding,
     ENSPermissionRequest,
     ENSPermissionSnapshot,
     ENSResolutionSnapshot,
     ENSResolverBoundary,
+    IdentityBindingChallenge,
+    IdentityBindingEvidence,
     ResolveENSRequest,
+    SubmitIdentityBinding,
 )
 from orca.domain.identity import Principal
 from orca.infrastructure.federation.ens_observation import (
     inspect_endpoint_permissions,
     inspect_name,
     inspect_resolver_boundary,
+    verify_binding_signatures,
 )
 
 router = APIRouter(prefix="/v1/identity/ens", tags=["ENS identity"])
+binding_router = APIRouter(prefix="/v1/identity/agent-bindings", tags=["ENS identity"])
 _RECORD_KEYS = frozenset(
     {
         "org.orca.endpoint",
@@ -146,3 +154,67 @@ def observe_ens_endpoint_permissions(
         )
     except ValidationError as error:
         raise HTTPException(503, "Permission observation returned invalid evidence") from error
+
+
+def _binding_observation(name: str) -> dict[str, Any]:
+    try:
+        return inspect_name(name)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(
+            503, "Finalized ENS binding observation unavailable", headers={"Retry-After": "15"}
+        ) from error
+
+
+@binding_router.post("/challenges", response_model=IdentityBindingChallenge, status_code=201)
+def create_binding_challenge(
+    body: CreateIdentityBinding,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> IdentityBindingChallenge:
+    _authorize(request, principal, body.organization_id)
+    with onboarding_service(request, body.organization_id, principal) as onboarding:
+        onboarding.expected(body.agent_id, body.expected_version)
+    observation = _binding_observation(body.name)
+    with onboarding_service(request, body.organization_id, principal) as onboarding:
+        return IdentityBindings(onboarding).create(body, observation)
+
+
+@binding_router.post("", response_model=IdentityBindingEvidence, status_code=201)
+def submit_binding_challenge(
+    body: SubmitIdentityBinding,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> IdentityBindingEvidence:
+    _authorize(request, principal, body.organization_id)
+    with onboarding_service(request, body.organization_id, principal) as onboarding:
+        manifest = IdentityBindings(onboarding).pending(body.challenge_id)["manifest"]
+    try:
+        evidence = verify_binding_signatures(
+            manifest,
+            {
+                "controller": body.controller,
+                "wallet": body.wallet,
+                "service": body.service,
+            },
+        )
+    except PermissionError as error:
+        raise HTTPException(403, "Identity binding signatures rejected") from error
+    except RuntimeError as error:
+        raise HTTPException(503, "Identity binding verifier unavailable") from error
+    observation = _binding_observation(manifest["ensName"])
+    with onboarding_service(request, body.organization_id, principal) as onboarding:
+        return IdentityBindings(onboarding).consume(body.challenge_id, observation, evidence)
+
+
+@binding_router.get("/{challenge_id}", response_model=IdentityBindingEvidence)
+def get_binding_evidence(
+    challenge_id: UUID,
+    organization_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> IdentityBindingEvidence:
+    _authorize(request, principal, organization_id)
+    with onboarding_service(request, organization_id, principal) as onboarding:
+        return IdentityBindings(onboarding).evidence(challenge_id)

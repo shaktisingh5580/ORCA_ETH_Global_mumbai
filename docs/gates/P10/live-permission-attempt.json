@@ -3,6 +3,7 @@
   "requested_names": ["analyst.orca-research-lab.eth", "reviewer.orca-research-lab.eth"],
   "status": "INCOMPLETE",
   "pair_observation": "ENS_NAME_INACTIVE",
+  "read_only_comparison_recheck": "ENS_NAME_INACTIVE",
   "separate_name_rechecks": {
     "analyst.orca-research-lab.eth": "ENS_READ_UNAVAILABLE_OR_UNSUPPORTED",
     "reviewer.orca-research-lab.eth": "ENS_READ_UNAVAILABLE_OR_UNSUPPORTED"

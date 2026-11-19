@@ -3,6 +3,7 @@
  * Refs: main_implementation plan.md P10.3; api design.md §§4.6,10; Phase: P10.
  */
 import { createPublicKey, verify } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { getAddress, hashTypedData, recoverTypedDataAddress } from 'viem';
 import { checkedName } from './ens.mjs';
 
@@ -104,4 +105,21 @@ export async function verifyBindingSignatures(manifest, expected, signatures, no
     status:'SIGNATURES_VALID',ens_digest:digest,arkiv_digest:hashTypedData(typed.arkiv),
     authority_verified:false,research_dispatch_enabled:false,
   };
+}
+
+if (process.argv[1]===fileURLToPath(import.meta.url)) {
+  try {
+    let bytes=0;
+    const chunks=[];
+    for await (const chunk of process.stdin) {
+      bytes+=chunk.length;
+      if (bytes>20000) throw new Error('Binding input exceeds limit');
+      chunks.push(chunk);
+    }
+    const {expected,signatures}=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    console.log(JSON.stringify(await verifyBindingSignatures(expected,expected,signatures)));
+  } catch {
+    console.log(JSON.stringify({status:'SIGNATURES_REJECTED',authority_verified:false}));
+    process.exitCode=1;
+  }
 }

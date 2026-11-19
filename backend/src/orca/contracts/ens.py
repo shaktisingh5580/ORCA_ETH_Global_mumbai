@@ -3,7 +3,7 @@ Behavior: distinguish finalized name state from authorization and institutional 
 Refs: main_implementation plan.md P10.4; api design.md §3.11; Phase: P10.
 """
 
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 from uuid import UUID
 
 from pydantic import Field, model_validator
@@ -90,3 +90,35 @@ class ENSPermissionSnapshot(ENSResolverBoundary):
     delegate: Address
     key: Literal["org.orca.endpoint"]
     resource: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
+
+
+class CreateIdentityBinding(ResolveENSRequest):
+    agent_id: UUID
+    expected_version: int = Field(ge=1)
+    arkiv_wallet: Address
+
+
+class IdentityBindingChallenge(Contract):
+    id: UUID
+    manifest: dict[str, Any]
+
+
+class SubmitIdentityBinding(Contract):
+    organization_id: UUID
+    challenge_id: UUID
+    controller: str = Field(pattern=r"^0x[0-9a-fA-F]{130}$")
+    wallet: str = Field(pattern=r"^0x[0-9a-fA-F]{130}$")
+    service: str = Field(pattern=r"^[A-Za-z0-9_-]{86}$")
+
+
+class IdentityBindingEvidence(Contract):
+    challenge_id: UUID
+    agent_id: UUID
+    status: Literal["SIGNATURES_VALID"] = "SIGNATURES_VALID"
+    ens_digest: str = Field(pattern=r"^0x[0-9a-f]{64}$")
+    arkiv_digest: str = Field(pattern=r"^0x[0-9a-f]{64}$")
+    observed_block: int = Field(ge=1)
+    block_hash: str = Field(pattern=r"^0x[0-9a-f]{64}$")
+    authority_verified: Literal[False] = False
+    institutional_affiliation_verified: Literal[False] = False
+    research_dispatch_enabled: Literal[False] = False

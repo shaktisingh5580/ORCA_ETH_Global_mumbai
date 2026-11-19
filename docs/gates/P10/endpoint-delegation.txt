@@ -26,6 +26,19 @@ and the denied cross-resolver and post-revocation checks for G10 acceptance.
 The identity binding signature verifier in arkiv/src/identity-binding.mjs
 requires an independently expected manifest. It checks distinct Sepolia and
 Rabdi EIP-712 signatures and an Ed25519 service signature. It returns signature
-evidence only. Durable challenge issuance and consumption, live ERC-1271
-verification, institutional credential validation and revocation enforcement
-remain separate acceptance work.
+evidence only. The API issues the expected manifest through
+POST /v1/identity/agent-bindings/challenges. Supply organization_id, agent_id,
+expected_version, name, ens_chain_id and arkiv_wallet. The current active
+registration must match the finalized endpoint, card digest and service key
+records. The wallet must match the finalized Arkiv wallet text record.
+
+Have the controller and wallet sign the manifest with bindingTypedData and the
+service sign serviceBindingStatement. Submit organization_id, challenge_id,
+controller, wallet and service to POST /v1/identity/agent-bindings. The server
+checks the signatures, re-reads finalized ENS state and consumes the challenge
+once. GET /v1/identity/agent-bindings/<challenge-id>?organization_id=<org-id>
+returns saved evidence to the issuing operator. This workflow uses migration
+0043 and starts with the identity:read scope. It does not authorize dispatch.
+
+Live ERC-1271 verification, the institutional credential policy and activation
+and revocation of binding authority remain separate acceptance work.

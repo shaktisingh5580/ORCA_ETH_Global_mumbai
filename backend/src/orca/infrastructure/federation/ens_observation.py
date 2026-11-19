@@ -22,7 +22,9 @@ def _validate_agent_name(name: str) -> None:
         raise ValueError("Enter an agent subname such as analyst.orca-research-lab.eth")
 
 
-def _run_verifier(*args: str, timeout: int = 35) -> dict[str, Any]:
+def _run_verifier(
+    *args: str, timeout: int = 35, program: str = "ens.mjs", payload: str | None = None
+) -> dict[str, Any]:
     node = shutil.which("node")
     if not node:
         raise RuntimeError("ENS_VERIFIER_UNAVAILABLE")
@@ -31,7 +33,8 @@ def _run_verifier(*args: str, timeout: int = 35) -> dict[str, Any]:
     }
     try:
         result = subprocess.run(
-            [node, str(ROOT / "arkiv/src/ens.mjs"), *args],
+            [node, str(ROOT / "arkiv/src" / program), *args],
+            input=payload,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -44,7 +47,7 @@ def _run_verifier(*args: str, timeout: int = 35) -> dict[str, Any]:
             except ValueError:
                 failure = {}
             if (
-                args[0] == "inspect"
+                args[:1] == ("inspect",)
                 and isinstance(failure, dict)
                 and failure.get("code") == "ENS_NAME_INACTIVE"
             ):
@@ -56,6 +59,12 @@ def _run_verifier(*args: str, timeout: int = 35) -> dict[str, Any]:
                     "message": "The name is not active at every ENSv2 hierarchy level on finalized Sepolia state. Complete the subname registration and wait for finality before retrying.",
                     "research_dispatch_enabled": False,
                 }
+            if (
+                program == "identity-binding.mjs"
+                and isinstance(failure, dict)
+                and failure.get("status") == "SIGNATURES_REJECTED"
+            ):
+                return {"status": "SIGNATURES_REJECTED", "authority_verified": False}
         if result.returncode or len(result.stdout) > 200_000:
             raise RuntimeError("ENS_READ_UNAVAILABLE_OR_UNSUPPORTED")
         value = json.loads(result.stdout)
@@ -105,3 +114,21 @@ def inspect_endpoint_permissions(first: str, second: str, delegate: str) -> dict
     ):
         raise RuntimeError("ENS_OBSERVATION_INVALID")
     return result
+
+
+def verify_binding_signatures(
+    manifest: dict[str, Any], signatures: dict[str, Any]
+) -> dict[str, Any]:
+    result = _run_verifier(
+        timeout=15,
+        program="identity-binding.mjs",
+        payload=json.dumps({"expected": manifest, "signatures": signatures}),
+    )
+    if result.get("status") == "SIGNATURES_REJECTED":
+        raise PermissionError("Identity binding signatures were rejected")
+    if result.get("status") != "SIGNATURES_VALID" or not all(
+        isinstance(result.get(field), str) and re.fullmatch(r"0x[0-9a-f]{64}", result[field])
+        for field in ("ens_digest", "arkiv_digest")
+    ):
+        raise RuntimeError("ENS_BINDING_VERIFIER_INVALID")
+    return {field: result[field] for field in ("ens_digest", "arkiv_digest")}
