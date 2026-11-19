@@ -1,6 +1,6 @@
 /* Purpose: connect ORCA's research, agent onboarding, review and provenance tabs to existing APIs.
 Behavior: restore same-tab sessions, share account state across views, escape untrusted data and require approvals.
-Refs: main_implementation plan.md P10.4; api design.md §3.11; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: P10 dashboard integration. */
+Refs: main_implementation plan.md P10.4 and P11.3; api design.md §§3.11,3.12. Phase: P10/P11 dashboard integration. */
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pretty = value => JSON.stringify(value, null, 2);
@@ -79,11 +79,16 @@ async function api(path, body, method = body === undefined ? 'GET' : 'POST', tim
 function base() { if (!state.project) throw new Error('Choose a project first.'); return `/v1/projects/${encodeURIComponent(state.project)}`; }
 function runBase() { if (!state.run) throw new Error('Choose an investigation first.'); return `${base()}/reasoning/${state.run.id}`; }
 async function action(button, work) { if (button.disabled) return; button.disabled = true; try { await work(); } catch(error) { notice(error.message); } finally { button.disabled = false; updateActions(); } }
+let arkivEvidenceCursor = null, arkivEvidenceRequest = 0;
 function updateActions() {
   renderAccountState();
   $('plan-button').disabled = !state.project || !state.selected.size || !state.config?.reasoning_configured;
   $('upload-open').disabled = !state.project;
   $('publish-button').disabled = state.run?.state !== 'completed' || !$('publish-consent').checked || !state.config?.arkiv_configured;
+  $('arkiv-task-load').disabled = !state.project || !state.token;
+  $('arkiv-evidence-refresh').disabled = !$('arkiv-task-select').value;
+  $('arkiv-evidence-next').disabled = !arkivEvidenceCursor;
+  $('arkiv-evidence-intent').disabled = !$('arkiv-task-select').value || !$('arkiv-evidence-consent').checked;
 }
 let ownedAgents = [], selectedAgent = null, qualificationTimer = null;
 function resetProject() {
@@ -92,7 +97,65 @@ function resetProject() {
   state.generation++; state.run = null; state.datasets = []; state.selected.clear(); state.reviews = []; state.anchors = []; lastEvents = ''; clearTimeout(state.timer);
   $('run-select').innerHTML = '<option value="">Choose an investigation</option>'; $('candidate-section').hidden = true; $('mapping-section').hidden = true;
   $('selected-count').textContent = 'No evidence selected'; $('event-count').textContent = '0 events';
+  $('arkiv-task-select').innerHTML = '<option value="">Choose a task</option>';
+  $('arkiv-task-select').disabled = true;
+  resetArkivEvidence();
   empty('dataset-list','Loading evidence…'); empty('run-content','Select evidence and propose a research plan.'); empty('timeline','Choose an investigation to follow its activity.'); empty('reviews','Complete an approved calculation to request a review.'); empty('anchors','No publication loaded.'); updateActions();
+}
+function resetArkivEvidence() {
+  arkivEvidenceRequest++;
+  arkivEvidenceCursor = null;
+  $('arkiv-evidence-consent').checked = false;
+  empty('arkiv-task-history', 'Choose a public agent task to inspect its history.');
+  empty('arkiv-live-evidence', 'No current chain lookup.');
+}
+function arkivTaskPath(suffix) {
+  const task = $('arkiv-task-select').value;
+  if (!state.project || !task) throw new Error('Choose a public agent task.');
+  return `/v1/network/tasks/${encodeURIComponent(task)}/${suffix}?project_id=${encodeURIComponent(state.project)}`;
+}
+async function loadArkivTasks() {
+  const project = state.project;
+  const generation = state.generation;
+  const tasks = await api(`/v1/network/tasks?project_id=${encodeURIComponent(project)}`);
+  if (state.generation !== generation) return;
+  const publicTasks = tasks.filter(task => task.publication_mode === 'public_reference');
+  $('arkiv-task-select').innerHTML = '<option value="">Choose a task</option>' + publicTasks.map(task =>
+    `<option value="${esc(task.id)}">${task.capability === 'sst_review' ? 'Review' : 'Reproduction'} · ${esc(task.state)} · ${esc(task.id)}</option>`).join('');
+  $('arkiv-task-select').disabled = !publicTasks.length;
+  resetArkivEvidence();
+  if (!publicTasks.length) empty('arkiv-task-history', 'This project has no public agent tasks.');
+}
+async function loadArkivEvidence(cursor = null) {
+  const request = ++arkivEvidenceRequest;
+  const evidencePath = arkivTaskPath('arkiv-evidence');
+  const timelinePath = arkivTaskPath('timeline');
+  const evidenceRead = api(evidencePath + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''));
+  arkivEvidenceCursor = null;
+  empty('arkiv-live-evidence', 'Looking up current Rabdi evidence…');
+  let historyRead;
+  if (!cursor) {
+    empty('arkiv-task-history', 'Loading signed task history…');
+    historyRead = api(timelinePath).then(({events}) => {
+      if (request !== arkivEvidenceRequest) return;
+      if (events.length) fill('arkiv-task-history', events.map(event =>
+        `<p><strong>${esc(event.kind)}</strong> · ${esc(event.created_at)}${event.receipt?.entity_key ? `<br><span class="hash">${esc(event.receipt.entity_key)}</span>` : ''}</p>`).join(''));
+      else empty('arkiv-task-history', 'No saved task events.');
+    }).catch(error => {
+      if (request === arkivEvidenceRequest) empty('arkiv-task-history', error.message);
+    });
+  }
+  try {
+    const result = await evidenceRead;
+    if (request !== arkivEvidenceRequest) return;
+    arkivEvidenceCursor = result.next_cursor;
+    const records = result.records.map(record =>
+      `<div class="review-card"><strong>${result.kind === 'review' ? 'Review reference' : 'Result reference'}</strong><p class="hash">${esc(record.entity_key)}</p><p>Owner ${esc(record.owner)} · Expires at block ${esc(record.expires_at_block)}</p>${detail('Public attributes', record.attributes)}</div>`).join('');
+    fill('arkiv-live-evidence', `<p>Rabdi index block ${esc(result.index_block)} · Observed block ${esc(result.observed_block)} · Lag ${esc(result.index_lag_blocks)} blocks</p><p class="hash">Expected digest ${esc(result.expected_digest)}</p>${records || '<p>No matching current record on this page.</p>'}`);
+  } catch (error) {
+    if (request === arkivEvidenceRequest) empty('arkiv-live-evidence', error.status === 404 ? 'No accepted Arkiv v1 evidence is available for this task.' : error.message);
+  }
+  await historyRead;
 }
 async function loadOrganizations() {
   const user = await api('/v1/me');
@@ -466,6 +529,19 @@ function bind() {
   $('submit-review').onclick=e=>action(e.currentTarget,async()=>{const means={};for(const input of document.querySelectorAll('[data-mean]')){if(input.value===''||!Number.isFinite(Number(input.value)))throw new Error('Every candidate mean must be a finite number.');means[input.dataset.mean]=Number(input.value);}await api(`${runBase()}/reviews`,{label:$('candidate-label').value,source_mode:$('candidate-mode').value,plan_digest:state.run.plan_digest,means_celsius:means,evidence_digests:Object.fromEntries(state.run.result.artifacts.map(a=>[a.dataset_id,a.artifact_digest]))});notice('Candidate submitted for an evidence-based review.');await refreshRun();});
   $('reviews').onclick=e=>{const b=e.target.closest('[data-correct]');if(!b)return;action(b,async()=>{const r=state.reviews.find(r=>r.id===b.dataset.correct);await api(`${runBase()}/reviews/${r.id}/correct`,{approve:true,candidate_digest:r.candidate_digest});notice('Correction approved as a new candidate. Original evidence remains unchanged.');await refreshRun();});};
   $('publish-consent').onchange=updateActions;
+  $('arkiv-task-load').onclick=()=>action($('arkiv-task-load'),loadArkivTasks);
+  $('arkiv-task-select').onchange=()=>{resetArkivEvidence();updateActions();};
+  $('arkiv-evidence-refresh').onclick=()=>action($('arkiv-evidence-refresh'),()=>loadArkivEvidence());
+  $('arkiv-evidence-next').onclick=()=>action($('arkiv-evidence-next'),()=>loadArkivEvidence(arkivEvidenceCursor));
+  $('arkiv-evidence-consent').onchange=updateActions;
+  $('arkiv-evidence-intent').onclick=()=>action($('arkiv-evidence-intent'),async()=>{
+    const request = arkivEvidenceRequest;
+    const intent = await api(arkivTaskPath('arkiv-evidence/intent'),{approve_public_reference:true});
+    if (request !== arkivEvidenceRequest) return;
+    downloadAgentJson('orca-arkiv-evidence-intent.json', intent);
+    $('arkiv-evidence-consent').checked = false;
+    notice('Send the public intent to the provider that owns the wallet listed in it.');
+  });
   $('publish-button').onclick=e=>action(e.currentTarget,async()=>{await api(`${runBase()}/anchors`,{approve_public_reference:true});$('publish-consent').checked=false;notice('Publication queued. A receipt will appear only after a verified Arkiv read-back.');await refreshRun();});
   $('anchors').onclick=e=>{const b=e.target.closest('[data-verify]');if(!b)return;action(b,async()=>{const result=await api(`${runBase()}/anchors/${b.dataset.verify}/verify`);notice(`Fresh chain read: ${result.verification}.`);});};
 }

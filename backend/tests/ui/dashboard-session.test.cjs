@@ -1,6 +1,6 @@
 /* Purpose: exercise dashboard account continuity through real UI handlers and isolated HTTP responses.
 Behavior: test tabs, reload restoration, refresh races and sign-out without real credentials or services.
-Refs: main_implementation plan.md P10.4; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md. */
+Refs: main_implementation plan.md P10.4 and P11.3. Phase: P10/P11. */
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -276,4 +276,40 @@ test('switching agents during a permission check ignores the detached response',
   assert.equal(nextPanel.querySelector('#agent-ens-permissions-result').innerHTML, '');
   assert.equal(nextPanel.querySelector('#agent-binding-create').disabled, true);
   assert.equal(panel.querySelector('#agent-ens-permissions-result').innerHTML, '');
+});
+
+test('provenance keeps saved task history alongside paginated current Arkiv evidence', async () => {
+  const id = randomUUID();
+  const key = '0x' + 'a'.repeat(64);
+  const page = await boot({override:url => {
+    if (url.startsWith('/v1/network/tasks?')) return response([
+      {id,publication_mode:'public_reference',capability:'sst_review',state:'completed'},
+      {id:'private-task',publication_mode:'private',capability:'sst_reproduction',state:'completed'},
+    ]);
+    if (url.includes('/timeline?')) return response({
+      events:[{kind:'review',created_at:'2026-11-19',receipt:{entity_key:key}}],
+    });
+    if (url.includes('/arkiv-evidence?')) {
+      return response({
+        kind:'review', expected_digest:'sha256:review',index_block:'118',observed_block:'120',index_lag_blocks:'2',
+        next_cursor:url.includes('cursor=') ? null : key,
+        records:url.includes('cursor=') ? [] : [{entity_key:key,owner:'<script>',expires_at_block:'150',attributes:{verdict:'agrees'}}],
+      });
+    }
+  }});
+  await login(page);
+  const field = id => page.elements.get(id);
+  await field('arkiv-task-load').onclick();
+  assert.doesNotMatch(field('arkiv-task-select').innerHTML,/private-task/);
+  field('arkiv-task-select').value = id;
+  field('arkiv-task-select').onchange();
+  await field('arkiv-evidence-refresh').onclick();
+  assert.match(field('arkiv-task-history').innerHTML,/review/);
+  assert.match(field('arkiv-live-evidence').innerHTML,/Lag 2 blocks/);
+  assert.match(field('arkiv-live-evidence').innerHTML,/&lt;script&gt;/);
+  await field('arkiv-evidence-next').onclick();
+  assert.match(page.calls.at(-1).url,new RegExp(`cursor=${key}$`));
+  assert.match(field('arkiv-live-evidence').innerHTML,/No matching current record/);
+  assert.equal(field('arkiv-evidence-next').disabled,true);
+  assert.match(field('arkiv-task-history').innerHTML,/review/);
 });

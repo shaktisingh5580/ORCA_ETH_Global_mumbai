@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- Purpose: present ORCA's live research, agent onboarding, review and provenance workflows.
 Behavior: organize existing authenticated API-backed features into focused tabs without changing API contracts.
-Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md; Phase: dashboard UX increment.
+Refs: main_implementation plan.md P11.3; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md. Phase: dashboard UX and P11.
 -->
 <html lang="en">
 <head>
@@ -10,7 +10,7 @@ Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md;
   <meta name="theme-color" content="#ffffff">
   <title>ORCA — Marine research workspace</title>
   <link rel="stylesheet" href="/research/assets/workspace.css?v=20261107-identity1">
-  <script type="module" src="/research/assets/workspace.js?v=20261119-identity"></script>
+  <script type="module" src="/research/assets/workspace.js?v=20261119-arkiv-evidence"></script>
 </head>
 <body>
   <aside class="sidebar">
@@ -110,10 +110,24 @@ Refs: ORCA_ARKIV_AI_PROTOTYPE_PLAN.md A05; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md;
 
       <section class="view-panel" id="view-provenance" role="tabpanel" aria-labelledby="tab-provenance" data-view-panel="provenance" hidden>
         <section class="panel" id="provenance" aria-labelledby="provenance-title"><div class="panel-heading"><div><span class="eyebrow">PUBLIC REFERENCE · ARKIV</span><h2 id="provenance-title">A verifiable evidence trail.</h2></div><span class="badge">RABDI TESTNET</span></div><p class="muted">After a completed run, approve publication of a signed reference to the result and its completed reviews. Raw files and full model outputs stay in your workspace.</p><div class="privacy-note"><strong>Review the disclosure</strong><p>Publication includes investigation identifiers, a source label, and evidence digests. Check the manifest before approving a public reference.</p></div><label class="consent"><input type="checkbox" id="publish-consent"> I approve publishing the investigation identifiers, source label, and evidence digests to the public network.</label><button id="publish-button" disabled>Publish evidence reference</button><div id="anchors" class="empty">No publication loaded.</div><details><summary>What an Arkiv receipt proves</summary><p class="small">The receipt supports verification of a signed evidence reference and its digest. It does not prove institutional independence, scientific validity, or A2A execution of the uploaded CSV/JSON workflow.</p></details></section>
-      </section>
+          <section class="panel" aria-labelledby="agent-evidence-title">
+            <div class="panel-heading"><h2 id="agent-evidence-title">Agent evidence on Arkiv</h2></div>
+            <p class="muted">Inspect the signed task history and look up public result or review records on Rabdi.</p>
+            <button id="arkiv-task-load" class="secondary" type="button" disabled>Load project tasks</button>
+            <label>Public agent task<select id="arkiv-task-select" disabled><option value="">Choose a task</option></select></label>
+            <div class="form-actions">
+              <button id="arkiv-evidence-refresh" class="secondary" type="button" disabled>Refresh evidence</button>
+              <button id="arkiv-evidence-next" class="secondary" type="button" disabled>Next chain page</button>
+            </div>
+            <div id="arkiv-task-history" role="status"></div>
+            <div id="arkiv-live-evidence" role="status"></div>
+            <label class="consent"><input id="arkiv-evidence-consent" type="checkbox"> I approve sharing the public result or review reference.</label>
+            <button id="arkiv-evidence-intent" class="secondary" type="button" disabled>Download publication intent</button>
+          </section>
+        </section>
 
-      <footer><span>ORCA / Marine research workspace</span><span>Human-approved reasoning · deterministic calculations · inspectable provenance</span></footer>
-    </main>
+        <footer><span>ORCA / Marine research workspace</span><span>Human-approved reasoning · deterministic calculations · inspectable provenance</span></footer>
+      </main>
   </div>
 
   <dialog id="login-dialog"><form id="login-form"><div class="eyebrow">WELCOME TO ORCA</div><h2>Open your workspace.</h2><p class="muted">Use your existing Supabase account.</p><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><p id="login-error" role="alert"></p><div class="form-actions"><button type="submit">Sign in</button><button type="button" class="secondary" id="login-close">Cancel</button></div></form></dialog>

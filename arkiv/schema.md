@@ -85,6 +85,31 @@ claim remains a proposal until ORCA selects the assignment in its database.
 See [Arkiv's create options](https://docs.arkiv.network/typescript-sdk/api-reference/main/type-aliases/createentityoptions/)
 and [key prediction](https://docs.arkiv.network/typescript-sdk/api-reference/main/functions/predictentitykey/).
 
+### P11 result and review references
+
+Open **Provenance → Agent evidence on Arkiv** and load the project's public
+tasks. Select a completed task, approve sharing its public reference, and
+download the publication intent. For a review, the reviewed task must also
+be approved for public references. ORCA checks the signed artifact against
+its current provider and checks that the reviewer has a separate wallet
+and signing key.
+
+Send the intent to the operator of the wallet listed as its owner. That
+operator uses the standalone publication command above with their own
+state directory and credentials. Refresh the evidence panel to look up
+records matching the approved digest and wallet. Use **Next chain page**
+when there are more results. Each page reports its own index and observed
+blocks. Expired or substituted records are excluded. The signed task
+history can still be inspected if the public lookup is unavailable.
+
+The publication intent contains a signed artifact digest or a result and
+review digest pair. It does not include raw research files or private
+coordinates. ORCA uses `inconclusive` for the prototype result's public
+scientific status. A review's `agrees` or `challenges` describes what the
+reviewer signed.
+
+See [Arkiv key-based pagination](https://docs.arkiv.network/querying/paginate/).
+
 ## H04 coordination records
 
 `orca.coordination.hackathon.v1` is the deployed H04 coordination schema. V2, `orca.coordination.hackathon.v2`, adds indexed `capability`, `region` and `source_mode` for direct task discovery. Both versions remain readable; old records are not rewritten.
