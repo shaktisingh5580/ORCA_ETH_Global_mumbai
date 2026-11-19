@@ -103,6 +103,12 @@ class PostgresQueue:
         if not command.approved_digest.startswith("sha256:") or len(command.approved_digest) != 71:
             raise ValueError("approved digest is invalid")
 
+        # Serialize the idempotency lookup and admission under the same tenant lock.
+        # Replays must see the committed receipt before quota can reject a new run.
+        self.session.execute(
+            text("SELECT id FROM iam.organizations WHERE tenant_id=:tenant FOR UPDATE"),
+            {"tenant": self.tenant},
+        ).scalar_one()
         existing = (
             self.session.execute(
                 text("""SELECT id,request_digest,reservation_id FROM research.compute_runs
@@ -148,12 +154,6 @@ class PostgresQueue:
         if approved is None:
             raise ValueError("exact approved plan digest is required before enqueue")
 
-        # Serialize run admission per tenant. Counting committed runs while holding
-        # the organization row lock avoids an in-memory or per-process limiter.
-        self.session.execute(
-            text("SELECT id FROM iam.organizations WHERE tenant_id=:tenant FOR UPDATE"),
-            {"tenant": self.tenant},
-        ).scalar_one()
         run_limit = self.session.execute(
             text("""SELECT coalesce((SELECT max_runs_per_minute FROM iam.organization_run_quotas
               WHERE tenant_id=:tenant),:default_limit)"""),
