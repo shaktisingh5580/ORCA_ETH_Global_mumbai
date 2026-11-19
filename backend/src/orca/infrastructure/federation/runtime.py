@@ -1,6 +1,6 @@
 """Purpose: load explicit operator-pinned agent endpoints and invoke the isolated Arkiv bridge.
 Behavior: restrict this prototype to literal loopback providers and keep wallet secrets out of HTTP.
-Refs: H04 decision; docs/02_agentic_architecture.md egress/binding rules; Phase: H04.
+Refs: H04 decision; main_implementation plan.md P11.2; api design.md §3.12. Phase: H04/P11.
 """
 
 import json
@@ -68,8 +68,20 @@ class ArkivGateway:
     owner: str
 
     def call(self, data: dict[str, Any], *, write: bool = False) -> dict[str, Any]:
+        return self._bridge(["coordination.mjs"], data, write=write)
+
+    def _bridge(
+        self,
+        command: list[str],
+        data: dict[str, Any] | None = None,
+        *,
+        write: bool = False,
+        ambiguous: bool = False,
+    ) -> dict[str, Any]:
         def uncertain() -> bool:
-            return bool(write and data.get("receipt_file") and Path(data["receipt_file"]).exists())
+            return ambiguous or bool(
+                write and data and data.get("receipt_file") and Path(data["receipt_file"]).exists()
+            )
 
         configured = dotenv_values(self.wallet_env_file)
         environment = {
@@ -85,8 +97,8 @@ class ArkivGateway:
             raise ChainUnavailable()
         try:
             completed = subprocess.run(
-                [node, str(ROOT / "arkiv/src/coordination.mjs")],
-                input=json.dumps(data, allow_nan=False),
+                [node, str(ROOT / "arkiv/src" / command[0]), *command[1:]],
+                input=json.dumps(data, allow_nan=False) if data is not None else None,
                 text=True,
                 encoding="utf-8",
                 capture_output=True,
@@ -98,10 +110,29 @@ class ArkivGateway:
                 raise ChainUnavailable(uncertain())
             value = strict_json(completed.stdout)
             if not isinstance(value, dict):
-                raise ChainUnavailable()
+                raise ChainUnavailable(uncertain())
             return value
         except (OSError, subprocess.TimeoutExpired, ValueError) as error:
             raise ChainUnavailable(uncertain()) from error
+
+    def public_v1_publish(self, intent: dict[str, Any]) -> dict[str, Any]:
+        if intent["owner"].lower() != self.owner.lower():
+            raise ValueError("pinned writer mismatch")
+        result = self._bridge(
+            ["public-outbox.mjs", "publish", str(self.state_dir / "arkiv-v1"), "--approve-public"],
+            intent,
+            write=True,
+            ambiguous=True,
+        )
+        if result.get("status") != "indexed":
+            raise ChainUnavailable(reconciliation=True)
+        return result
+
+    def public_v1_read(self, kind: str, key: str, owner: str) -> dict[str, Any]:
+        result = self._bridge(["public-client.mjs", "read", kind, key, owner])
+        if result.get("status") != "observed":
+            raise ValueError("Arkiv v1 entity is unavailable or expired")
+        return result
 
     def publish(self, envelope: SignedEnvelope, binding: AgentBinding) -> dict[str, Any]:
         if binding.wallet.lower() != self.owner.lower():

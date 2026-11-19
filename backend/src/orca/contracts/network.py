@@ -1,6 +1,6 @@
 """Purpose: define the bounded agent-coordination and frontend API contracts.
 Behavior: require explicit disclosure, scoped IDs, immutable bindings and signed evidence.
-Refs: H04-agent-coordination.json; main_implementation plan.md P09.1; Phase: H04/P09.
+Refs: H04-agent-coordination.json; main_implementation plan.md P09.1 and P11.2. Phase: H04/P09/P11.
 """
 
 from datetime import datetime
@@ -61,6 +61,7 @@ class CreateNetworkTask(Contract):
     review_of: UUID | None = None
     correction_of: UUID | None = None
     approve_public_reference: bool = False
+    publish_arkiv_v1: bool = False
     deadline_seconds: int = Field(default=3600, ge=120, le=86400)
 
 
@@ -71,6 +72,7 @@ class RequestClaim(Contract):
 class ImportClaim(Contract):
     provider_id: UUID
     entity_key: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
+    arkiv_v1_entity_key: str | None = Field(default=None, pattern=r"^0x[0-9a-fA-F]{64}$")
 
 
 class AssignClaim(Contract):

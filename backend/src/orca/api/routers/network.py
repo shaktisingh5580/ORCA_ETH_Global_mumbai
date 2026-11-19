@@ -1,6 +1,6 @@
 """Purpose: expose the existing dashboard's agent task/claim/assignment/timeline workflow.
 Behavior: require verified project authority and queue durable actions rather than fake completion.
-Refs: api design.md network guidance; H04-agent-coordination.json; Phase: H04.
+Refs: api design.md §3.12; main_implementation plan.md P11.2; H04-agent-coordination.json. Phase: H04/P11.
 """
 
 from collections.abc import Iterator
@@ -175,7 +175,7 @@ def import_claim(
     tenant, _ = resolve_project(db, principal, project_id)
     with network_errors(), TenantUnitOfWork(db, tenant) as session:
         return Network(session, tenant, project_id, principal).request_claim(
-            task_id, body.provider_id, idempotency_key, body.entity_key
+            task_id, body.provider_id, idempotency_key, body.entity_key, body.arkiv_v1_entity_key
         )
 
 

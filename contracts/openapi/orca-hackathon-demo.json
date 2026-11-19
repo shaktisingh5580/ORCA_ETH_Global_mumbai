@@ -800,6 +800,11 @@
             "title": "Project Id",
             "type": "string"
           },
+          "publish_arkiv_v1": {
+            "default": false,
+            "title": "Publish Arkiv V1",
+            "type": "boolean"
+          },
           "review_of": {
             "anyOf": [
               {
@@ -1631,6 +1636,18 @@
       "ImportClaim": {
         "additionalProperties": false,
         "properties": {
+          "arkiv_v1_entity_key": {
+            "anyOf": [
+              {
+                "pattern": "^0x[0-9a-fA-F]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arkiv V1 Entity Key"
+          },
           "entity_key": {
             "pattern": "^0x[0-9a-fA-F]{64}$",
             "title": "Entity Key",

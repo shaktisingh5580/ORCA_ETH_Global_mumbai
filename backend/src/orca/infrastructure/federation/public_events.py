@@ -1,14 +1,64 @@
 """Purpose: construct minimal consented chain records with context-bound service signatures.
 Behavior: publish only bounded ASCII metadata and digests, separate from private A2A artifacts.
-Refs: Arkiv blueprint 7; canonical signing guide; H04-agent-coordination.json; Phase: H04.
+Refs: api design.md §4.7; main_implementation plan.md P11.2; H04-agent-coordination.json. Phase: H04/P11.
 """
 
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid5
 
-from orca.contracts.network import SignedEnvelope
-from orca.infrastructure.federation.signing import CHAIN_ID, DOMAIN, sign
+from orca.contracts.network import AgentBinding, SignedEnvelope
+from orca.infrastructure.federation.signing import CHAIN_ID, DOMAIN, digest, sign
+
+
+def public_task_intent(task: dict[str, Any], requester: AgentBinding) -> dict[str, Any]:
+    return {
+        "kind": "task",
+        "owner": requester.wallet,
+        "lifetimeSeconds": 86400,
+        "attributes": {
+            "taskId": str(task["id"]),
+            "capability": task["capability"],
+            "regionCode": "global",
+            "status": "open",
+            "deadlineRef": task["deadline"].astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        },
+    }
+
+
+def public_claim_attributes(task: UUID, provider: AgentBinding) -> dict[str, str]:
+    return {
+        "taskId": str(task),
+        "agentId": str(provider.id),
+        "status": "proposed",
+        "bindingDigest": digest(provider.model_dump(mode="json")),
+    }
+
+
+def public_assignment_intent(
+    task: UUID,
+    requester: AgentBinding,
+    provider: AgentBinding,
+    task_key: str,
+    claim_key: str,
+    assignment_digest: str,
+) -> dict[str, Any]:
+    return {
+        "kind": "assignment",
+        "owner": requester.wallet,
+        "lifetimeSeconds": 86400,
+        "parent": {"owner": requester.wallet, "key": task_key},
+        "selectedClaim": {
+            "owner": provider.wallet,
+            "attributes": public_claim_attributes(task, provider),
+        },
+        "attributes": {
+            "taskId": str(task),
+            "claimRef": claim_key.lower(),
+            "status": "selected",
+            "assignmentDigest": assignment_digest,
+        },
+    }
 
 
 def public_event(

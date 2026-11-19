@@ -1,6 +1,6 @@
 """Purpose: execute durable agent coordination through real A2A and Arkiv adapters.
 Behavior: fence workers, recheck authority, verify separate signatures/owners and reject stale results.
-Refs: H04 decision; canonical assignment/outbox/artifact guides; Phase: H04.
+Refs: H04 decision; main_implementation plan.md P11.2; api design.md §5.2. Phase: H04/P11.
 """
 
 import argparse
@@ -23,7 +23,12 @@ from orca.infrastructure.db.engine import create_runtime_engine
 from orca.infrastructure.db.tenant_context import assert_runtime_role
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 from orca.infrastructure.federation.a2a_client import exchange
-from orca.infrastructure.federation.public_events import public_event
+from orca.infrastructure.federation.public_events import (
+    public_assignment_intent,
+    public_claim_attributes,
+    public_event,
+    public_task_intent,
+)
 from orca.infrastructure.federation.runtime import ChainUnavailable, NetworkRuntime, load_runtime
 from orca.infrastructure.federation.signing import CHAIN_ID, DOMAIN, sign, verify
 
@@ -169,6 +174,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
             assignment = None
             claim = None
             parent = None
+            public_task_receipt = None
             if job["action"] in {"claim", "import_claim"}:
                 if task["state"] != "open":
                     raise ValueError("task is no longer open for claims")
@@ -200,7 +206,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                     .mappings()
                     .one()
                 )
-                parent = event_row(session, tenant, task["id"], "claim")
+                public_task_receipt = event_row(session, tenant, task["id"], "task")["receipt"]
                 # The parent must be this selected provider's claim, not the last bidder's record.
                 parent = dict(
                     session.execute(
@@ -254,6 +260,17 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                 if task["publication_mode"] == "public_reference"
                 else None
             )
+            if kind == "task" and job["payload"].get("publish_arkiv_v1"):
+                if receipt is None:
+                    raise ValueError(
+                        "Arkiv v1 task publication requires approved public disclosure"
+                    )
+                receipt = {
+                    **receipt,
+                    "arkiv_v1": runtime.gateway.public_v1_publish(
+                        public_task_intent(task, coordinator)
+                    ),
+                }
             emitted.append((event, receipt))
         elif job["action"] == "import_claim":
             if provider is None or parent is None or task["publication_mode"] != "public_reference":
@@ -289,6 +306,15 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                 "chain_id": 7794095,
                 "read_back": observed,
             }
+            has_v1 = bool(parent["receipt"].get("arkiv_v1"))
+            v1_key = job["payload"].get("arkiv_v1_entity_key")
+            if has_v1 != bool(v1_key):
+                raise ValueError("Claim references do not match the task's public schema")
+            if v1_key:
+                v1_claim = runtime.gateway.public_v1_read("claim", v1_key, provider.wallet)
+                if v1_claim.get("attributes") != public_claim_attributes(task["id"], provider):
+                    raise ValueError("Arkiv v1 claim differs from the active provider binding")
+                receipt["arkiv_v1"] = v1_claim
             claim_document = public
             emitted.append((public, receipt))
         else:
@@ -347,6 +373,23 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                     else None
                 )
                 reject_conflicting_assignments(runtime, task, event)
+                if v1_task := (public_task_receipt or {}).get("arkiv_v1"):
+                    v1_claim = (parent["receipt"] or {}).get("arkiv_v1")
+                    if receipt is None or not v1_claim:
+                        raise ValueError("Selected assignment lacks its verified Arkiv v1 claim")
+                    receipt = {
+                        **receipt,
+                        "arkiv_v1": runtime.gateway.public_v1_publish(
+                            public_assignment_intent(
+                                task["id"],
+                                coordinator,
+                                provider,
+                                v1_task["entity_key"],
+                                v1_claim["entity_key"],
+                                signed_assignment.content_digest,
+                            )
+                        ),
+                    }
                 emitted.append((event, receipt))
                 data.update(
                     {

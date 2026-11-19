@@ -1,6 +1,6 @@
 """Purpose: coordinate authorized research delegation with atomic intents and exclusive assignment.
 Behavior: retain tenant isolation, idempotency, current bindings and immutable signed evidence.
-Refs: canonical database/agent guides; H04-agent-coordination.json; Phase: H04.
+Refs: H04-agent-coordination.json; main_implementation plan.md P11.2; api design.md §3.12. Phase: H04/P11.
 """
 
 import json
@@ -131,6 +131,10 @@ class Network:
         payload = body.model_dump(mode="json")
         if body.correction_of is None:
             payload.pop("correction_of", None)
+        if not body.publish_arkiv_v1:
+            payload.pop("publish_arkiv_v1", None)
+        elif not body.approve_public_reference:
+            raise ValueError("Arkiv v1 publication requires explicit public-reference approval")
         if previous := self.existing("publish_task", key, payload):
             return previous
         run = Prototype(self.session, self.tenant, self.project, self.principal).run_row(
@@ -239,27 +243,42 @@ class Network:
         return self.queue(identifier, "publish_task", key, payload)
 
     def request_claim(
-        self, identifier: UUID, provider: UUID, key: str, entity_key: str | None = None
+        self,
+        identifier: UUID,
+        provider: UUID,
+        key: str,
+        entity_key: str | None = None,
+        arkiv_v1_entity_key: str | None = None,
     ) -> NetworkOperation:
         self.authorize("project:write")
         payload = {"task_id": str(identifier), "provider_id": str(provider)}
         action = "import_claim" if entity_key else "claim"
         if entity_key:
             payload["entity_key"] = entity_key
+        if arkiv_v1_entity_key:
+            payload["arkiv_v1_entity_key"] = arkiv_v1_entity_key
         if previous := self.existing(action, key, payload):
             return previous
         task = self.task_row(identifier, lock=True)
         if task["state"] != "open" or task["deadline"] <= datetime.now(timezone.utc):
             raise ValueError("task is not open for claims")
-        if not self.session.execute(
-            text(
-                "SELECT 1 FROM federation.events WHERE tenant_id=:t AND task_id=:id AND kind='task' LIMIT 1"
-            ),
-            {"t": self.tenant, "id": identifier},
-        ).scalar_one_or_none():
+        event = (
+            self.session.execute(
+                text(
+                    "SELECT receipt FROM federation.events WHERE tenant_id=:t AND task_id=:id AND kind='task' LIMIT 1"
+                ),
+                {"t": self.tenant, "id": identifier},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if event is None:
             raise ValueError(
                 "task advertisement is still pending; wait for its operation to succeed"
             )
+        has_v1 = bool((event["receipt"] or {}).get("arkiv_v1"))
+        if has_v1 != bool(arkiv_v1_entity_key) or has_v1 and not entity_key:
+            raise ValueError("Arkiv v1 tasks require both the signed and v1 claim references")
         binding = self.agent(provider)
         if binding.capability != task["capability"]:
             raise ValueError("provider does not have the required capability")

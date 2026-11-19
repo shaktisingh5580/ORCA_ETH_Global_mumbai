@@ -94,6 +94,7 @@ def network_http(tmp_path, request):
         for binding, private in secrets:
             children.append(start_provider(tmp_path, configfile, binding, private, source))
         with TestClient(app) as client:
+            client.test_provider_keys = {binding.id: private for binding, private in secrets}
             yield client, tenant, project, foreign, run, principal
     finally:
         for child, log, _ in children:
@@ -505,3 +506,150 @@ def test_uncertain_chain_submission_holds_for_reconciliation_without_resend(netw
         f"/v1/network/operations/{identifier}", params={"project_id": str(project)}
     ).json()
     assert result["status"] == "reconciliation_required" and len(seen) == 1
+
+
+@pytest.mark.live
+@pytest.mark.enable_socket
+def test_arkiv_v1_task_claim_and_assignment_use_authenticated_worker(network_http, monkeypatch):
+    from dataclasses import replace
+
+    from orca import network_worker
+    from orca.infrastructure.federation.public_events import public_claim_attributes, public_event
+
+    client, tenant, project, _, run, principal = network_http
+    runtime = client.app.state.network_runtime
+    coordinator = runtime.configuration.coordinator
+    provider = runtime.configuration.agents[0]
+    task_key, claim_key, assignment_key = ("0x" + character * 64 for character in "abc")
+    legacy_claim_key = "0x" + "d" * 64
+    legacy_records = {}
+    intents = []
+    v1_records = {}
+
+    class Chain:
+        def publish(self, envelope, writer):
+            key = "0x" + envelope.content_digest.removeprefix("sha256:")
+            legacy_records[key] = self.record(key, envelope, writer)
+            return {"entity_key": key}
+
+        def record(self, key, envelope, writer):
+            return {
+                "entity_key": key,
+                "owner": writer.wallet,
+                "public_key": writer.public_key,
+                "envelope": envelope.model_dump(mode="json"),
+            }
+
+        def call(self, payload):
+            if payload["command"] == "query":
+                return {"truncated": False, "records": list(legacy_records.values())}
+            return legacy_records[payload["entity_key"]]
+
+        def read(self, key, writer, envelope):
+            from orca.infrastructure.federation.runtime import verify_chain_record
+
+            verify_chain_record(legacy_records[key], writer, envelope)
+
+        def public_v1_publish(self, intent):
+            intents.append(intent)
+            return {
+                "status": "indexed",
+                "entity_key": task_key if intent["kind"] == "task" else assignment_key,
+            }
+
+        def public_v1_read(self, kind, key, owner):
+            assert kind == "claim" and key == claim_key and owner == provider.wallet
+            return v1_records[key]
+
+    chain = Chain()
+    runtime = replace(runtime, gateway=chain)
+    task_body = {
+        "project_id": str(project),
+        "source_run_id": str(run),
+        "publish_arkiv_v1": True,
+    }
+    assert post(client, "/v1/network/tasks", task_body).status_code == 409
+    created = post(client, "/v1/network/tasks", {**task_body, "approve_public_reference": True})
+    assert created.status_code == 202, created.text
+    task_id = created.json()["task_id"]
+
+    def handle(operation, expected):
+        assert operation.status_code == 202, operation.text
+        identifier = uuid_from(operation.json()["id"])
+        assert process(client.app.state.runtime_engine, runtime, tenant, identifier)
+        status = client.get(
+            f"/v1/network/operations/{identifier}", params={"project_id": str(project)}
+        )
+        assert status.json()["status"] == expected, status.text
+
+    handle(created, "succeeded")
+    assert intents[0]["owner"] == coordinator.wallet
+    assert intents[0]["attributes"]["regionCode"] == "global"
+    assert set(intents[0]["attributes"]) == {
+        "taskId",
+        "capability",
+        "regionCode",
+        "status",
+        "deadlineRef",
+    }
+    with TenantUnitOfWork(client.app.state.runtime_engine, tenant) as session:
+        from orca.application.network import Network
+
+        task = dict(Network(session, tenant, project, principal).task_row(uuid_from(task_id)))
+        parent = network_worker.event_row(session, tenant, task["id"], "task")
+    assert parent["receipt"]["arkiv_v1"]["entity_key"] == task_key
+    legacy = public_event(
+        task=task,
+        kind="claim",
+        actor=str(provider.id),
+        binding_version=str(provider.binding_version),
+        subject=str(provider.id),
+        generation=0,
+        parent_key=parent["receipt"]["entity_key"],
+        reference_digest=task["recipe_digest"],
+        operation_id=str(uuid4()),
+        issued_at=task["created_at"].isoformat(),
+        private_key=client.test_provider_keys[provider.id],
+        key_id=provider.key_id,
+    )
+    legacy_records[legacy_claim_key] = chain.record(legacy_claim_key, legacy, provider)
+    path = f"/v1/network/tasks/{task_id}/claims/import"
+    body = {"provider_id": str(provider.id), "entity_key": legacy_claim_key}
+    assert post(client, path, body, project).status_code == 409
+    body["arkiv_v1_entity_key"] = claim_key
+    correct_attributes = public_claim_attributes(task["id"], provider)
+    v1_records[claim_key] = {
+        "entity_key": claim_key,
+        "attributes": {**correct_attributes, "agentId": str(uuid4())},
+    }
+    handle(post(client, path, body, project), "failed")
+    v1_records[claim_key]["attributes"] = correct_attributes
+    handle(post(client, path, body, project), "succeeded")
+    details = client.get(f"/v1/network/tasks/{task_id}", params={"project_id": str(project)}).json()
+    assert len(details["claims"]) == 1
+
+    dispatched = []
+
+    def hold_dispatch(*args):
+        dispatched.append(args[3])
+        raise httpx.ReadTimeout("test transport intercept after assignment publication")
+
+    monkeypatch.setattr(network_worker, "exchange", hold_dispatch)
+    handle(
+        post(
+            client,
+            f"/v1/network/tasks/{task_id}/assignments",
+            {"claim_id": details["claims"][0]["id"], "expected_generation": 0},
+            project,
+        ),
+        "queued",
+    )
+    assert len(intents) == 2 and len(dispatched) == 1
+    assert intents[1]["kind"] == "assignment"
+    assert intents[1]["parent"]["key"] == task_key
+    assert intents[1]["attributes"]["claimRef"] == claim_key
+    assert (
+        intents[1]["attributes"]["assignmentDigest"]
+        == dispatched[0]["assignment"]["content_digest"]
+    )
+    assert dispatched[0]["requester_event"]["receipt"]["arkiv_v1"]["entity_key"] == assignment_key
