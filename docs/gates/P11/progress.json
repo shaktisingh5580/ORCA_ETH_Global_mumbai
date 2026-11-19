@@ -16,12 +16,16 @@
     "P11.2": [
       "Operator adapter publishes task and claim intents with exact public attributes and independently pinned requester and claimant wallets. Claims require a current matching task record.",
       "Each wallet serializes its writes in a durable operator-owned directory. A reservation binds the task or claim intent to a predicted entity key before broadcast. Replays read the reserved key and compare attributes. An ambiguous send or inconsistent key keeps the writer fenced for operator review.",
-      "The existing ORCA assignment service was exercised with two separately keyed A2A providers. Each had a distinct claim on the same task, and concurrent assignment attempts produced one winner."
+      "The existing ORCA assignment service was exercised with two separately keyed A2A providers. Each had a distinct claim on the same task, and concurrent assignment attempts produced one winner.",
+      "Authenticated task creation supports an explicitly approved Arkiv v1 companion. The provider discovery command can publish a matching claim companion from its wallet. Import validates the signed claim and the v1 record against the same pinned provider.",
+      "The worker publishes an Arkiv v1 assignment companion with the selected claim key and signed assignment digest before A2A dispatch. Existing signed records preserve the established execution checks."
     ]
   },
   "local_checks": [
     "Five focused P11.2 Node tests passed for separate writers, duplicate claims, uncertain sends, read-only recovery, and a mismatched returned key.",
-    "Two PostgreSQL integration cases passed using loopback PostGIS and local provider processes, covering competing claims and the existing worker hold after an ambiguous chain submission."
+    "Two PostgreSQL integration cases passed using loopback PostGIS and local provider processes, covering competing claims and the existing worker hold after an ambiguous chain submission.",
+    "A later 13-test Node run covered the public schema and outbox, including rejection of an assignment targeting a different claim binding and read-only replay of an accepted assignment reference.",
+    "The authenticated HTTP-to-worker integration passed against loopback PostGIS with simulated Arkiv transport. It verified consent gating, exact selected provider attributes, persistence of the task receipt, and assignment companion creation before the intercepted A2A dispatch."
   ],
   "live_read_only": {
     "chain_id": 7794095,
@@ -35,11 +39,16 @@
       "index_lag_blocks": "1",
       "records": 0
     },
-    "note": "The query checks a historical H04 task ID against the new P11 schema. The result establishes RPC compatibility with the query. No P11 transaction was sent and no P11 record was read back."
+    "wallet_balance_status": {
+      "requester_funded": true,
+      "provider_funded": true,
+      "evidence": "Public RPC confirmed nonzero balances for the previously published H04 requester and provider addresses."
+    },
+    "note": "The query checks a historical H04 task ID against the new P11 schema. The result establishes RPC compatibility with the query. Public balances do not establish signer control or institutional eligibility. No P11 transaction was sent and no P11 record was read back."
   },
   "remaining": {
     "P11.1": "Verify live P11 schema writes and current readback with authorized, separately controlled test wallets.",
-    "P11.2": "Connect the new writer to the authenticated task and claim workflow, bind claims to the reviewed institutional trust policy, publish the selected assignment reference, and verify live multi-wallet receipts and readback. The current operator adapter and historical backend workflow are both available for their respective scopes.",
+    "P11.2": "Verify the authenticated opt-in path with separately controlled Rabdi wallets and live task, claim and assignment receipts. Institutional eligibility still requires reviewed G10 trust policy. Operator review and read-only CLI reconciliation cover uncertain writes; authenticated recovery of held operations remains open.",
     "P11.3": "Connect approved artifact and review publications, pagination and live dashboard timeline.",
     "P11.4": "Cross-check independent verifier against live records and capture expiry, outage, nonce and ambiguous-submission recovery."
   },

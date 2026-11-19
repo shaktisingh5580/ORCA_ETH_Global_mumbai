@@ -31,14 +31,37 @@ Official references: [Rabdi](https://docs.arkiv.network/networks/rabdi/),
 [queries](https://docs.arkiv.network/reference/query-language/) and
 [expiration](https://docs.arkiv.network/writing/expiration/).
 
-### P11 task and claim publication
+### P11 task, claim and assignment publication
 
-The operator adapter accepts a consented task or claim intent on standard
+In the authenticated network API, create a task with both
+`approve_public_reference: true` and `publish_arkiv_v1: true`. The
+worker publishes the existing signed task and the minimal `orca.task.v1`
+companion. The task's timeline receipt contains the companion under
+`arkiv_v1`. The v1 companion uses `regionCode: global` to omit local
+geography.
+
+On the provider host, run the existing discovery command with
+`--claim-task <task-id> --arkiv-v1-task-key <task-entity-key>`. The host
+verifies the signed task and companion against the pinned requester, then
+publishes both claim references with its own wallet. Import the returned
+`claim_entity_key` as `entity_key` and the companion as
+`arkiv_v1_entity_key` in the existing authenticated claim import.
+
+Selecting the accepted claim uses ORCA's database assignment path. The
+requester's worker checks both references and publishes an
+`orca.assignment.v1` companion with the selected claim key and signed
+assignment digest before asking the provider to execute. The older signed
+record remains the execution proof. This path uses the current operator-pinned
+providers while institutional credential acceptance is pending.
+
+The standalone operator adapter accepts a consented intent on standard
 input. It expects `kind`, `owner`, `lifetimeSeconds`, and the exact
 `attributes` for that public schema. A claim also needs `parent` with
 the task entity `key` and its independently known requester `owner`.
 The claimant wallet must differ from the requester's wallet. The adapter
-checks the current parent record and the remaining task deadline.
+checks the current parent record and caps lifetime at the remaining task
+deadline. An assignment takes the same parent and a `selectedClaim` with
+its expected provider `owner` and exact public claim `attributes`.
 
 Use the same private, durable state directory for every invocation by a
 given writer. Keep `ARKIV_PRIVATE_KEY` on its operator's host and out of
