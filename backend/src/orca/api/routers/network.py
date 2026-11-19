@@ -1,6 +1,6 @@
 """Purpose: expose the existing dashboard's agent task/claim/assignment/timeline workflow.
 Behavior: require verified project authority and queue durable actions rather than fake completion.
-Refs: api design.md §3.12; main_implementation plan.md P11.2; H04-agent-coordination.json. Phase: H04/P11.
+Refs: api design.md §3.12; main_implementation plan.md P11.2–P11.3; H04-agent-coordination.json. Phase: H04/P11.
 """
 
 from collections.abc import Iterator
@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from typing import Annotated, Any, Literal, cast
 from uuid import UUID
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request
 from sqlalchemy import text
 
 from orca.api.dependencies import CurrentPrincipal
@@ -16,6 +16,7 @@ from orca.api.routers.organizations import errors
 from orca.api.routers.projects import engine, resolve_project, resolve_tenant
 from orca.application.network import Network, operation_view
 from orca.contracts.network import (
+    ApproveArkivEvidence,
     AssignClaim,
     CancelNetworkTask,
     CreateNetworkTask,
@@ -293,4 +294,68 @@ def timeline(
         "live_chain": observed,
         "saved_receipts_are_historical_observations": True,
         "institution_verified": False,
+    }
+
+
+@router.post("/tasks/{task_id}/arkiv-evidence/intent")
+def prepare_arkiv_evidence(
+    task_id: UUID,
+    approval: ApproveArkivEvidence,
+    project_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+) -> dict[str, Any]:
+    configured = runtime(request)
+    db = engine(request)
+    tenant, _ = resolve_project(db, principal, project_id)
+    with network_errors(), TenantUnitOfWork(db, tenant) as session:
+        service = Network(session, tenant, project_id, principal)
+        service.authorize("project:write")
+        return service.arkiv_evidence_intent(task_id, configured.configuration.coordinator)
+
+
+@router.get("/tasks/{task_id}/arkiv-evidence")
+def read_arkiv_evidence(
+    task_id: UUID,
+    project_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    cursor: Annotated[str | None, Query(pattern=r"^0x[0-9a-fA-F]{64}$")] = None,
+) -> dict[str, Any]:
+    configured = runtime(request)
+    db = engine(request)
+    tenant, _ = resolve_project(db, principal, project_id)
+    coordinator = configured.configuration.coordinator
+    with network_errors(), TenantUnitOfWork(db, tenant) as session:
+        expected = Network(session, tenant, project_id, principal).arkiv_evidence_intent(
+            task_id, coordinator
+        )
+    kind = expected["kind"]
+    attributes = expected["attributes"]
+    reference = attributes["artifactDigest" if kind == "result" else "resultDigest"]
+    with network_errors():
+        page = configured.gateway.public_v1_evidence(kind, reference, expected["owner"], cursor)
+    with network_errors(), TenantUnitOfWork(db, tenant) as session:
+        current = Network(session, tenant, project_id, principal).arkiv_evidence_intent(
+            task_id, coordinator
+        )
+        if current != expected:
+            raise ValueError("Accepted evidence changed during the Arkiv lookup")
+    matching = [
+        row
+        for row in page["records"]
+        if row["status"] == "observed"
+        and row["attributes"] == attributes
+        and row["owner"].lower() == expected["owner"].lower()
+    ]
+    return {
+        "kind": kind,
+        "expected_digest": attributes["artifactDigest" if kind == "result" else "reviewDigest"],
+        "index_block": page["index_block"],
+        "observed_block": page["observed_block"],
+        "index_lag_blocks": page["index_lag_blocks"],
+        "next_cursor": page["next_cursor"],
+        "records": matching,
+        "institution_verified": False,
+        "scientific_result_verified": False,
     }

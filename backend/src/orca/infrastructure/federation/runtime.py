@@ -134,6 +134,16 @@ class ArkivGateway:
             raise ValueError("Arkiv v1 entity is unavailable or expired")
         return result
 
+    def public_v1_evidence(
+        self, kind: str, reference: str, owner: str, cursor: str | None
+    ) -> dict[str, Any]:
+        if kind not in {"result", "review"}:
+            raise ValueError("Expected an Arkiv result or review")
+        return self._bridge(
+            ["public-client.mjs", f"query-{kind}", kind, reference, owner]
+            + ([cursor] if cursor else [])
+        )
+
     def publish(self, envelope: SignedEnvelope, binding: AgentBinding) -> dict[str, Any]:
         if binding.wallet.lower() != self.owner.lower():
             raise ValueError("pinned writer mismatch")

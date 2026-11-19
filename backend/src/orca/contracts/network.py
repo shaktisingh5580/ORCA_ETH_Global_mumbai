@@ -80,6 +80,10 @@ class AssignClaim(Contract):
     expected_generation: int = Field(ge=0)
 
 
+class ApproveArkivEvidence(Contract):
+    approve_public_reference: Literal[True]
+
+
 class CancelNetworkTask(Contract):
     expected_generation: int = Field(ge=0)
 

@@ -1,6 +1,6 @@
 """Purpose: coordinate authorized research delegation with atomic intents and exclusive assignment.
 Behavior: retain tenant isolation, idempotency, current bindings and immutable signed evidence.
-Refs: H04-agent-coordination.json; main_implementation plan.md P11.2; api design.md §3.12. Phase: H04/P11.
+Refs: H04-agent-coordination.json; main_implementation plan.md P11.2–P11.3; api design.md §3.12. Phase: H04/P11.
 """
 
 import json
@@ -20,9 +20,10 @@ from orca.contracts.network import (
     CreateNetworkTask,
     NetworkOperation,
     NetworkTask,
+    SignedEnvelope,
 )
 from orca.domain.identity import Principal
-from orca.infrastructure.federation.signing import digest
+from orca.infrastructure.federation.signing import digest, verify
 
 
 def encode(value: Any) -> str:
@@ -369,6 +370,91 @@ class Network:
             {"t": self.tenant, "id": identifier},
         )
         return self.queue(identifier, "cancel", key, payload)
+
+    def arkiv_evidence_intent(self, identifier: UUID, coordinator: AgentBinding) -> dict[str, Any]:
+        task = self._public_evidence_task(identifier)
+        producer, artifact = self._accepted_artifact(identifier, coordinator)
+        if task["capability"] == "sst_review":
+            target = self._public_evidence_task(task["review_of"])
+            original_producer, result = self._accepted_artifact(target["id"], coordinator)
+            if (
+                target["capability"] != "sst_reproduction"
+                or target["source_run_id"] != task["source_run_id"]
+                or producer.id == original_producer.id
+                or producer.wallet.lower() == original_producer.wallet.lower()
+                or producer.public_key == original_producer.public_key
+                or artifact.payload["review_of_digest"] != result.content_digest
+            ):
+                raise ValueError(
+                    "Review requires separate ownership and the accepted result digest"
+                )
+            verdicts = {"reproduced": "agrees", "challenged": "challenges"}
+            verdict = verdicts.get(artifact.payload["results"]["verdict"])
+            if verdict is None:
+                raise ValueError("Unsupported signed review verdict")
+            kind = "review"
+            attributes = {
+                "resultDigest": result.content_digest,
+                "reviewDigest": artifact.content_digest,
+                "reviewerId": str(producer.id),
+                "verdict": verdict,
+            }
+        else:
+            kind = "result"
+            attributes = {
+                "taskId": str(identifier),
+                "artifactDigest": artifact.content_digest,
+                "methodId": artifact.payload["method_ref"],
+                "status": "inconclusive",
+            }
+        return {
+            "kind": kind,
+            "owner": producer.wallet,
+            "lifetimeSeconds": 2419200,
+            "attributes": attributes,
+        }
+
+    def _public_evidence_task(self, identifier: UUID) -> Any:
+        task = self.task_row(identifier)
+        if task["state"] != "completed" or task["publication_mode"] != "public_reference":
+            raise LookupError("No approved public evidence for this task")
+        receipt = self.session.execute(
+            text(
+                "SELECT receipt FROM federation.events WHERE tenant_id=:t AND task_id=:id AND kind='task'"
+            ),
+            {"t": self.tenant, "id": identifier},
+        ).scalar_one_or_none()
+        if not (receipt or {}).get("arkiv_v1"):
+            raise LookupError("No Arkiv v1 publication approval for this task")
+        return task
+
+    def _accepted_artifact(
+        self, task_id: UUID, coordinator: AgentBinding
+    ) -> tuple[AgentBinding, SignedEnvelope]:
+        row = (
+            self.session.execute(
+                text("""SELECT ar.provider_id,ar.envelope FROM federation.artifacts ar
+              JOIN federation.assignments a
+              ON a.tenant_id=ar.tenant_id AND a.id=ar.assignment_id AND a.task_id=ar.task_id
+              WHERE ar.tenant_id=:t AND ar.task_id=:task AND a.state='completed'
+              AND a.provider_id=ar.provider_id"""),
+                {"t": self.tenant, "task": task_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            raise LookupError("No accepted artifact for this task")
+        actor = self.agent(row["provider_id"])
+        envelope = SignedEnvelope.model_validate(row["envelope"])
+        verify(envelope, actor.public_key, actor.key_id, str(coordinator.id))
+        if (
+            envelope.payload.get("task_id") != str(task_id)
+            or envelope.payload.get("producer_agent_id") != str(actor.id)
+            or envelope.payload.get("binding_version") != str(actor.binding_version)
+        ):
+            raise ValueError("Accepted artifact differs from the current provider binding")
+        return actor, envelope
 
     def detail(self, identifier: UUID) -> NetworkTask:
         task = dict(self.task_row(identifier))

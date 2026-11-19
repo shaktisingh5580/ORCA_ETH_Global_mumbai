@@ -1,6 +1,6 @@
 """Purpose: exercise durable agent coordination over official A2A in separate real processes.
 Behavior: use only synthetic local-test captures/DB, verify claims, exclusive assignment and review.
-Refs: H04 gate, main_implementation plan.md P11.2 and api design.md §5.2. Phase: H04 and P11 regression.
+Refs: H04 gate, main_implementation plan.md P11.2–P11.3 and api design.md §5.2. Phase: H04/P11.
 """
 
 import json
@@ -198,7 +198,9 @@ def test_demo_http_is_project_scoped_and_correction_requires_a_challenge(network
 
 @pytest.mark.live
 @pytest.mark.enable_socket
-def test_real_a2a_reproduction_then_separately_keyed_review_with_durable_artifacts(network_http):
+def test_real_a2a_reproduction_then_separately_keyed_review_with_durable_artifacts(
+    network_http, monkeypatch
+):
     client, tenant, project, foreign, run, _ = network_http
     task, claim = begin_claimed(client, tenant, project, run)
     assert (
@@ -348,6 +350,136 @@ def test_real_a2a_reproduction_then_separately_keyed_review_with_durable_artifac
             },
         )
     assert denied.status_code == 401
+    verify_public_evidence(client, tenant, project, task, detail, review, final, monkeypatch)
+
+
+def verify_public_evidence(client, tenant, project, task, detail, review, final, monkeypatch):
+    from dataclasses import replace
+
+    from orca.infrastructure.federation.signing import sign
+
+    runtime = client.app.state.network_runtime
+    producer, reviewer = runtime.configuration.agents
+    paths = [f"/v1/network/tasks/{identifier}/arkiv-evidence" for identifier in (task, review)]
+    params = {"project_id": str(project)}
+    approval = {"approve_public_reference": True}
+    assert post(client, paths[0] + "/intent", approval, project).status_code == 404
+    assert (
+        post(client, paths[0] + "/intent", {"approve_public_reference": False}, project).status_code
+        == 422
+    )
+    # Seed a separately approved public workflow. Private accepted evidence is immutable.
+    with TenantUnitOfWork(client.app.state.runtime_engine, tenant) as session:
+
+        def seed(original, actor, artifact, reviewed_task=None, reviewed_digest=None):
+            task_id, claim_id, assignment_id, artifact_id = (uuid4() for _ in range(4))
+            payload = {
+                **artifact["payload"],
+                "task_id": str(task_id),
+                "artifact_id": str(artifact_id),
+                "review_of_digest": reviewed_digest,
+            }
+            envelope = sign(payload, client.test_provider_keys[actor.id], actor.key_id)
+            values = {
+                "t": tenant,
+                "task": task_id,
+                "claim": claim_id,
+                "assignment": assignment_id,
+                "artifact": artifact_id,
+                "old": uuid_from(original),
+                "reviewed": reviewed_task,
+                "provider": actor.id,
+                "envelope": envelope.model_dump_json(),
+                "event": uuid4(),
+                "requester": runtime.configuration.coordinator.id,
+            }
+            for statement in (
+                """INSERT INTO federation.tasks(id,tenant_id,project_id,source_run_id,capability,review_of,publication_mode,state,generation,created_by,recipe,recipe_digest,deadline)
+                   SELECT :task,tenant_id,project_id,source_run_id,capability,:reviewed,'public_reference',state,generation,created_by,recipe,recipe_digest,deadline
+                   FROM federation.tasks WHERE tenant_id=:t AND id=:old""",
+                """INSERT INTO federation.claims(id,tenant_id,task_id,provider_id,envelope)
+                   VALUES(:claim,:t,:task,:provider,'{}')""",
+                """INSERT INTO federation.assignments(id,tenant_id,task_id,generation,claim_id,provider_id,attempt_id,state,lease_until)
+                   VALUES(:assignment,:t,:task,1,:claim,:provider,:assignment,'completed',clock_timestamp())""",
+                """INSERT INTO federation.artifacts(id,tenant_id,task_id,assignment_id,provider_id,envelope)
+                   VALUES(:artifact,:t,:task,:assignment,:provider,CAST(:envelope AS jsonb))""",
+                """INSERT INTO federation.events(id,tenant_id,task_id,kind,actor_id,envelope,publication_mode,receipt)
+                   VALUES(:event,:t,:task,'task',:requester,'{}','public_reference','{"arkiv_v1":{"status":"indexed"}}')""",
+            ):
+                session.execute(text(statement), values)
+            return task_id, envelope.content_digest
+
+        task, digest = seed(task, producer, detail["artifacts"][0]["envelope"])
+        review, review_digest = seed(
+            review, reviewer, final["artifacts"][0]["envelope"], task, digest
+        )
+    paths = [f"/v1/network/tasks/{identifier}/arkiv-evidence" for identifier in (task, review)]
+    result = post(client, paths[0] + "/intent", approval, project)
+    opened_review = post(client, paths[1] + "/intent", approval, project)
+    assert result.status_code == opened_review.status_code == 200, (result.text, opened_review.text)
+    result_intent, review_intent = result.json(), opened_review.json()
+    assert result_intent["owner"] == producer.wallet
+    assert result_intent["attributes"] == {
+        "taskId": str(task),
+        "artifactDigest": digest,
+        "methodId": "orca.native-seasonal-sst/hackathon-v1",
+        "status": "inconclusive",
+    }
+    assert review_intent["owner"] == reviewer.wallet
+    assert review_intent["attributes"]["resultDigest"] == digest
+    assert review_intent["attributes"]["reviewDigest"] == review_digest
+    assert review_intent["attributes"]["verdict"] == "agrees"
+
+    expected = {item["kind"]: item for item in (result_intent, review_intent)}
+    key = "0x" + "a" * 64
+
+    class Chain:
+        def public_v1_evidence(self, kind, reference, owner, cursor):
+            intent = expected[kind]
+            assert owner == intent["owner"] and reference == digest
+            record = {"status": "observed", "owner": owner, "entity_key": key}
+            return {
+                "records": [
+                    {**record, "attributes": {**intent["attributes"], "status": "substituted"}},
+                    {**record, "attributes": intent["attributes"]},
+                    {**record, "status": "expired"},
+                ],
+                "index_block": "118",
+                "observed_block": "120",
+                "index_lag_blocks": "2",
+                "next_cursor": key if cursor is None else None,
+            }
+
+    monkeypatch.setattr(client.app.state, "network_runtime", replace(runtime, gateway=Chain()))
+    for path in paths:
+        assert client.get(path, params={**params, "cursor": "wrong"}).status_code == 422
+        page = client.get(path, params=params)
+        assert page.status_code == 200, page.text
+        assert len(page.json()["records"]) == 1
+        assert page.json()["index_lag_blocks"] == "2"
+        assert page.json()["scientific_result_verified"] is False
+        assert client.get(path, params={**params, "cursor": key}).json()["next_cursor"] is None
+    with TenantUnitOfWork(client.app.state.runtime_engine, tenant) as session:
+        session.execute(
+            text(
+                "UPDATE federation.tasks SET publication_mode='private' WHERE tenant_id=:t AND id=:id"
+            ),
+            {"t": tenant, "id": task},
+        )
+    assert post(client, paths[1] + "/intent", approval, project).status_code == 404
+    with TenantUnitOfWork(client.app.state.runtime_engine, tenant) as session:
+        session.execute(
+            text(
+                "UPDATE federation.tasks SET publication_mode='public_reference' WHERE tenant_id=:t AND id=:id"
+            ),
+            {"t": tenant, "id": task},
+        )
+        session.execute(
+            text("""UPDATE federation.agents SET binding=jsonb_set(binding, '{wallet}', to_jsonb(CAST(:wallet AS text)))
+              WHERE tenant_id=:t AND id=:id"""),
+            {"wallet": producer.wallet, "t": tenant, "id": reviewer.id},
+        )
+    assert post(client, paths[1] + "/intent", approval, project).status_code == 409
 
 
 @pytest.mark.live

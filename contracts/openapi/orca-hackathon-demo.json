@@ -326,6 +326,21 @@
         "title": "AgentVersion",
         "type": "object"
       },
+      "ApproveArkivEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "approve_public_reference": {
+            "const": true,
+            "title": "Approve Public Reference",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "approve_public_reference"
+        ],
+        "title": "ApproveArkivEvidence",
+        "type": "object"
+      },
       "ApprovePlan": {
         "additionalProperties": false,
         "properties": {
@@ -6955,6 +6970,153 @@
           }
         ],
         "summary": "Task",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}/arkiv-evidence": {
+      "get": {
+        "operationId": "read_arkiv_evidence_v1_network_tasks__task_id__arkiv_evidence_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^0x[0-9a-fA-F]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Read Arkiv Evidence V1 Network Tasks  Task Id  Arkiv Evidence Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Read Arkiv Evidence",
+        "tags": [
+          "agent coordination"
+        ]
+      }
+    },
+    "/v1/network/tasks/{task_id}/arkiv-evidence/intent": {
+      "post": {
+        "operationId": "prepare_arkiv_evidence_v1_network_tasks__task_id__arkiv_evidence_intent_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveArkivEvidence"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Prepare Arkiv Evidence V1 Network Tasks  Task Id  Arkiv Evidence Intent Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OIDC": []
+          }
+        ],
+        "summary": "Prepare Arkiv Evidence",
         "tags": [
           "agent coordination"
         ]
