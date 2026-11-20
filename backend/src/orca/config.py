@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     acquisition_enabled: bool = False
     source_probes_enabled: bool = False
     research_demo_enabled: bool = False
+    companion_enabled: bool = False
     organization_creation_enabled: bool = False
     file_uploads_enabled: bool = False
     invitation_signing_key: SecretStr | None = Field(default=None, min_length=32)

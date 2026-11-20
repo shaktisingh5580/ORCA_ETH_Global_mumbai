@@ -12,5 +12,75 @@
     ],
     "required_env": [],
     "last_status": "PASS_LOCAL_DOMAIN_ONLY"
+  },
+  {
+    "file": "backend/migrations/versions/0044_companion_conversations.py",
+    "phase": "P12.1",
+    "purpose_ref": "A-API §3.13; W-MEM6 §6",
+    "test_ids": [
+      "test_companion_is_disabled_by_default",
+      "test_companion_conversation_isolation_pagination_and_revision"
+    ],
+    "required_env": [
+      "ORCA_TEST_DATABASE_URL",
+      "ORCA_TEST_RUNTIME_DATABASE_URL"
+    ],
+    "last_status": "PASS_LOCAL_POSTGRESQL"
+  },
+  {
+    "file": "backend/src/orca/application/companion.py",
+    "phase": "P12.1",
+    "purpose_ref": "A-API §3.13; W-MEM6 §6",
+    "test_ids": [
+      "test_companion_is_disabled_by_default",
+      "test_companion_conversation_isolation_pagination_and_revision"
+    ],
+    "required_env": [
+      "ORCA_TEST_DATABASE_URL",
+      "ORCA_TEST_RUNTIME_DATABASE_URL"
+    ],
+    "last_status": "PASS_LOCAL_POSTGRESQL"
+  },
+  {
+    "file": "backend/src/orca/api/routers/companion.py",
+    "phase": "P12.1",
+    "purpose_ref": "A-API §3.13; W-MEM6 §6",
+    "test_ids": [
+      "test_companion_is_disabled_by_default",
+      "test_companion_conversation_isolation_pagination_and_revision"
+    ],
+    "required_env": [
+      "ORCA_TEST_DATABASE_URL",
+      "ORCA_TEST_RUNTIME_DATABASE_URL"
+    ],
+    "last_status": "PASS_LOCAL_POSTGRESQL"
+  },
+  {
+    "file": "backend/src/orca/api/app.py",
+    "phase": "P12.1",
+    "purpose_ref": "A-API §3.13; W-MEM6 §6",
+    "test_ids": [
+      "test_companion_is_disabled_by_default",
+      "test_companion_conversation_isolation_pagination_and_revision"
+    ],
+    "required_env": [
+      "ORCA_TEST_DATABASE_URL",
+      "ORCA_TEST_RUNTIME_DATABASE_URL"
+    ],
+    "last_status": "PASS_LOCAL_POSTGRESQL"
+  },
+  {
+    "file": "backend/src/orca/config.py",
+    "phase": "P12.1",
+    "purpose_ref": "A-API §3.13; W-MEM6 §6",
+    "test_ids": [
+      "test_companion_is_disabled_by_default",
+      "test_companion_conversation_isolation_pagination_and_revision"
+    ],
+    "required_env": [
+      "ORCA_TEST_DATABASE_URL",
+      "ORCA_TEST_RUNTIME_DATABASE_URL"
+    ],
+    "last_status": "PASS_LOCAL_POSTGRESQL"
   }
 ]
