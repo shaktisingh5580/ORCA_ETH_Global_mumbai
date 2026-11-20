@@ -39,7 +39,19 @@
       ],
       "remaining": "Exercise encrypted backups, actual deployment failover and authorized object recovery. Confirm selected-release RTO/RPO and obtain operator signoff."
     },
-    "P14.3": {"status": "NOT_STARTED"},
+    "P14.3": {
+      "status": "LOCAL_RELEASE_MATRIX_PASSED",
+      "gate_status": "BLOCKED",
+      "evidence": "docs/releases/final_release_manifest.json",
+      "required_cases": [
+        "test_all_enabled_220_op_inventory_checked",
+        "test_mock_artifacts_excluded",
+        "test_openapi_client_regenerated",
+        "test_no_required_skips",
+        "test_repro_clean_install"
+      ],
+      "remaining": "Resolve the selected route inventory gaps and complete live G09–G11, deployed end-to-end checks, license/notice review, and independent release signoff."
+    },
     "P14.4": {"status": "NOT_STARTED"},
     "P14.5": {"status": "NOT_STARTED"}
   },

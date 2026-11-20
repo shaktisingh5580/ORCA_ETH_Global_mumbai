@@ -1,0 +1,2689 @@
+{
+  "schema": "orca.local-release-evidence/1",
+  "phase": "P14.3",
+  "profile": "research-federated",
+  "status": "LOCAL_RELEASE_MATRIX_PASSED",
+  "gate_status": "BLOCKED",
+  "code_revision": "176103552d2ccdb8a3c32e68a6df6d06da3e2d14",
+  "code_tree": "691270b0fa59c76d9a8828c8ada180b17f514149",
+  "recorded_at_utc": "2026-11-20T07:11:06+00:00",
+  "federation_prerequisites": {
+    "G09": "NOT_PASSED",
+    "G10": "NOT_PASSED",
+    "G11": "BLOCKED"
+  },
+  "federation_evidence": [
+    "docs/gates/P09/progress.json",
+    "docs/gates/P10/progress.json",
+    "docs/gates/P11/manifest.json"
+  ],
+  "artifact_digests": {
+    "LICENSE": "sha256:9c1312344fdfd2cfb6effdc8e6f287cb2fbbe1f277b09faa28d92ca7ff6a4445",
+    "backend/LICENSE": "sha256:9c1312344fdfd2cfb6effdc8e6f287cb2fbbe1f277b09faa28d92ca7ff6a4445",
+    "backend/uv.lock": "sha256:d227c6d2f0ae77f93bd7d7160315813cae8bc210b1d9901bf854639f64a6add9",
+    "contracts/openapi/orca-v1.json": "sha256:0e3fa1921eac6a7df34a64ec763f8ea532aa1eea67ea5d30d3f9ed12604dc53c",
+    "contracts/openapi/orca-prototype.json": "sha256:5b85def802a1097b76328e815657e564c9094a0328b44b5a898305d146dc9160",
+    "contracts/typescript/runtime.d.ts": "sha256:15048757e57c27d1f83fb454e6b658a74a1ae5f18d05054ac8ac37ab793e7deb",
+    "contracts/typescript/package-lock.json": "sha256:f2e8abb34decf7ee49ac566ed215bf120667558d7e4ad20bf3c4006a9054e40c",
+    "arkiv/package-lock.json": "sha256:d15661cc7eb82649ec18fc1c57cf05f4138dffa78f6fca41f37ad402a11426a6"
+  },
+  "operation_inventory": {
+    "historical_operations": 220,
+    "selected_design_operations": 165,
+    "registered_operations": 124,
+    "selected_design_registered": 102,
+    "selected_design_unregistered": 63,
+    "supplemental_registered": 19,
+    "historical_outside_selection_registered": [
+      "GET /v1/research/benchmarks",
+      "GET /v1/research/benchmarks/{benchmark_id}",
+      "POST /v1/research/reports/{report_id}/publish"
+    ],
+    "unregistered_selected_operations": [
+      {
+        "method": "GET",
+        "path": "/v1/admin/data-rights",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/admin/retention",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/identity/agent-bindings",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/identity/agent-bindings/{binding_id}",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/identity/ens/names/{encoded_name}",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/identity/ens/transactions/{transaction_id}",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/identity/institution-credentials",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/agents/{agent_id}/health",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/arkiv/entities/{entity_key}",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/arkiv/indexer-status",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/arkiv/transactions/{transaction_id}",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/investigations/{public_task_id}/timeline",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/provider-onboarding/{agent_id}/checklist",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/results",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/results/{result_ref_id}",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/reviews",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/tasks",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/tasks/{external_task_id}",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/tasks/{external_task_id}/a2a-sessions",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/tasks/{external_task_id}/assignments",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/tasks/{external_task_id}/claims",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/verifications/{verification_id}",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/artifacts/{artifact_id}/reproductions",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/exports/{export_id}",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/activity",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/events",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/events/stream",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/evidence-summary",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/map-layers",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/outcome",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/task-graph",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/map-layers/{layer_id}",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/projects/{project_id}/access-decisions",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/reproductions/{reproduction_id}",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/reviews/{review_id}",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/network/agents/{agent_id}/capabilities/{capability_id}",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/admin/retention/preview",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/agent-bindings/{binding_id}/revoke",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/agent-bindings/{binding_id}/verify",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/ens/permission-grants",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/ens/permission-revocations",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/ens/record-updates",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/ens/registrations",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/institution-credentials",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/institution-credentials/{credential_id}/decisions",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/agents",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/agents/{agent_id}/capabilities",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/agents/{agent_id}/endpoints",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/agents/{agent_id}/suspend",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/arkiv/queries",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/arkiv/reconciliation-requests",
+        "design_disposition": "OPS"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/discovery",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/results",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/reviews",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/tasks",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/tasks/{external_task_id}/assignments",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/tasks/{external_task_id}/claims",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/tasks/{external_task_id}/dispatch",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/verifications",
+        "design_disposition": "FED"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/artifacts/{artifact_id}/reproductions",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/exports/{export_id}/download-intents",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/exports",
+        "design_disposition": "CORE"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/map-layers/{layer_id}/access",
+        "design_disposition": "CORE"
+      }
+    ],
+    "runtime_operations": [
+      {
+        "method": "DELETE",
+        "path": "/v1/organizations/{org_id}/access-grants/{grant_id}",
+        "operation_id": "revoke_grant_v1_organizations__org_id__access_grants__grant_id__delete",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "DELETE",
+        "path": "/v1/organizations/{org_id}/members/{member_id}",
+        "operation_id": "delete_member_v1_organizations__org_id__members__member_id__delete",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "DELETE",
+        "path": "/v1/research/projects/{project_id}/members/{member_id}",
+        "operation_id": "revoke_project_member_v1_research_projects__project_id__members__member_id__delete",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "DELETE",
+        "path": "/v1/research/uploads/{upload_id}",
+        "operation_id": "abort_upload_v1_research_uploads__upload_id__delete",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/livez",
+        "operation_id": "get_livez",
+        "design_disposition": "CORE",
+        "security": []
+      },
+      {
+        "method": "GET",
+        "path": "/openapi.json",
+        "operation_id": "get_openapi",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "MonitoringBearer": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/readyz",
+        "operation_id": "get_readyz",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "MonitoringBearer": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/admin/job-health",
+        "operation_id": "job_health_v1_admin_job_health_get",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/admin/source-health",
+        "operation_id": "source_health_v1_admin_source_health_get",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/products",
+        "operation_id": "list_products_v1_catalog_products_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/products/{product_id}",
+        "operation_id": "get_product_v1_catalog_products__product_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/products/{product_id}/coverage",
+        "operation_id": "product_coverage_v1_catalog_products__product_id__coverage_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/products/{product_id}/licenses",
+        "operation_id": "product_license_v1_catalog_products__product_id__licenses_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/products/{product_id}/variables",
+        "operation_id": "list_variables_v1_catalog_products__product_id__variables_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/products/{product_id}/versions",
+        "operation_id": "list_versions_v1_catalog_products__product_id__versions_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/providers",
+        "operation_id": "list_providers_v1_catalog_providers_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/snapshot-requests/{request_id}",
+        "operation_id": "get_request_v1_catalog_snapshot_requests__request_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/snapshots",
+        "operation_id": "list_snapshots_v1_catalog_snapshots_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/snapshots/{snapshot_id}",
+        "operation_id": "get_snapshot_v1_catalog_snapshots__snapshot_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/snapshots/{snapshot_id}/manifest",
+        "operation_id": "get_manifest_v1_catalog_snapshots__snapshot_id__manifest_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/catalog/source-probes/{probe_id}",
+        "operation_id": "get_probe_v1_catalog_source_probes__probe_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/identity/agent-bindings/{challenge_id}",
+        "operation_id": "get_binding_evidence_v1_identity_agent_bindings__challenge_id__get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/me",
+        "operation_id": "me_v1_me_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/meta",
+        "operation_id": "get_meta",
+        "design_disposition": "CORE",
+        "security": []
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/agents",
+        "operation_id": "list_agents_v1_network_agents_get",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/agents/{agent_id}",
+        "operation_id": "get_agent_v1_network_agents__agent_id__get",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/agents/{agent_id}/capabilities",
+        "operation_id": "get_capabilities_v1_network_agents__agent_id__capabilities_get",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/agents/{agent_id}/endpoint-checks/{job_id}",
+        "operation_id": "get_endpoint_check_v1_network_agents__agent_id__endpoint_checks__job_id__get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/agents/{agent_id}/endpoint-qualifications/{job_id}",
+        "operation_id": "get_endpoint_qualification_v1_network_agents__agent_id__endpoint_qualifications__job_id__get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/network/agents/{agent_id}/endpoints",
+        "operation_id": "get_endpoints_v1_network_agents__agent_id__endpoints_get",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/operations",
+        "operation_id": "list_operations_v1_operations_get",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/operations/{operation_id}",
+        "operation_id": "get_operation_v1_operations__operation_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations",
+        "operation_id": "organizations_v1_organizations_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations/{org_id}",
+        "operation_id": "get_organization_v1_organizations__org_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations/{org_id}/access-grants",
+        "operation_id": "grants_v1_organizations__org_id__access_grants_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations/{org_id}/audit-events",
+        "operation_id": "organization_audit_events_v1_organizations__org_id__audit_events_get",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations/{org_id}/members",
+        "operation_id": "list_members_v1_organizations__org_id__members_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations/{org_id}/policies",
+        "operation_id": "read_policy_v1_organizations__org_id__policies_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations/{org_id}/quotas",
+        "operation_id": "organization_quotas_v1_organizations__org_id__quotas_get",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/organizations/{org_id}/usage",
+        "operation_id": "organization_usage_v1_organizations__org_id__usage_get",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/artifacts/{artifact_id}",
+        "operation_id": "get_artifact_v1_research_artifacts__artifact_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/artifacts/{artifact_id}/challenges",
+        "operation_id": "list_challenges_v1_research_artifacts__artifact_id__challenges_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/artifacts/{artifact_id}/lineage",
+        "operation_id": "get_artifact_lineage_v1_research_artifacts__artifact_id__lineage_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/artifacts/{artifact_id}/manifest",
+        "operation_id": "get_artifact_manifest_v1_research_artifacts__artifact_id__manifest_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/artifacts/{artifact_id}/reference-export",
+        "operation_id": "download_reference_export_v1_research_artifacts__artifact_id__reference_export_get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/artifacts/{artifact_id}/reviews",
+        "operation_id": "list_reviews_v1_research_artifacts__artifact_id__reviews_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/benchmarks",
+        "operation_id": "list_benchmarks_v1_research_benchmarks_get",
+        "design_disposition": "DEFER",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/benchmarks/{benchmark_id}",
+        "operation_id": "get_benchmark_v1_research_benchmarks__benchmark_id__get",
+        "design_disposition": "DEFER",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/files/{file_id}",
+        "operation_id": "read_file_v1_research_files__file_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations",
+        "operation_id": "list_investigations_v1_research_investigations_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}",
+        "operation_id": "get_investigation_v1_research_investigations__investigation_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/artifacts",
+        "operation_id": "list_artifacts_v1_research_investigations__investigation_id__artifacts_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/plans",
+        "operation_id": "list_plans_v1_research_investigations__investigation_id__plans_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/plans/{plan_id}",
+        "operation_id": "get_plan_v1_research_investigations__investigation_id__plans__plan_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/reports",
+        "operation_id": "list_reports_v1_research_investigations__investigation_id__reports_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs",
+        "operation_id": "list_runs_v1_research_investigations__investigation_id__runs_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}",
+        "operation_id": "get_run_v1_research_investigations__investigation_id__runs__run_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/costs",
+        "operation_id": "run_costs_v1_research_investigations__investigation_id__runs__run_id__costs_get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/events",
+        "operation_id": "run_events_v1_research_investigations__investigation_id__runs__run_id__events_get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/events/stream",
+        "operation_id": "stream_run_events_v1_research_investigations__investigation_id__runs__run_id__events_stream_get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/outcome",
+        "operation_id": "run_outcome_v1_research_investigations__investigation_id__runs__run_id__outcome_get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/remote-dispatches/{dispatch_id}",
+        "operation_id": "get_remote_dispatch_v1_research_investigations__investigation_id__runs__run_id__remote_dispatches__dispatch_id__get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/remote-dispatches/{dispatch_id}/events",
+        "operation_id": "get_remote_dispatch_history_v1_research_investigations__investigation_id__runs__run_id__remote_dispatches__dispatch_id__events_get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/task-graph",
+        "operation_id": "run_task_graph_v1_research_investigations__investigation_id__runs__run_id__task_graph_get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/projects",
+        "operation_id": "list_projects_v1_research_projects_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/projects/{project_id}",
+        "operation_id": "get_project_v1_research_projects__project_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/projects/{project_id}/files",
+        "operation_id": "list_files_v1_research_projects__project_id__files_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/projects/{project_id}/members",
+        "operation_id": "list_project_members_v1_research_projects__project_id__members_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/reports/{report_id}",
+        "operation_id": "get_report_v1_research_reports__report_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/reports/{report_id}/content/{format}",
+        "operation_id": "report_content_v1_research_reports__report_id__content__format__get",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/research/uploads/{upload_id}",
+        "operation_id": "read_upload_v1_research_uploads__upload_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/science/methods",
+        "operation_id": "methods_v1_science_methods_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/science/methods/{method_id}",
+        "operation_id": "method_detail_v1_science_methods__method_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/science/methods/{method_id}/versions/{version}",
+        "operation_id": "method_version_v1_science_methods__method_id__versions__version__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/science/policies",
+        "operation_id": "policy_v1_science_policies_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/science/quality-codebook",
+        "operation_id": "quality_codebook_v1_science_quality_codebook_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/science/recipe-templates",
+        "operation_id": "templates_v1_science_recipe_templates_get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/science/recipe-templates/{template_id}",
+        "operation_id": "template_detail_v1_science_recipe_templates__template_id__get",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/network/agents/{agent_id}",
+        "operation_id": "revise_agent_v1_network_agents__agent_id__patch",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/organizations/{org_id}",
+        "operation_id": "patch_organization_v1_organizations__org_id__patch",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/organizations/{org_id}/members/{member_id}",
+        "operation_id": "patch_member_v1_organizations__org_id__members__member_id__patch",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/organizations/{org_id}/policies",
+        "operation_id": "patch_policy_v1_organizations__org_id__policies_patch",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/organizations/{org_id}/quotas",
+        "operation_id": "patch_organization_quotas_v1_organizations__org_id__quotas_patch",
+        "design_disposition": "OPS",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/research/investigations/{investigation_id}",
+        "operation_id": "patch_investigation_v1_research_investigations__investigation_id__patch",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/research/projects/{project_id}",
+        "operation_id": "patch_project_v1_research_projects__project_id__patch",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/v1/research/projects/{project_id}/members/{member_id}",
+        "operation_id": "patch_project_member_v1_research_projects__project_id__members__member_id__patch",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/catalog/compatibility-checks",
+        "operation_id": "compatibility_check_v1_catalog_compatibility_checks_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/catalog/products/{product_id}/fitness-checks",
+        "operation_id": "fitness_check_v1_catalog_products__product_id__fitness_checks_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/catalog/snapshot-requests",
+        "operation_id": "create_request_v1_catalog_snapshot_requests_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/catalog/source-probes",
+        "operation_id": "create_probe_v1_catalog_source_probes_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/agent-bindings",
+        "operation_id": "submit_binding_challenge_v1_identity_agent_bindings_post",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/agent-bindings/challenges",
+        "operation_id": "create_binding_challenge_v1_identity_agent_bindings_challenges_post",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/ens/endpoint-permissions",
+        "operation_id": "observe_ens_endpoint_permissions_v1_identity_ens_endpoint_permissions_post",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/ens/resolutions",
+        "operation_id": "resolve_ens_v1_identity_ens_resolutions_post",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/ens/resolver-boundaries",
+        "operation_id": "compare_ens_resolvers_v1_identity_ens_resolver_boundaries_post",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/invitations/{token}/accept",
+        "operation_id": "accept_v1_invitations__token__accept_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/agents/{agent_id}/endpoint-checks",
+        "operation_id": "check_endpoint_v1_network_agents__agent_id__endpoint_checks_post",
+        "design_disposition": "FED",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/network/agents/{agent_id}/endpoint-qualifications",
+        "operation_id": "qualify_endpoint_v1_network_agents__agent_id__endpoint_qualifications_post",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/organizations",
+        "operation_id": "create_organization_v1_organizations_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/organizations/{org_id}/access-grants",
+        "operation_id": "grant_v1_organizations__org_id__access_grants_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/organizations/{org_id}/invitations",
+        "operation_id": "invite_v1_organizations__org_id__invitations_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/artifacts/{artifact_id}/challenges",
+        "operation_id": "create_challenge_v1_research_artifacts__artifact_id__challenges_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/artifacts/{artifact_id}/review-grants",
+        "operation_id": "grant_review_v1_research_artifacts__artifact_id__review_grants_post",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/artifacts/{artifact_id}/review-grants/{grant_id}/revoke",
+        "operation_id": "revoke_review_v1_research_artifacts__artifact_id__review_grants__grant_id__revoke_post",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/artifacts/{artifact_id}/reviews",
+        "operation_id": "create_review_v1_research_artifacts__artifact_id__reviews_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/challenges/{challenge_id}/resolve",
+        "operation_id": "resolve_challenge_v1_research_challenges__challenge_id__resolve_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/challenges/{challenge_id}/responses",
+        "operation_id": "respond_to_challenge_v1_research_challenges__challenge_id__responses_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/files/{file_id}/download-intents",
+        "operation_id": "download_file_v1_research_files__file_id__download_intents_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations",
+        "operation_id": "create_investigation_v1_research_investigations_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/plans",
+        "operation_id": "create_plan_v1_research_investigations__investigation_id__plans_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/plans/{plan_id}/approve",
+        "operation_id": "approve_plan_v1_research_investigations__investigation_id__plans__plan_id__approve_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/reports",
+        "operation_id": "create_report_v1_research_investigations__investigation_id__reports_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/runs",
+        "operation_id": "start_run_v1_research_investigations__investigation_id__runs_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/cancel",
+        "operation_id": "cancel_run_v1_research_investigations__investigation_id__runs__run_id__cancel_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/remote-dispatches",
+        "operation_id": "create_remote_dispatch_v1_research_investigations__investigation_id__runs__run_id__remote_dispatches_post",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/remote-dispatches/{dispatch_id}/cancel",
+        "operation_id": "cancel_remote_dispatch_v1_research_investigations__investigation_id__runs__run_id__remote_dispatches__dispatch_id__cancel_post",
+        "design_disposition": "SUPPLEMENTAL",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/investigations/{investigation_id}/runs/{run_id}/retry",
+        "operation_id": "retry_run_v1_research_investigations__investigation_id__runs__run_id__retry_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/projects",
+        "operation_id": "create_project_v1_research_projects_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/projects/{project_id}/archive",
+        "operation_id": "archive_project_v1_research_projects__project_id__archive_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/projects/{project_id}/members",
+        "operation_id": "add_project_member_v1_research_projects__project_id__members_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/projects/{project_id}/uploads",
+        "operation_id": "create_upload_v1_research_projects__project_id__uploads_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/reports/{report_id}/publish",
+        "operation_id": "publish_report_v1_research_reports__report_id__publish_post",
+        "design_disposition": "DEFER",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/research/uploads/{upload_id}/complete",
+        "operation_id": "complete_upload_v1_research_uploads__upload_id__complete_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/science/recipe-validations",
+        "operation_id": "validate_recipe_v1_science_recipe_validations_post",
+        "design_disposition": "CORE",
+        "security": [
+          {
+            "OIDC": []
+          }
+        ]
+      }
+    ]
+  },
+  "operation_inventory_scope": "Runtime OpenAPI for default non-demo settings. Exact HTTP method/path comparisons preserve aliases and supplements as distinct operations. Registration and OpenAPI authorization metadata are not live acceptance.",
+  "local_tests": {
+    "strict_release_matrix": {
+      "passed": 6,
+      "junit_sha256": "sha256:5195e008077f6a095ab398ac63ecd287e18dd31ff99f60f0e98921ff025295f5",
+      "cases": [
+        "test_all_enabled_220_op_inventory_checked",
+        "test_openapi_client_regenerated",
+        "test_no_required_skips",
+        "test_local_signature_and_federation_scope",
+        "test_mock_artifacts_excluded",
+        "test_repro_clean_install"
+      ]
+    },
+    "http_contracts_and_review_export": {
+      "passed": 122,
+      "junit_sha256": "sha256:b7fb428afc12af9814ef27597ff29d7b35fb4a2bac4f1376df41d10b8485c8a6"
+    },
+    "affected_federation_worker_and_guards": {
+      "passed": 8,
+      "junit_sha256": "sha256:84598e26b9019ee088080ed79d1145e83cf0feba01cd3d7bab251cfb39a98837"
+    },
+    "dashboard_session": {
+      "passed": 12,
+      "scope": "Node test harness for dashboard state and session handling"
+    },
+    "ens_and_arkiv": {
+      "passed": 56,
+      "scope": "Local SDK and transport regression suite"
+    },
+    "runtime_sdk": {
+      "passed": 1,
+      "scope": "Fetch contract test plus strict TypeScript compile"
+    }
+  },
+  "static_checks": [
+    "OpenAPI and prototype exporter drift",
+    "SDK generator drift",
+    "Ruff lint and format",
+    "Strict backend mypy",
+    "Purpose headers",
+    "Import boundaries",
+    "Frozen uv lock"
+  ],
+  "clean_install": {
+    "wheel_environment": {
+      "python_version": "3.12.12",
+      "wheel_sha256": "ea86fd2e4e51ca26c8287673e3c25ad9b0795aa08333ff9ab0bc846dab7a0674",
+      "sdist_sha256": "04e9d1ae49db422c9647f98886851fccef50e9d6611e5cc9623b4361fd014624"
+    },
+    "candidate_linux_images": [
+      {
+        "image": "render",
+        "digest": "sha256:f44a1912e0760ecd693d5dbc47a7bb334533f95502352fb7ba7d50c16b32a2c8",
+        "python": "3.12.16",
+        "mit_metadata": true,
+        "fixture_exclusion": true
+      },
+      {
+        "image": "provider",
+        "digest": "sha256:823e2c9ecef698b973ddd75d68a7535eff8c43e5a71efba4ee67abf699f729e8",
+        "python": "3.12.16",
+        "mit_metadata": true,
+        "fixture_exclusion": true
+      }
+    ],
+    "scope": "Fresh runtime wheel installation from the locked dependencies, plus local image builds and offline smoke tests."
+  },
+  "license_inventory": {
+    "project_license": "MIT",
+    "python_distributions": [
+      {
+        "license": "Apache-2.0",
+        "license_classifiers": [
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "a2a-sdk",
+        "version": "0.3.22"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "alembic",
+        "version": "1.20.1"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "annotated-doc",
+        "version": "0.0.5"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [
+          "License :: OSI Approved :: MIT License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "annotated-types",
+        "version": "0.8.0"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "anyio",
+        "version": "4.16.0"
+      },
+      {
+        "license": "Apache-2.0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE",
+          "NOTICE"
+        ],
+        "package": "boto3",
+        "version": "1.43.125"
+      },
+      {
+        "license": "Apache-2.0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt",
+          "NOTICE"
+        ],
+        "package": "botocore",
+        "version": "1.43.125"
+      },
+      {
+        "license": "MPL-2.0",
+        "license_classifiers": [
+          "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "certifi",
+        "version": "2026.10.23"
+      },
+      {
+        "license": "MIT-0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "cffi",
+        "version": "2.1.1"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "charset-normalizer",
+        "version": "3.5.2"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt"
+        ],
+        "package": "click",
+        "version": "8.5.0"
+      },
+      {
+        "license": "Apache-2.0 OR BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE",
+          "LICENSE.APACHE",
+          "LICENSE.BSD"
+        ],
+        "package": "cryptography",
+        "version": "50.0.2"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "fastapi",
+        "version": "0.162.0"
+      },
+      {
+        "license": "Apache 2.0",
+        "license_classifiers": [
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "google-api-core",
+        "version": "2.44.0"
+      },
+      {
+        "license": "Apache 2.0",
+        "license_classifiers": [
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "google-auth",
+        "version": "2.62.1"
+      },
+      {
+        "license": "Apache-2.0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "googleapis-common-protos",
+        "version": "1.76.0"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [
+          "License :: OSI Approved :: MIT License"
+        ],
+        "license_files": [
+          "LICENSE.txt"
+        ],
+        "package": "h11",
+        "version": "0.16.0"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [
+          "License :: OSI Approved :: BSD License"
+        ],
+        "license_files": [
+          "LICENSE.md"
+        ],
+        "package": "httpcore",
+        "version": "1.0.9"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [
+          "License :: OSI Approved :: BSD License"
+        ],
+        "license_files": [],
+        "package": "httpx",
+        "version": "0.28.1"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "httpx-sse",
+        "version": "0.4.3"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.md"
+        ],
+        "package": "idna",
+        "version": "3.20"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [
+          "License :: OSI Approved :: MIT License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "jmespath",
+        "version": "1.1.0"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "mako",
+        "version": "1.4.3"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt"
+        ],
+        "package": "markupsafe",
+        "version": "3.0.4"
+      },
+      {
+        "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt",
+          "numpy/_core/include/numpy/libdivide/LICENSE.txt",
+          "numpy/_core/src/common/pythoncapi-compat/COPYING",
+          "numpy/_core/src/highway/LICENSE",
+          "numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+          "numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+          "numpy/_core/src/umath/svml/LICENSE",
+          "numpy/fft/pocketfft/LICENSE.md",
+          "numpy/linalg/lapack_lite/LICENSE.txt",
+          "numpy/ma/LICENSE",
+          "numpy/random/LICENSE.md",
+          "numpy/random/src/distributions/LICENSE.md",
+          "numpy/random/src/mt19937/LICENSE.md",
+          "numpy/random/src/pcg64/LICENSE.md",
+          "numpy/random/src/philox/LICENSE.md",
+          "numpy/random/src/sfc64/LICENSE.md",
+          "numpy/random/src/splitmix64/LICENSE.md"
+        ],
+        "package": "numpy",
+        "version": "2.5.4"
+      },
+      {
+        "license": "Apache-2.0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "opentelemetry-api",
+        "version": "1.45.2"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "orca-backend",
+        "version": "0.1.0"
+      },
+      {
+        "license": "Apache 2.0",
+        "license_classifiers": [
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "proto-plus",
+        "version": "1.29.0"
+      },
+      {
+        "license": "3-Clause BSD License",
+        "license_classifiers": [],
+        "license_files": [],
+        "package": "protobuf",
+        "version": "7.36.2"
+      },
+      {
+        "license": "LGPL-3.0-only",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt"
+        ],
+        "package": "psycopg",
+        "version": "3.3.8"
+      },
+      {
+        "license": "LGPL-3.0-only",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt"
+        ],
+        "package": "psycopg-binary",
+        "version": "3.3.8"
+      },
+      {
+        "license": "BSD-2-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.rst"
+        ],
+        "package": "pyasn1",
+        "version": "0.6.5"
+      },
+      {
+        "license": "BSD",
+        "license_classifiers": [
+          "License :: OSI Approved :: BSD License"
+        ],
+        "license_files": [
+          "LICENSE.txt"
+        ],
+        "package": "pyasn1-modules",
+        "version": "0.4.2"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "pycparser",
+        "version": "3.12"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "pydantic",
+        "version": "2.14.3"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "pydantic-core",
+        "version": "2.50.4"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [
+          "License :: OSI Approved :: MIT License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "pydantic-settings",
+        "version": "2.16.2"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE",
+          "AUTHORS.rst"
+        ],
+        "package": "pyjwt",
+        "version": "2.15.1"
+      },
+      {
+        "license": "Dual License",
+        "license_classifiers": [
+          "License :: OSI Approved :: BSD License",
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "python-dateutil",
+        "version": "2.9.0.post0"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "python-dotenv",
+        "version": "1.2.4"
+      },
+      {
+        "license": "Apache-2.0",
+        "license_classifiers": [
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [
+          "LICENSE",
+          "NOTICE"
+        ],
+        "package": "requests",
+        "version": "2.34.2"
+      },
+      {
+        "license": null,
+        "license_classifiers": [
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [],
+        "package": "rfc8785",
+        "version": "0.1.4"
+      },
+      {
+        "license": "Apache License 2.0",
+        "license_classifiers": [
+          "License :: OSI Approved :: Apache Software License"
+        ],
+        "license_files": [
+          "LICENSE.txt",
+          "NOTICE.txt"
+        ],
+        "package": "s3transfer",
+        "version": "0.19.3"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt",
+          "LICENSE_GEOS",
+          "LICENSE_win32"
+        ],
+        "package": "shapely",
+        "version": "2.2.0"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [
+          "License :: OSI Approved :: MIT License"
+        ],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "six",
+        "version": "1.17.0"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE",
+          "AUTHORS"
+        ],
+        "package": "sqlalchemy",
+        "version": "2.1.8"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE",
+          "AUTHORS"
+        ],
+        "package": "sse-starlette",
+        "version": "3.6.0"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.md"
+        ],
+        "package": "starlette",
+        "version": "1.10.0"
+      },
+      {
+        "license": "PSF-2.0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "typing-extensions",
+        "version": "4.16.0"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE"
+        ],
+        "package": "typing-inspection",
+        "version": "0.4.5"
+      },
+      {
+        "license": "Apache-2.0",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE",
+          "licenses/LICENSE_APACHE"
+        ],
+        "package": "tzdata",
+        "version": "2026.6"
+      },
+      {
+        "license": "MIT",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.txt"
+        ],
+        "package": "urllib3",
+        "version": "2.8.0"
+      },
+      {
+        "license": "BSD-3-Clause",
+        "license_classifiers": [],
+        "license_files": [
+          "LICENSE.md"
+        ],
+        "package": "uvicorn",
+        "version": "0.54.0"
+      }
+    ],
+    "node_packages": {
+      "arkiv": [
+        {
+          "name": "@adraffy/ens-normalize",
+          "version": "1.11.1",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "@arkiv-network/sdk",
+          "version": "1.0.1",
+          "license": "MIT",
+          "development": false,
+          "installed": true,
+          "evidence": "LICENSE.md shipped with the locked package",
+          "license_digest": "sha256:1228f37467cca3f3442bfa25495c1b1dba245cd48c4dc6ae32c344146fa9c530"
+        },
+        {
+          "name": "@noble/ciphers",
+          "version": "1.3.0",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "@noble/curves",
+          "version": "1.9.1",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "@noble/hashes",
+          "version": "1.8.0",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "@scure/base",
+          "version": "1.2.6",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "@scure/bip32",
+          "version": "1.7.0",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "@scure/bip39",
+          "version": "1.6.0",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "abitype",
+          "version": "1.2.3",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "eventemitter3",
+          "version": "5.0.1",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "isows",
+          "version": "1.0.7",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "ox",
+          "version": "0.14.59",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "viem",
+          "version": "2.57.16",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "ws",
+          "version": "8.21.0",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        }
+      ],
+      "contracts/typescript": [
+        {
+          "name": "@babel/code-frame",
+          "version": "7.29.7",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "@babel/helper-validator-identifier",
+          "version": "7.29.7",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "@redocly/ajv",
+          "version": "8.11.2",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "@redocly/config",
+          "version": "0.22.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "@redocly/openapi-core",
+          "version": "1.34.24",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "agent-base",
+          "version": "7.1.4",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "ansi-colors",
+          "version": "4.1.3",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "argparse",
+          "version": "2.0.1",
+          "license": "Python-2.0",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "balanced-match",
+          "version": "1.0.2",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "brace-expansion",
+          "version": "2.1.8",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "change-case",
+          "version": "5.4.4",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "colorette",
+          "version": "1.4.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "debug",
+          "version": "4.4.3",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "fast-deep-equal",
+          "version": "3.1.3",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "https-proxy-agent",
+          "version": "7.0.6",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "index-to-position",
+          "version": "1.2.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "js-levenshtein",
+          "version": "1.1.6",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "js-tokens",
+          "version": "4.0.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "js-yaml",
+          "version": "4.3.2",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "json-schema-traverse",
+          "version": "1.0.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "minimatch",
+          "version": "5.1.9",
+          "license": "ISC",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "ms",
+          "version": "2.1.3",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "openapi-fetch",
+          "version": "0.17.0",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "openapi-typescript",
+          "version": "7.13.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "openapi-typescript-helpers",
+          "version": "0.1.0",
+          "license": "MIT",
+          "development": false,
+          "installed": true
+        },
+        {
+          "name": "parse-json",
+          "version": "8.3.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "picocolors",
+          "version": "1.1.1",
+          "license": "ISC",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "pluralize",
+          "version": "8.0.0",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "require-from-string",
+          "version": "2.0.2",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "supports-color",
+          "version": "10.2.2",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "type-fest",
+          "version": "4.41.0",
+          "license": "(MIT OR CC0-1.0)",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "typescript",
+          "version": "5.9.3",
+          "license": "Apache-2.0",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "uri-js-replace",
+          "version": "1.0.3",
+          "license": "MIT",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "yaml-ast-parser",
+          "version": "0.0.43",
+          "license": "Apache-2.0",
+          "development": true,
+          "installed": true
+        },
+        {
+          "name": "yargs-parser",
+          "version": "21.1.1",
+          "license": "ISC",
+          "development": true,
+          "installed": true
+        }
+      ]
+    },
+    "scope": "Package declarations, bundled license files and available classifiers. Distribution notices, operating-system license obligations and source-data rights still need release review.",
+    "sdk_npm_advisories": 0
+  },
+  "attestation_scope": "One-time local Ed25519 integrity signature. The included public key identifies this report only. Independent release approval is pending.",
+  "remaining_acceptance": [
+    "Reconcile unregistered selected routes and three historical DEFER routes registered by the runtime. Cover each accepted route with contract and behavior evidence.",
+    "Complete deployed E2E for the selected federated profile and pass G09, G10 and G11. Core-only checks cannot qualify this profile.",
+    "Complete independent release signoff, license notice and data-rights review, and remaining P14 security and recovery acceptance. Oracle deployment remains deferred."
+  ],
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "TGdWRDqSZi7G7nksgdgBOmR9nxwrHCVp4CusOmEHgnc",
+    "value": "9F2MWxsTBiBQYYG5Ss-q3RDevDVr-WnBq6TYM0NvWjR8XxQeEfE2GXirDm81wJUKcg7bQ_c11jcQYNNoc_xiCw"
+  }
+}
