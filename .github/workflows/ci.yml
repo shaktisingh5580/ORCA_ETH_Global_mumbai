@@ -1,6 +1,6 @@
 # Purpose: reproduce P00/P01 checks on a clean Linux worker.
 # Behavior: acquire locked Python/Arkiv dependencies and verify committed code; local source docs stay private.
-# Refs: main_implementation plan.md P01.4; H04-agent-coordination.json; Phase: P01/H04.
+# Refs: main_implementation plan.md P01.4/P14.3; H04-agent-coordination.json; Phase: P01/H04/P14.
 name: Backend phase gates
 on: [push, pull_request]
 permissions:
@@ -22,6 +22,8 @@ jobs:
         working-directory: arkiv
       - run: npm run check
         working-directory: arkiv
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: contracts/typescript
       # Offline ENS safety tests do not claim live namespace/delegation acceptance.
       - run: npm test
         working-directory: arkiv
@@ -39,9 +41,15 @@ jobs:
       - run: backend/.venv/bin/python -m ruff check backend
       - run: backend/.venv/bin/python -m ruff format --check backend
       - run: backend/.venv/bin/python -m mypy --config-file backend/pyproject.toml backend/src backend/scripts
+      - name: Verify local release checks without skips
+        run: |
+          backend/.venv/bin/python -m pytest -c backend/pyproject.toml backend/tests/e2e/test_release_matrix.py --junitxml=.cache/p14-release-matrix.xml
+          backend/.venv/bin/python backend/scripts/release_matrix.py --junit .cache/p14-release-matrix.xml
       - run: backend/.venv/bin/python -m pytest -c backend/pyproject.toml backend/tests
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: phase-gate-evidence
-          path: docs/gates/
+          path: |
+            docs/gates/
+            .cache/p14-release-matrix.xml

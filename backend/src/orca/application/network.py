@@ -462,7 +462,7 @@ class Network:
         task = self.task_row(identifier)
         if task["state"] != "completed" or task["publication_mode"] != "public_reference":
             raise LookupError("No approved public evidence for this task")
-        receipt = self.session.execute(
+        receipt: dict[str, Any] | None = self.session.execute(
             text(
                 "SELECT receipt FROM federation.events WHERE tenant_id=:t AND task_id=:id AND kind='task'"
             ),

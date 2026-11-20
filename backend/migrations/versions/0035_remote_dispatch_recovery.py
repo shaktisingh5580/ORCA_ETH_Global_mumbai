@@ -15,7 +15,9 @@ def upgrade() -> None:
     op.execute("ALTER TABLE federation.research_dispatches ALTER COLUMN state TYPE varchar(32)")
     op.execute("ALTER TABLE federation.research_dispatches ADD COLUMN signed_grant jsonb")
     op.execute("ALTER TABLE federation.research_dispatches ADD COLUMN verified_response jsonb")
-    op.execute("ALTER TABLE federation.research_dispatches DROP CONSTRAINT research_dispatches_state_check")
+    op.execute(
+        "ALTER TABLE federation.research_dispatches DROP CONSTRAINT research_dispatches_state_check"
+    )
     op.execute("""ALTER TABLE federation.research_dispatches ADD CONSTRAINT research_dispatches_state_check
       CHECK(state IN ('queued','leased','completed','failed','cancelled','reconciliation_required'))""")
     op.execute("""ALTER TABLE federation.research_dispatches ADD CONSTRAINT research_dispatch_response_check

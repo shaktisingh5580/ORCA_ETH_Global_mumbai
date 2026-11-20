@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 ca-c
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=node /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
 WORKDIR /app
-COPY backend/pyproject.toml backend/uv.lock backend/README.md ./backend/
+COPY backend/pyproject.toml backend/uv.lock backend/README.md backend/LICENSE ./backend/
 RUN pip install --no-cache-dir uv==0.9.30 && uv sync --project backend --frozen --no-dev --no-install-project
 COPY backend/src ./backend/src
 RUN uv pip install --python backend/.venv/bin/python --no-deps ./backend

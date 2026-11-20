@@ -9,6 +9,8 @@ build-backend = "hatchling.build"
 name = "orca-backend"
 version = "0.1.0"
 description = "ORCA P01 contracts and truthful runtime metadata"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "alembic>=1.14,<2",
@@ -33,7 +35,7 @@ dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.9,<1", "mypy>=1.14,<2", "json
 packages = ["src/orca"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/orca", "pyproject.toml", "README.md"]
+include = ["src/orca", "pyproject.toml", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

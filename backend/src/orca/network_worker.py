@@ -388,8 +388,8 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                 )
                 reject_conflicting_assignments(runtime, task, event)
                 if v1_task := (public_task_receipt or {}).get("arkiv_v1"):
-                    v1_claim = (parent["receipt"] or {}).get("arkiv_v1")
-                    if receipt is None or not v1_claim:
+                    selected_v1_claim = (parent["receipt"] or {}).get("arkiv_v1")
+                    if receipt is None or not selected_v1_claim:
                         raise ValueError("Selected assignment lacks its verified Arkiv v1 claim")
                     receipt = {
                         **receipt,
@@ -403,7 +403,7 @@ def process(db: Engine, runtime: NetworkRuntime, tenant: UUID, operation_id: UUI
                                 coordinator,
                                 provider,
                                 v1_task["entity_key"],
-                                v1_claim["entity_key"],
+                                selected_v1_claim["entity_key"],
                                 signed_assignment.content_digest,
                             )
                         ),

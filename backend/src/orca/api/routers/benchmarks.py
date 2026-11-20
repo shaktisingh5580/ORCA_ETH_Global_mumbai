@@ -6,7 +6,7 @@ Refs: main_implementation plan.md P07.4; api design.md §§3.8, 4.5; Phase: P07.
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from sqlalchemy import text
+from sqlalchemy import Engine, text
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.projects import engine, resolve_project
@@ -17,7 +17,9 @@ from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 router = APIRouter(prefix="/v1/research/benchmarks", tags=["benchmarks"])
 
 
-def _project_session(request: Request, principal: CurrentPrincipal, project_id: UUID):
+def _project_session(
+    request: Request, principal: CurrentPrincipal, project_id: UUID
+) -> tuple[Engine, UUID]:
     database = engine(request)
     tenant, _ = resolve_project(database, principal, project_id)
     return database, tenant

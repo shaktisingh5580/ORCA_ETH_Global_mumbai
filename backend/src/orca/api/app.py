@@ -19,7 +19,7 @@ from sqlalchemy import text
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
-from orca.api.dashboard import install_dashboard  # type: ignore[attr-defined]
+from orca.api.dashboard import install_dashboard
 from orca.api.errors import Problem, problem_response, validation_error
 from orca.api.routers.agents import directory_router
 from orca.api.routers.agents import router as agents_router

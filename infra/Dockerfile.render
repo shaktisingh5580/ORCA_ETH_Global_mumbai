@@ -9,7 +9,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 WORKDIR /app
-COPY backend/pyproject.toml backend/uv.lock backend/README.md ./backend/
+COPY backend/pyproject.toml backend/uv.lock backend/README.md backend/LICENSE ./backend/
 RUN pip install --no-cache-dir uv==0.9.30 && uv sync --project backend --frozen --no-dev --no-install-project
 COPY backend/src ./backend/src
 RUN uv pip install --python backend/.venv/bin/python --no-deps ./backend

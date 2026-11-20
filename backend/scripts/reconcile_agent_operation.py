@@ -6,6 +6,7 @@ Refs: H04-agent-coordination.json and main_implementation plan.md P11.4. Phase: 
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 from uuid import UUID, uuid5
 
 from dotenv import dotenv_values
@@ -153,7 +154,7 @@ def main() -> None:
         db.dispose()
 
 
-def refuse_v1_resume(operation: dict, task_receipt: dict | None) -> None:
+def refuse_v1_resume(operation: dict[str, Any], task_receipt: dict[str, Any] | None) -> None:
     if (
         operation["error_code"] == "ARKIV_V1_RECONCILIATION_REQUIRED"
         or operation["payload"].get("publish_arkiv_v1")
