@@ -1,0 +1,37 @@
+{
+  "phase": "P12",
+  "gate": "G12",
+  "status": "BLOCKED",
+  "scope": "Optional marine companion expansion; off in the selected release.",
+  "development_status": {
+    "P12.1": {
+      "status": "MEMORY_DOMAIN_CHECKS_PASSED",
+      "gate_status": "BLOCKED",
+      "test_file": "backend/tests/security/test_memory_isolation.py",
+      "local_cases": [
+        "test_user_preferences_not_marine_truth",
+        "test_cross_tenant_memory_no_leak",
+        "test_memory_supersede_revision",
+        "test_saved_location_consent",
+        "test_working_memory_checkpoint"
+      ],
+      "example_context_entry": {
+        "plane": "evidence_reference",
+        "provenance": "historical_reference",
+        "usable_as_live_observation": false
+      },
+      "checks": ["5 focused domain cases passed", "Ruff checks passed", "Strict mypy passed"],
+      "remaining": [
+        "Transactional session, history, memory revisions and checkpoint storage; tenancy and owner policies in PostgreSQL.",
+        "Authenticated companion routes, durable consent and revocation, privacy deletion and pagination.",
+        "Evidence reference reauthorization before fetching any underlying artifact; memory itself grants no access.",
+        "Independent acceptance on the explicitly selected optional profile."
+      ]
+    },
+    "P12.2": {"status": "NOT_ATTESTED"},
+    "P12.3": {"status": "NOT_ATTESTED"},
+    "P12.4": {"status": "NOT_ATTESTED"},
+    "P12.5": {"status": "NOT_ATTESTED"}
+  },
+  "oracle_deployment": "deferred_by_user"
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "file": "backend/src/orca/domain/companion/memory.py",
+    "phase": "P12.1",
+    "purpose_ref": "W-MEM6 §§4.1,8,11,17; A-API §3.13",
+    "test_ids": [
+      "test_user_preferences_not_marine_truth",
+      "test_cross_tenant_memory_no_leak",
+      "test_memory_supersede_revision",
+      "test_saved_location_consent",
+      "test_working_memory_checkpoint"
+    ],
+    "required_env": [],
+    "last_status": "PASS_LOCAL_DOMAIN_ONLY"
+  }
+]
