@@ -66,7 +66,19 @@
       ],
       "remaining": "Obtain finalized delegated ENS permission receipts, a fresh authorized Rabdi v1 result and independent verifier readback, and signed-in API and browser screenshots with scoped data disclosures."
     },
-    "P14.5": {"status": "NOT_STARTED"}
+    "P14.5": {
+      "status": "LOCAL_HANDOVER_CHECKS_PASSED",
+      "gate_status": "BLOCKED",
+      "evidence": "docs/gates/P14/operational-handover.json",
+      "release_certificate": "docs/releases/release_certificate.json",
+      "required_cases": [
+        "test_alert_routes_reach_owner",
+        "test_quota_exceeded_actions",
+        "test_staging_rollback_migration_safe",
+        "test_privacy_export_retention"
+      ],
+      "remaining": "Assign named primary and backup owners and confirm actual alert delivery in staging. Test exact prior image compatibility and rehearse staging rollback with verified restore. Approve retention, privacy request procedure, processor agreements and release license review. Close prerequisite and other P14 gates and obtain release owner signoff."
+    }
   },
   "oracle_deployment": "deferred_by_user"
 }

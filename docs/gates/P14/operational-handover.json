@@ -1,0 +1,30 @@
+{
+  "phase": "P14.5",
+  "gate": "G14.5",
+  "status": "BLOCKED",
+  "profile": "research-federated",
+  "checks": {
+    "test_alert_routes_reach_owner": "PASS_LOCAL_INJECTED_RECEIVER",
+    "test_quota_exceeded_actions": "PASS_LOCAL_POSTGIS",
+    "test_staging_rollback_migration_safe": "PASS_LOCAL_POSTGIS_DOWNGRADE_REFUSED",
+    "test_privacy_export_retention": "PASS_LOCAL_REFERENCE_EXPORT_CONTRACT"
+  },
+  "local_database_and_handover_suite": {
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0
+  },
+  "operational_http_export_and_alert_regressions": {
+    "passed": 18,
+    "failed": 0,
+    "deselected_database_cases": 2
+  },
+  "previous_release_schema_compatibility": "UNVERIFIED",
+  "oracle_staging": "DEFERRED_BY_USER",
+  "remaining": [
+    "Assign named primary and backup owners and confirm actual alert delivery in staging.",
+    "Test exact prior image compatibility and rehearse staging rollback with verified restore.",
+    "Approve retention, privacy request procedure, processor agreements and release license review.",
+    "Close prerequisite and other P14 gates and obtain release owner signoff."
+  ]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "file": "infra/observability/health_alert.py",
+    "phase": "P14.5",
+    "purpose_ref": "API design \u00a714; docs/runbooks/oncall.md",
+    "test_ids": [
+      "test_alert_routes_reach_owner"
+    ],
+    "required_env": [
+      "Live: ORCA_MONITOR_ORIGIN",
+      "Live: ORCA_MONITORING_TOKEN",
+      "Live: ORCA_PLATFORM_ALERT_URL"
+    ],
+    "last_status": "PASS_LOCAL_LIVE_DELIVERY_PENDING"
+  }
+]

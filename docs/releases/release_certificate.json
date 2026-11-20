@@ -1,0 +1,26 @@
+{
+  "profile": "research-federated",
+  "gate": "G14",
+  "status": "BLOCKED",
+  "release_authorized": false,
+  "candidate_revision": null,
+  "release_owner_signoff": null,
+  "evidence": "docs/gates/P14/manifest.json",
+  "prerequisite_status": {
+    "G11": "NOT_PASSED",
+    "G13": "BLOCKED"
+  },
+  "subphase_status": {
+    "G14.1": "BLOCKED",
+    "G14.2": "BLOCKED",
+    "G14.3": "BLOCKED",
+    "G14.4": "BLOCKED",
+    "G14.5": "BLOCKED"
+  },
+  "residual_risks": [
+    "Assign named primary and backup owners and confirm actual alert delivery in staging.",
+    "Test exact prior image compatibility and rehearse staging rollback with verified restore.",
+    "Approve retention, privacy request procedure, processor agreements and release license review.",
+    "Close prerequisite and other P14 gates and obtain release owner signoff."
+  ]
+}
