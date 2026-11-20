@@ -8,4 +8,4 @@ Replacing this board with an ORCA-only Postgres API would make public discovery 
 
 Arkiv does not run scientific computations, establish institutional identity, validate an SST method or supply a global assignment mutex. Those boundaries are explicit. Its public records bind identities and evidence digests; numerical methods and separately checked source bytes establish what comparison was actually computed.
 
-The seven-day lifetime is deliberate for transient coordination. Long-term private research evidence stays in the durable data layer, and fresh chain verification distinguishes live availability from a saved historical receipt.
+The historical H04 rehearsal requested a seven-day lifetime for transient coordination. New v1 records carry their own bounded lifetime; read the expiry from the specific record. Long-term private research evidence stays in the durable data layer, and fresh chain verification distinguishes live availability from a saved historical receipt.

@@ -11,3 +11,5 @@ Files: `src/coordination.mjs`; Python `agent_discovery.py`, `network_worker.py`,
 The UI should show real owner addresses, entity keys, expiry, a query/verification timestamp, source labels and the separation between transport completion and numerical verdict. Fresh-query failure must not display a fabricated verified state. A backend receipt does not establish a completed browser demonstration: frontend acceptance has its own gate.
 
 The full real-data evidence is `docs/gates/HACKATHON/H04-live-coordination.json`. The independent API-free read-back evidence is `H04-standalone-verification.json`. Later-phase gate files state whether their code, live integration or deployment actually passed. These files are inspectable claims, not a substitute for a live query.
+
+The H04 trace and API-free readback are historical. The latest filtered read for the historical task is recorded in the [P14.4 evidence](../docs/gates/P14/sponsor-proof.json). Use the [demo runbook](../docs/releases/demo_runbook.md) to explain stale or expired references and to check a fresh v1 result separately.

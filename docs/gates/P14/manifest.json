@@ -52,7 +52,20 @@
       ],
       "remaining": "Resolve the selected route inventory gaps and complete live G09–G11, deployed end-to-end checks, license/notice review, and independent release signoff."
     },
-    "P14.4": {"status": "NOT_STARTED"},
+    "P14.4": {
+      "status": "LOCAL_SPONSOR_EVIDENCE_PREPARED",
+      "gate_status": "BLOCKED",
+      "evidence": "docs/gates/P14/sponsor-proof.json",
+      "runbook": "docs/releases/demo_runbook.md",
+      "evidence_index": "docs/releases/evidence_index.md",
+      "required_cases": [
+        "test_live_ens_permission_revoke_receipts",
+        "test_live_arkiv_write_filtered_query",
+        "test_external_verifier_orca_offline",
+        "test_synthetic_vs_real_demo_labels"
+      ],
+      "remaining": "Obtain finalized delegated ENS permission receipts, a fresh authorized Rabdi v1 result and independent verifier readback, and signed-in API and browser screenshots with scoped data disclosures."
+    },
     "P14.5": {"status": "NOT_STARTED"}
   },
   "oracle_deployment": "deferred_by_user"

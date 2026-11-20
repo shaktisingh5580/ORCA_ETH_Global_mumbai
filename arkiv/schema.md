@@ -132,3 +132,5 @@ Writes request readonly entities with a seven-day lifetime. Logical deadlines ca
 A public schema tag is not an authenticated namespace. Consumers check pinned owners, service keys, binding versions and signatures. PostgreSQL serializes the requester's assignment selection; Arkiv is not a distributed mutex. Conflicting requester-signed selections halt acceptance rather than resolving by query order.
 
 Implementation: `src/coordination.mjs`, `backend/src/orca/infrastructure/federation/public_events.py`, `signing.py`, `discovery.py`, and `backend/src/orca/network_worker.py`.
+
+The preceding lifetime describes the historical H04 rehearsal. For a v1 record, use the observed expiry block from the pinned public reader. The [evidence index](../docs/releases/evidence_index.md) separates historical reads from current lifecycle acceptance.
