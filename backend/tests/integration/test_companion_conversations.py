@@ -61,12 +61,60 @@ def test_companion_conversation_isolation_pagination_and_revision():
             ).json()
             assert second["items"][0]["id"] != page["items"][0]["id"]
             assert second["next_cursor"] is None
+            messages = resource + "/messages"
+            checkpoint = resource + "/checkpoint"
+            key = {"Idempotency-Key": str(uuid4())}
+            body = {"content": "Compare the saved coastal observations"}
+            assert client.get(checkpoint, params=params).status_code == 404
+            assert client.post(messages, params=params, json=body).status_code == 422
+            saved = client.post(messages, params=params, json=body, headers=key)
+            assert saved.status_code == 201, saved.text
+            assert saved.json()["sequence"] == 1
+            assert saved.json()["provenance"] == "untrusted_user_input"
+            assert (
+                client.post(messages, params=params, json=body, headers=key).json() == saved.json()
+            )
+            assert (
+                client.post(
+                    messages, params=params, json={"content": "Different"}, headers=key
+                ).status_code
+                == 409
+            )
+            assert (
+                client.post(
+                    messages,
+                    params=params,
+                    json={"content": "\x00"},
+                    headers={"Idempotency-Key": str(uuid4())},
+                ).status_code
+                == 422
+            )
+            assert (
+                client.post(
+                    messages, params=params, json=body, headers={"Idempotency-Key": str(uuid4())}
+                ).json()["sequence"]
+                == 2
+            )
+            first_message = client.get(messages, params={**params, "limit": 1}).json()
+            assert first_message["next_cursor"] == 1
+            assert (
+                client.get(messages, params={**params, "cursor": 1}).json()["items"][0]["sequence"]
+                == 2
+            )
+            assert client.get(checkpoint, params=params).json()["message_sequence"] == 2
+            with psycopg.connect(admin) as db:
+                db.execute("""UPDATE research.companion_checkpoints
+                    SET updated_at=clock_timestamp()-interval '2 hours',
+                        expires_at=clock_timestamp()-interval '1 hour'""")
+            assert client.get(checkpoint, params=params).status_code == 404
             assert client.patch(resource, params=params, json={"archive": True}).status_code == 428
             changed = client.patch(
                 resource, params=params, json={"archive": True}, headers={"If-Match": '"1"'}
             )
             assert changed.status_code == 200 and changed.json()["archived"] is True
             assert changed.headers["etag"] == '"2"'
+            assert client.post(messages, params=params, json=body, headers=key).status_code == 409
+            assert len(client.get(messages, params=params).json()["items"]) == 2
             assert (
                 client.patch(
                     resource, params=params, json={"archive": False}, headers={"If-Match": '"1"'}
@@ -85,6 +133,8 @@ def test_companion_conversation_isolation_pagination_and_revision():
             ):
                 original, acting[0] = acting[0], other
                 assert client.get(resource, params=params).status_code == 404
+                assert client.get(messages, params=params).status_code == 404
+                assert client.get(checkpoint, params=params).status_code == 404
                 assert client.get(url, params=params).json()["items"] == []
                 acting[0] = original
             with psycopg.connect(admin) as db:

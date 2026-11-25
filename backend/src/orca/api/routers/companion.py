@@ -13,6 +13,7 @@ from sqlalchemy import text
 
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.projects import engine, require_scope, resolve_tenant
+from orca.application import companion_history
 from orca.application.companion import (
     Conversation,
     ConversationChanged,
@@ -49,6 +50,8 @@ def service(
             raise HTTPException(404, "Conversation not found") from exc
         except ConversationChanged as exc:
             raise HTTPException(412, "Conversation version is stale") from exc
+        except companion_history.MessageConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
 
 
 def set_etag(response: Response, result: Conversation) -> None:
@@ -112,3 +115,41 @@ def update_conversation(
         result = conversations.update(conversation_id, body, if_match)
     set_etag(response, result)
     return result
+
+
+@router.get("/{conversation_id}/messages")
+def list_messages(
+    conversation_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    organization_id: UUID,
+    cursor: Annotated[int, Query(ge=0, le=9223372036854775807)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+) -> companion_history.MessagePage:
+    with service(request, principal, organization_id) as conversations:
+        return companion_history.history(conversations, conversation_id, cursor, limit)
+
+
+@router.post("/{conversation_id}/messages", status_code=201)
+def save_message(
+    conversation_id: UUID,
+    body: companion_history.AppendMessage,
+    request: Request,
+    principal: CurrentPrincipal,
+    organization_id: UUID,
+    idempotency_key: Annotated[UUID, Header()],
+) -> companion_history.UserMessage:
+    """Save user input. Model execution and generated answers are a separate phase."""
+    with service(request, principal, organization_id) as conversations:
+        return companion_history.append(conversations, conversation_id, idempotency_key, body)
+
+
+@router.get("/{conversation_id}/checkpoint")
+def get_checkpoint(
+    conversation_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    organization_id: UUID,
+) -> companion_history.WorkingCheckpoint:
+    with service(request, principal, organization_id) as conversations:
+        return companion_history.checkpoint(conversations, conversation_id)
