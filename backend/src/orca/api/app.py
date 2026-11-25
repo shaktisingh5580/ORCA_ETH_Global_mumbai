@@ -173,6 +173,10 @@ def create_app(settings: Settings) -> FastAPI:
         if settings.companion_model_enabled and settings.gemini_api_key:
             app.state.companion_model_key = settings.gemini_api_key
             app.state.companion_model_name = settings.gemini_model
+            app.state.companion_model_limits = (
+                settings.companion_model_user_per_minute,
+                settings.companion_model_organization_per_minute,
+            )
         app.include_router(preferences_router)
     if settings.research_demo_enabled:
         app.include_router(demo_router)

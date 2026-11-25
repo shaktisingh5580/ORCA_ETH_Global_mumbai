@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     research_demo_enabled: bool = False
     companion_enabled: bool = False
     companion_model_enabled: bool = False
+    companion_model_user_per_minute: int = Field(default=5, ge=1, le=60)
+    companion_model_organization_per_minute: int = Field(default=30, ge=1, le=300)
     organization_creation_enabled: bool = False
     file_uploads_enabled: bool = False
     invitation_signing_key: SecretStr | None = Field(default=None, min_length=32)

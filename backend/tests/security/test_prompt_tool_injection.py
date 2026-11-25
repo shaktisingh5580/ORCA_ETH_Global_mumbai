@@ -127,7 +127,7 @@ def test_reply_rechecks_authorization_before_disclosing_citation(monkeypatch):
     reads = []
     calls = []
 
-    def read(_, principal, org, conversation, artifact):
+    def read(_, principal, org, conversation, artifact, **kwargs):
         reads.append(artifact)
         return manifest if len(reads) == 1 else None
 

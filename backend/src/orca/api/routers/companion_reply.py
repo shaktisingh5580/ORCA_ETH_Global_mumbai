@@ -15,6 +15,7 @@ from orca.api.routers.companion import service
 from orca.api.routers.evidence import _artifact_row, _authorize, _verified
 from orca.application import companion_reply_history as history
 from orca.application.companion import Conversations
+from orca.application.companion_model_limits import ModelRateLimited, reserve
 from orca.application.companion_reply import (
     Citation,
     Reply,
@@ -35,11 +36,16 @@ def authorized_manifest(
     organization_id: UUID,
     conversation_id: UUID,
     artifact_id: UUID | None,
+    *,
+    limits: tuple[int, int] | None = None,
 ) -> ScienceEvidenceManifest | None:
     with service(request, principal, organization_id) as conversations:
         if conversations.get(conversation_id).archived:
             raise HTTPException(409, "Conversation is archived")
-        return accessible_manifest(conversations, artifact_id)
+        manifest = accessible_manifest(conversations, artifact_id)
+        if limits is not None and manifest is not None and manifest.result_status == "supported":
+            reserve(conversations, user_limit=limits[0], organization_limit=limits[1])
+        return manifest
 
 
 def accessible_manifest(
@@ -94,9 +100,6 @@ def reply(
     organization_id: UUID,
 ) -> Reply:
     """Classify only the explicitly shared question; leave private research data on ORCA."""
-    manifest = authorized_manifest(
-        request, principal, organization_id, conversation_id, body.artifact_id
-    )
     key = getattr(request.app.state, "companion_model_key", None)
     model = getattr(request.app.state, "companion_model_name", None)
     select = (
@@ -104,6 +107,21 @@ def reply(
         if (isinstance(key, SecretStr) and isinstance(model, str))
         else None
     )
+    try:
+        manifest = authorized_manifest(
+            request,
+            principal,
+            organization_id,
+            conversation_id,
+            body.artifact_id,
+            limits=request.app.state.companion_model_limits
+            if select is not None and body.share_question_with_model
+            else None,
+        )
+    except ModelRateLimited as exc:
+        raise HTTPException(
+            429, "Companion model rate limit reached", headers={"Retry-After": "60"}
+        ) from exc
     result = answer(body, manifest, select)
     if result.status == "answered":
         return save_if_authorized(request, principal, organization_id, conversation_id, result)

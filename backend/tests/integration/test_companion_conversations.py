@@ -110,6 +110,8 @@ def test_companion_conversation_isolation_pagination_and_revision(monkeypatch):
             companion_enabled=True,
             companion_model_enabled=True,
             gemini_api_key="test-key",
+            companion_model_user_per_minute=1,
+            companion_model_organization_per_minute=2,
         )
     )
     acting = [Principal(subject, "issuer-a", frozenset({"org:read"}))]
@@ -150,7 +152,13 @@ def test_companion_conversation_isolation_pagination_and_revision(monkeypatch):
                     manifest if allowed and str(identifier) == artifact else None
                 ),
             )
-            monkeypatch.setattr(companion_reply, "classify", lambda *_: "coverage")
+            calls = []
+
+            def classify(*args):
+                calls.append(args[-1])
+                return "coverage"
+
+            monkeypatch.setattr(companion_reply, "classify", classify)
             reply_body = {
                 "artifact_id": artifact,
                 "question": "What years?",
@@ -165,6 +173,39 @@ def test_companion_conversation_isolation_pagination_and_revision(monkeypatch):
             allowed = False
             assert client.get(resource + "/replies", params=params).json()["items"] == []
             allowed = True
+
+            def denials():
+                denied = client.post(resource + "/reply", params=params, json=reply_body)
+                assert denied.status_code == 429 and denied.headers["retry-after"] == "60"
+
+            # The failed user reservation must roll back the organization increment,
+            # leaving capacity for the next member.
+            denials()
+            first = acting[0]
+            acting[0] = Principal(peer, first.issuer, first.token_scopes)
+            peer_conversation = client.post(url, params=params, json={}).json()["id"]
+            peer_path = f"{url}/{peer_conversation}/reply"
+            assert client.post(peer_path, params=params, json=reply_body).status_code == 200
+            acting[0] = Principal(first.subject, "issuer-b", first.token_scopes)
+            third = client.post(url, params=params, json={}).json()["id"]
+            assert (
+                client.post(f"{url}/{third}/reply", params=params, json=reply_body).status_code
+                == 429
+            )
+            acting[0] = first
+            assert len(calls) == 2
+            with psycopg.connect(admin) as db:
+                assert db.execute(
+                    """SELECT used FROM research.companion_model_counters
+                    WHERE tenant_id=%s AND subject=''""",
+                    (tenant,),
+                ).fetchone() == (2,)
+                db.execute("""UPDATE research.companion_model_counters
+                    SET window_start = date_trunc('minute', clock_timestamp()) - interval '1 minute'""")
+            assert (
+                client.post(resource + "/reply", params=params, json=reply_body).status_code == 200
+            )
+            assert len(calls) == 3
             with psycopg.connect(runtime) as db:
                 assert db.execute("SELECT count(*) FROM research.companion_replies").fetchone() == (
                     0,
@@ -252,7 +293,10 @@ def test_companion_conversation_isolation_pagination_and_revision(monkeypatch):
                 assert client.get(messages, params=params).status_code == 404
                 assert client.get(resource + "/replies", params=params).status_code == 404
                 assert client.get(checkpoint, params=params).status_code == 404
-                assert client.get(url, params=params).json()["items"] == []
+                visible = client.get(url, params=params).json()["items"]
+                assert [item["id"] for item in visible] == [
+                    peer_conversation if other.subject == peer else third
+                ]
                 acting[0] = original
             with psycopg.connect(admin) as db:
                 db.execute(

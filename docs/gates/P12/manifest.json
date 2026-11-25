@@ -59,13 +59,15 @@
       "location_scope": "One fixed, explicitly saved coordinate per tenant, issuer and subject. Withdrawal clears the active row's location. This does not attest removal from prior backups or exported copies."
     },
     "P12.2": {
-      "status": "CITED_REPLIES_AND_PRIVATE_HISTORY_VERIFIED_LOCALLY",
+      "status": "CITED_REPLIES_HISTORY_AND_MODEL_ADMISSION_VERIFIED_LOCALLY",
       "gate_status": "BLOCKED",
       "route": "POST /v1/conversations/{conversation_id}/reply",
       "settings": [
         "ORCA_COMPANION_ENABLED",
         "ORCA_COMPANION_MODEL_ENABLED",
-        "ORCA_GEMINI_API_KEY"
+        "ORCA_GEMINI_API_KEY",
+        "ORCA_COMPANION_MODEL_USER_PER_MINUTE",
+        "ORCA_COMPANION_MODEL_ORGANIZATION_PER_MINUTE"
       ],
       "consent": "The request must explicitly allow sending the question. The adapter does not receive source bytes, manifest fields, conversation history, or saved memories.",
       "test_file": "backend/tests/security/test_prompt_tool_injection.py",
@@ -78,15 +80,24 @@
       ],
       "checks": [
         "14 focused tests passed across reply, evidence, memory, and default OpenAPI. Ruff and strict mypy passed.",
-        "9 focused tests passed with disposable PostgreSQL. Reply persistence and conversation RLS were real; model and artifact access changes were injected. Default OpenAPI and downgrade guard passed."
+        "9 focused tests passed with disposable PostgreSQL. Reply persistence and conversation RLS were real; model and artifact access changes were injected. Default OpenAPI and downgrade guard passed.",
+        "PostgreSQL HTTP tests verified both ceilings, rollback of the organization reservation on user denial, no provider call on denial, and recovery in a fresh window. Eight other cases passed in the initial run; the companion integration file passed both cases on rerun. Ruff and strict mypy passed."
       ],
       "remaining": [
         "Live consented provider trial against a real access-approved research artifact; model provider transport was intercepted in local tests.",
-        "Durable turn jobs and per-user/organization model admission budgets. This slice saves successful cited replies, caps each request at one call, and allows two simultaneous calls per process.",
+        "Durable turn jobs, idempotent enqueue, worker leases and fenced result publication. The current on-demand API is synchronous.",
         "Multilingual acceptance and broader evidence-backed questions. No forecast, numeric result extraction, or model-authored scientific claim is enabled."
       ],
       "history_route": "GET /v1/conversations/{conversation_id}/replies",
-      "reply_database_revision": "0047_companion_replies"
+      "reply_database_revision": "0047_companion_replies",
+      "counter_revision": "0048_companion_model_limits",
+      "model_admission": {
+        "window": "fixed database minute",
+        "per_user_default": 5,
+        "per_organization_default": 30,
+        "denial_http_status": 429,
+        "counts": "reserved attempts, including unsuccessful provider calls"
+      }
     },
     "P12.3": {
       "status": "NOT_ATTESTED"
