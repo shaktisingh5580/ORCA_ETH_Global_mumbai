@@ -31,6 +31,7 @@ class Citation(Contract):
 
 
 class Reply(Contract):
+    id: UUID | None = None
     status: Literal["answered", "abstained"]
     reason: (
         Literal[

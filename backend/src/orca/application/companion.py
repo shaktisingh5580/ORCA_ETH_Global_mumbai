@@ -83,11 +83,15 @@ class Conversations:
         )
         return Conversation.model_validate(row)
 
-    def get(self, identifier: UUID) -> Conversation:
+    def lock(self, identifier: UUID) -> Conversation:
+        return self.get(identifier, for_update=True)
+
+    def get(self, identifier: UUID, *, for_update: bool = False) -> Conversation:
+        lock_clause = " FOR UPDATE" if for_update else ""
         row = (
             self.session.execute(
                 text(f"""SELECT {COLUMNS}
-          FROM research.companion_conversations WHERE id=:id"""),
+          FROM research.companion_conversations WHERE id=:id{lock_clause}"""),
                 {"id": identifier},
             )
             .mappings()

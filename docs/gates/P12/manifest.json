@@ -30,7 +30,7 @@
         "9 focused tests passed covering preference versions, tenant/owner/issuer isolation, opt-in, withdrawal and coordinate clearing, individual deletion, history, default OpenAPI, and downgrade refusal. Ruff and strict mypy passed."
       ],
       "remaining": [
-        "Durable turn and reply history, remaining durable memory planes, and checkpoint expiry cleanup. The intake checkpoint records message_saved only and does not track a model job. See P12.2 for the on-demand reply route.",
+        "Durable turn jobs, remaining durable memory planes, and checkpoint expiry cleanup. Intake checkpoints do not track model jobs. P12.2 saves successful cited replies separately.",
         "Broader privacy deletion and retention workflow, including backup policy; authorized project linking.",
         "Evidence reference reauthorization before fetching any underlying artifact; memory itself grants no access.",
         "Optional-profile contract reconciliation: this slice uses verified organization membership and org:read; project linking, locale expansion, and companion-specific user scopes remain open.",
@@ -59,7 +59,7 @@
       "location_scope": "One fixed, explicitly saved coordinate per tenant, issuer and subject. Withdrawal clears the active row's location. This does not attest removal from prior backups or exported copies."
     },
     "P12.2": {
-      "status": "BOUNDED_CITED_REPLY_VERIFIED_LOCALLY",
+      "status": "CITED_REPLIES_AND_PRIVATE_HISTORY_VERIFIED_LOCALLY",
       "gate_status": "BLOCKED",
       "route": "POST /v1/conversations/{conversation_id}/reply",
       "settings": [
@@ -77,13 +77,16 @@
         "test_reply_rechecks_authorization_before_disclosing_citation"
       ],
       "checks": [
-        "14 focused tests passed across reply, evidence, memory, and default OpenAPI. Ruff and strict mypy passed."
+        "14 focused tests passed across reply, evidence, memory, and default OpenAPI. Ruff and strict mypy passed.",
+        "9 focused tests passed with disposable PostgreSQL. Reply persistence and conversation RLS were real; model and artifact access changes were injected. Default OpenAPI and downgrade guard passed."
       ],
       "remaining": [
         "Live consented provider trial against a real access-approved research artifact; model provider transport was intercepted in local tests.",
-        "Durable turns and user/organization model admission budgets. This slice caps each request at one call and each process at two simultaneous calls.",
+        "Durable turn jobs and per-user/organization model admission budgets. This slice saves successful cited replies, caps each request at one call, and allows two simultaneous calls per process.",
         "Multilingual acceptance and broader evidence-backed questions. No forecast, numeric result extraction, or model-authored scientific claim is enabled."
-      ]
+      ],
+      "history_route": "GET /v1/conversations/{conversation_id}/replies",
+      "reply_database_revision": "0047_companion_replies"
     },
     "P12.3": {
       "status": "NOT_ATTESTED"

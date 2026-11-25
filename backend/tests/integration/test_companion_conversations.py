@@ -12,6 +12,7 @@ from live_database import prepare_database
 
 from orca.api.app import create_app
 from orca.api.dependencies import current_principal
+from orca.api.routers import companion_reply
 from orca.config import Settings
 from orca.domain.identity import Principal
 
@@ -91,7 +92,7 @@ def check_preferences(client, params, acting, peer, other_org, admin):
 
 @pytest.mark.live
 @pytest.mark.enable_socket
-def test_companion_conversation_isolation_pagination_and_revision():
+def test_companion_conversation_isolation_pagination_and_revision(monkeypatch):
     admin, runtime, tenant, other_tenant, _, _ = prepare_database()
     subject, peer = str(uuid4()), str(uuid4())
     with psycopg.connect(admin) as db:
@@ -102,7 +103,15 @@ def test_companion_conversation_isolation_pagination_and_revision():
                 (uuid4(), scope, user),
             )
 
-    app = create_app(Settings(monitoring_token=TOKEN, database_url=runtime, companion_enabled=True))
+    app = create_app(
+        Settings(
+            monitoring_token=TOKEN,
+            database_url=runtime,
+            companion_enabled=True,
+            companion_model_enabled=True,
+            gemini_api_key="test-key",
+        )
+    )
     acting = [Principal(subject, "issuer-a", frozenset({"org:read"}))]
     url = "/v1/conversations"
     params = {"organization_id": str(orgs[tenant])}
@@ -116,6 +125,50 @@ def test_companion_conversation_isolation_pagination_and_revision():
             assert created.headers["etag"] == '"1"'
             assert created.headers["cache-control"] == "no-store"
             resource = f"{url}/{created.json()['id']}"
+            artifact = str(uuid4())
+            allowed = True
+            from p06_evidence import insufficient_manifest
+
+            from orca.contracts.science_evidence import ScienceEvidenceManifest
+
+            fixture = insufficient_manifest()
+            values = fixture.model_dump(exclude={"manifest_digest"})
+            values.update(
+                inputs=fixture.inputs,
+                source_mode="preserved_real",
+                result_status="supported",
+                method_approval_status="approved",
+                source_qualified=True,
+                baseline_qualified=True,
+                absolute_tolerance_celsius=0.01,
+            )
+            manifest = ScienceEvidenceManifest.build(**values)
+            monkeypatch.setattr(
+                companion_reply,
+                "accessible_manifest",
+                lambda repo, identifier: (
+                    manifest if allowed and str(identifier) == artifact else None
+                ),
+            )
+            monkeypatch.setattr(companion_reply, "classify", lambda *_: "coverage")
+            reply_body = {
+                "artifact_id": artifact,
+                "question": "What years?",
+                "share_question_with_model": True,
+            }
+            reply = client.post(resource + "/reply", params=params, json=reply_body)
+            assert reply.json()["status"] == "answered", reply.text
+            assert reply.json()["id"] is not None
+            assert client.get(resource + "/replies", params=params).json()["items"] == [
+                reply.json()
+            ]
+            allowed = False
+            assert client.get(resource + "/replies", params=params).json()["items"] == []
+            allowed = True
+            with psycopg.connect(runtime) as db:
+                assert db.execute("SELECT count(*) FROM research.companion_replies").fetchone() == (
+                    0,
+                )
             assert client.post(url, params=params, json={}).status_code == 201
             page = client.get(url, params={**params, "limit": 1}).json()
             assert len(page["items"]) == 1
@@ -197,6 +250,7 @@ def test_companion_conversation_isolation_pagination_and_revision():
                 original, acting[0] = acting[0], other
                 assert client.get(resource, params=params).status_code == 404
                 assert client.get(messages, params=params).status_code == 404
+                assert client.get(resource + "/replies", params=params).status_code == 404
                 assert client.get(checkpoint, params=params).status_code == 404
                 assert client.get(url, params=params).json()["items"] == []
                 acting[0] = original

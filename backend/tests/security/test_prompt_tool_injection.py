@@ -4,6 +4,7 @@ Refs: main implementation plan P12.2; A-API §§3.13,17.
 """
 
 import json
+from contextlib import nullcontext
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -135,6 +136,18 @@ def test_reply_rechecks_authorization_before_disclosing_citation(monkeypatch):
         return "coverage"
 
     monkeypatch.setattr(companion_reply, "authorized_manifest", read)
+    monkeypatch.setattr(
+        companion_reply,
+        "service",
+        lambda *_: nullcontext(
+            SimpleNamespace(lock=lambda _: SimpleNamespace(archived=False)),
+        ),
+    )
+    monkeypatch.setattr(
+        companion_reply,
+        "accessible_manifest",
+        lambda repo, artifact: read(None, None, None, None, artifact),
+    )
     monkeypatch.setattr(companion_reply, "classify", classify)
     request = body(share_question_with_model=True)
     with TestClient(app) as client:
