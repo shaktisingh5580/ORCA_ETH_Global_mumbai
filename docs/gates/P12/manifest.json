@@ -30,7 +30,7 @@
         "9 focused tests passed covering preference versions, tenant/owner/issuer isolation, opt-in, withdrawal and coordinate clearing, individual deletion, history, default OpenAPI, and downgrade refusal. Ruff and strict mypy passed."
       ],
       "remaining": [
-        "Model-backed turn handling, remaining durable memory planes, and checkpoint expiry cleanup. The intake checkpoint records message_saved only and does not track a model job.",
+        "Durable turn and reply history, remaining durable memory planes, and checkpoint expiry cleanup. The intake checkpoint records message_saved only and does not track a model job. See P12.2 for the on-demand reply route.",
         "Broader privacy deletion and retention workflow, including backup policy; authorized project linking.",
         "Evidence reference reauthorization before fetching any underlying artifact; memory itself grants no access.",
         "Optional-profile contract reconciliation: this slice uses verified organization membership and org:read; project linking, locale expansion, and companion-specific user scopes remain open.",
@@ -59,7 +59,31 @@
       "location_scope": "One fixed, explicitly saved coordinate per tenant, issuer and subject. Withdrawal clears the active row's location. This does not attest removal from prior backups or exported copies."
     },
     "P12.2": {
-      "status": "NOT_ATTESTED"
+      "status": "BOUNDED_CITED_REPLY_VERIFIED_LOCALLY",
+      "gate_status": "BLOCKED",
+      "route": "POST /v1/conversations/{conversation_id}/reply",
+      "settings": [
+        "ORCA_COMPANION_ENABLED",
+        "ORCA_COMPANION_MODEL_ENABLED",
+        "ORCA_GEMINI_API_KEY"
+      ],
+      "consent": "The request must explicitly allow sending the question. The adapter does not receive source bytes, manifest fields, conversation history, or saved memories.",
+      "test_file": "backend/tests/security/test_prompt_tool_injection.py",
+      "local_cases": [
+        "test_llm_output_cannot_invent_science",
+        "test_tool_scope_and_budget",
+        "test_injection_from_data_source_untrusted",
+        "test_model_unavailable_returns_partial",
+        "test_reply_rechecks_authorization_before_disclosing_citation"
+      ],
+      "checks": [
+        "14 focused tests passed across reply, evidence, memory, and default OpenAPI. Ruff and strict mypy passed."
+      ],
+      "remaining": [
+        "Live consented provider trial against a real access-approved research artifact; model provider transport was intercepted in local tests.",
+        "Durable turns and user/organization model admission budgets. This slice caps each request at one call and each process at two simultaneous calls.",
+        "Multilingual acceptance and broader evidence-backed questions. No forecast, numeric result extraction, or model-authored scientific claim is enabled."
+      ]
     },
     "P12.3": {
       "status": "NOT_ATTESTED"
