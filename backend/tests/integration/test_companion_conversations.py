@@ -25,6 +25,68 @@ def test_companion_is_disabled_by_default():
     ]
     assert "/v1/conversations" not in default
     assert "/v1/conversations" in enabled
+    for path in ("/v1/me/preferences", "/v1/me/memory", "/v1/me/memory/{memory_id}"):
+        assert path not in default and path in enabled
+
+
+def check_preferences(client, params, acting, peer, other_org, admin):
+    prefs, memory = "/v1/me/preferences", "/v1/me/memory"
+    location = {"latitude": 20.5, "longitude": 68.5}
+
+    def patch(version, **body):
+        return client.patch(prefs, params=params, json=body, headers={"If-Match": f'"{version}"'})
+
+    assert client.get(prefs, params=params).headers["etag"] == '"1"'
+    assert client.patch(prefs, params=params, json={"units": "nautical"}).status_code == 428
+    assert patch(1, location=location).status_code == 409
+    assert patch(1, location_consent="true", location=location).status_code == 422
+    assert (
+        patch(1, location_consent=True, location={"latitude": 91, "longitude": 0}).status_code
+        == 422
+    )
+    saved = patch(1, units="nautical", location_consent=True, location=location)
+    assert saved.status_code == 200, saved.text
+    assert saved.headers["etag"] == '"2"'
+    entry = client.get(memory, params=params).json()["items"][0]
+    assert entry["usable_as_live_observation"] is False
+    assert entry["latitude"] == location["latitude"]
+    resource = f"{memory}/{entry['id']}"
+    original = acting[0]
+    for other in (
+        Principal(peer, original.issuer, original.token_scopes),
+        Principal(original.subject, "issuer-b", original.token_scopes),
+    ):
+        acting[0] = other
+        assert client.get(memory, params=params).json()["items"] == []
+        assert (
+            client.delete(resource, params=params, headers={"If-Match": '"1"'}).status_code == 404
+        )
+    acting[0] = original
+    assert client.get(memory, params={"organization_id": str(other_org)}).json()["items"] == []
+    assert patch(1, location_consent=False).status_code == 412
+    withdrew = patch(2, location_consent=False)
+    assert withdrew.json() == {
+        "units": "nautical",
+        "location_consent": False,
+        "location": None,
+        "version": 3,
+    }
+    with psycopg.connect(admin) as db:
+        assert db.execute(
+            """SELECT location_id, latitude, longitude, location_consent
+            FROM research.companion_preferences WHERE owner_subject=%s""",
+            (original.subject,),
+        ).fetchall() == [(None, None, None, False)]
+    assert client.get(memory, params=params).json()["items"] == []
+    assert patch(3, location=location).status_code == 409
+    saved_again = patch(3, location_consent=True, location=location)
+    identifier = saved_again.json()["location"]["id"]
+    assert identifier != entry["id"]
+    removed = client.delete(f"{memory}/{identifier}", params=params, headers={"If-Match": '"4"'})
+    assert removed.status_code == 204
+    assert removed.headers["etag"] == '"5"'
+    remaining = client.get(prefs, params=params).json()
+    assert remaining["location_consent"] is True and remaining["location"] is None
 
 
 @pytest.mark.live
@@ -48,6 +110,7 @@ def test_companion_conversation_isolation_pagination_and_revision():
         with TestClient(app) as client:
             assert client.get(url, params=params).status_code == 503
             app.dependency_overrides[current_principal] = lambda: acting[0]
+            check_preferences(client, params, acting, peer, orgs[other_tenant], admin)
             created = client.post(url, params=params, json={"title": "Private investigation"})
             assert created.status_code == 201, created.text
             assert created.headers["etag"] == '"1"'

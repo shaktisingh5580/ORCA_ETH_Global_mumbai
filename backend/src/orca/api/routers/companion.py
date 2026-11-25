@@ -14,6 +14,7 @@ from sqlalchemy import text
 from orca.api.dependencies import CurrentPrincipal
 from orca.api.routers.projects import engine, require_scope, resolve_tenant
 from orca.application import companion_history
+from orca.application import companion_preferences as preferences
 from orca.application.companion import (
     Conversation,
     ConversationChanged,
@@ -26,6 +27,7 @@ from orca.domain.identity import Principal
 from orca.infrastructure.db.unit_of_work import TenantUnitOfWork
 
 router = APIRouter(prefix="/v1/conversations", tags=["companion"])
+preferences_router = APIRouter(prefix="/v1/me", tags=["companion preferences"])
 
 
 @contextmanager
@@ -47,7 +49,11 @@ def service(
         try:
             yield Conversations(session, tenant, principal)
         except LookupError as exc:
-            raise HTTPException(404, "Conversation not found") from exc
+            raise HTTPException(404, "Companion resource not found") from exc
+        except preferences.PreferenceChanged as exc:
+            raise HTTPException(412, "Preference version is stale") from exc
+        except preferences.ConsentRequired as exc:
+            raise HTTPException(409, "Explicit location consent is required") from exc
         except ConversationChanged as exc:
             raise HTTPException(412, "Conversation version is stale") from exc
         except companion_history.MessageConflict as exc:
@@ -153,3 +159,67 @@ def get_checkpoint(
 ) -> companion_history.WorkingCheckpoint:
     with service(request, principal, organization_id) as conversations:
         return companion_history.checkpoint(conversations, conversation_id)
+
+
+def required_etag(if_match: str | None) -> str:
+    if if_match is None:
+        raise HTTPException(428, "If-Match is required")
+    return if_match
+
+
+@preferences_router.get("/preferences")
+def get_preferences(
+    request: Request,
+    response: Response,
+    principal: CurrentPrincipal,
+    organization_id: UUID,
+) -> preferences.Preferences:
+    with service(request, principal, organization_id) as conversations:
+        result = preferences.PreferencesRepository(conversations).get()
+    response.headers["ETag"] = f'"{result.version}"'
+    return result
+
+
+@preferences_router.patch("/preferences")
+def patch_preferences(
+    body: preferences.PatchPreferences,
+    request: Request,
+    response: Response,
+    principal: CurrentPrincipal,
+    organization_id: UUID,
+    if_match: Annotated[str | None, Header()] = None,
+) -> preferences.Preferences:
+    with service(request, principal, organization_id) as conversations:
+        result = preferences.PreferencesRepository(conversations).patch(
+            body, required_etag(if_match)
+        )
+    response.headers["ETag"] = f'"{result.version}"'
+    return result
+
+
+@preferences_router.get("/memory")
+def list_visible_memory(
+    request: Request,
+    response: Response,
+    principal: CurrentPrincipal,
+    organization_id: UUID,
+) -> preferences.MemoryPage:
+    with service(request, principal, organization_id) as conversations:
+        result = preferences.PreferencesRepository(conversations).get()
+    response.headers["ETag"] = f'"{result.version}"'
+    return preferences.MemoryPage(items=[result.location] if result.location else [])
+
+
+@preferences_router.delete("/memory/{memory_id}", status_code=204)
+def forget_visible_memory(
+    memory_id: UUID,
+    request: Request,
+    principal: CurrentPrincipal,
+    organization_id: UUID,
+    if_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    with service(request, principal, organization_id) as conversations:
+        result = preferences.PreferencesRepository(conversations).forget(
+            memory_id, required_etag(if_match)
+        )
+    return Response(status_code=204, headers={"ETag": f'"{result.version}"'})

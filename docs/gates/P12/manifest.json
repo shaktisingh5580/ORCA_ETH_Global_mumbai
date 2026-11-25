@@ -5,7 +5,7 @@
   "scope": "Optional marine companion expansion; off in the selected release.",
   "development_status": {
     "P12.1": {
-      "status": "PRIVATE_CONVERSATIONS_HISTORY_AND_CHECKPOINTS_VERIFIED_LOCALLY",
+      "status": "PRIVATE_HISTORY_CHECKPOINTS_AND_LOCATION_CONTROLS_VERIFIED_LOCALLY",
       "gate_status": "BLOCKED",
       "test_file": "backend/tests/security/test_memory_isolation.py",
       "local_cases": [
@@ -26,11 +26,12 @@
         "Strict mypy passed",
         "Both conversation tests passed, including real loopback PostgreSQL with the restricted runtime role.",
         "Default OpenAPI regeneration and P14 downgrade refusal regression passed.",
-        "9 focused cases passed: private history, idempotency, checkpoint expiry, archive behavior, memory isolation, default OpenAPI regeneration, and current migration downgrade refusal. Ruff and strict mypy passed."
+        "9 focused cases passed: private history, idempotency, checkpoint expiry, archive behavior, memory isolation, default OpenAPI regeneration, and current migration downgrade refusal. Ruff and strict mypy passed.",
+        "9 focused tests passed covering preference versions, tenant/owner/issuer isolation, opt-in, withdrawal and coordinate clearing, individual deletion, history, default OpenAPI, and downgrade refusal. Ruff and strict mypy passed."
       ],
       "remaining": [
-        "Model-backed turn handling, durable preference and memory storage, and expiry cleanup. The intake checkpoint records message_saved only and does not track a model job.",
-        "Durable location consent and withdrawal, privacy deletion, and authorized project linking.",
+        "Model-backed turn handling, remaining durable memory planes, and checkpoint expiry cleanup. The intake checkpoint records message_saved only and does not track a model job.",
+        "Broader privacy deletion and retention workflow, including backup policy; authorized project linking.",
         "Evidence reference reauthorization before fetching any underlying artifact; memory itself grants no access.",
         "Optional-profile contract reconciliation: this slice uses verified organization membership and org:read; project linking, locale expansion, and companion-specific user scopes remain open.",
         "Independent acceptance on the explicitly selected optional profile."
@@ -43,13 +44,19 @@
         "PATCH /v1/conversations/{conversation_id}",
         "GET /v1/conversations/{conversation_id}/messages",
         "POST /v1/conversations/{conversation_id}/messages",
-        "GET /v1/conversations/{conversation_id}/checkpoint"
+        "GET /v1/conversations/{conversation_id}/checkpoint",
+        "GET /v1/me/preferences",
+        "PATCH /v1/me/preferences",
+        "GET /v1/me/memory",
+        "DELETE /v1/me/memory/{memory_id}"
       ],
       "optional_route_cases": [
         "test_companion_is_disabled_by_default",
         "test_companion_conversation_isolation_pagination_and_revision"
       ],
-      "history_database_revision": "0045_companion_history"
+      "history_database_revision": "0045_companion_history",
+      "preferences_database_revision": "0046_companion_preferences",
+      "location_scope": "One fixed, explicitly saved coordinate per tenant, issuer and subject. Withdrawal clears the active row's location. This does not attest removal from prior backups or exported copies."
     },
     "P12.2": {
       "status": "NOT_ATTESTED"

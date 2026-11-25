@@ -25,6 +25,7 @@ from orca.api.routers.agents import directory_router
 from orca.api.routers.agents import router as agents_router
 from orca.api.routers.benchmarks import router as benchmarks_router
 from orca.api.routers.catalog import router as catalog_router
+from orca.api.routers.companion import preferences_router
 from orca.api.routers.companion import router as companion_router
 from orca.api.routers.demo import router as demo_router
 from orca.api.routers.ens import binding_router as ens_binding_router
@@ -167,6 +168,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(usage_router)
     if settings.companion_enabled:
         app.include_router(companion_router)
+        app.include_router(preferences_router)
     if settings.research_demo_enabled:
         app.include_router(demo_router)
     if settings.prototype_enabled:
