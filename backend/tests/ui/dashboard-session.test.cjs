@@ -72,7 +72,7 @@ async function boot({storage = new Map(), override} = {}) {
       throw new Error(`Unhandled isolated request: ${url}`);
     },
   };
-  const api = await vm.runInNewContext(`(async()=>{${script}\nreturn {state,selectView,authRequest,token,api,clearSession,loadProjects,loadProject,loadNetwork,renderEnsObservation, mountIdentity(agent) { selectedAgent = agent; renderAgent(); mountAgentIdentity(agent); }};})()`,context);
+  const api = await vm.runInNewContext(`(async()=>{${script}\nreturn {state,selectView,authRequest,token,api,clearSession,loadProjects,loadProject,loadNetwork,pollCompanion,renderEnsObservation, mountIdentity(agent) { selectedAgent = agent; renderAgent(); mountAgentIdentity(agent); }};})()`,context);
   return {...api,elements,tabs,panels,calls,storage};
 }
 
@@ -312,4 +312,45 @@ test('provenance keeps saved task history alongside paginated current Arkiv evid
   assert.match(field('arkiv-live-evidence').innerHTML,/No matching current record/);
   assert.equal(field('arkiv-evidence-next').disabled,true);
   assert.match(field('arkiv-task-history').innerHTML,/review/);
+});
+
+test('companion polls and resumes the same private reply after reload', async () => {
+  const conversation = randomUUID(), artifact = randomUUID();
+  let job, finished = false;
+  async function override(url, options) {
+    if (url === '/research/config') return response({auth_url:'https://project.example.test/auth/v1',
+      anon_key:'test-public-key',reasoning_configured:true,companion_reply_enabled:true});
+    if (url.startsWith('/v1/conversations?')) return response({id:conversation},201);
+    if (!url.includes('/reply-jobs')) return;
+    assert.match(url,/organization_id=org-one$/);
+    if (url.includes('/resume?')) { finished = true; return response({id:job,state:'queued'},202); }
+    if (options.method === 'POST') {
+      job = options.headers['Idempotency-Key'];
+      assert.deepEqual(JSON.parse(options.body),{artifact_id:artifact,question:'What years?',share_question_with_model:true});
+      return response({id:job,state:'queued'},202);
+    }
+    assert.ok(url.includes(job));
+    return response(finished ? {id:job,state:'completed',result:{text:'<img onerror=alert(1)>',citation:{artifact_id:artifact}}}
+      : {id:job,state:'queued'});
+  }
+  const page = await boot({override}); await login(page);
+  assert.equal(page.elements.get('companion-panel').hidden,false);
+  page.elements.get('companion-artifact').value = artifact;
+  page.elements.get('companion-question').value = 'What years?';
+  await page.elements.get('companion-form').onsubmit({preventDefault(){}});
+  assert.equal(job, undefined);
+  page.elements.get('companion-consent').checked = true;
+  await page.elements.get('companion-form').onsubmit({preventDefault(){}});
+  assert.ok(job);
+  const stored = [...page.storage].find(([key])=>key.startsWith('orca.companion.job:'))[1];
+  assert.deepEqual(JSON.parse(stored), {conversation,id:job});
+  const reloaded = await boot({storage:page.storage,override});
+  await reloaded.elements.get('companion-resume').onclick();
+  await reloaded.pollCompanion();
+  assert.ok(reloaded.calls.some(({url})=>url.includes(`/${job}/resume?`)));
+  const html = reloaded.elements.get('companion-result').innerHTML;
+  assert.match(html,/&lt;img/);
+  assert.match(html,new RegExp(`/v1/research/artifacts/${artifact}/manifest`));
+  reloaded.clearSession();
+  assert.equal(reloaded.elements.get('companion-result').textContent,'');
 });

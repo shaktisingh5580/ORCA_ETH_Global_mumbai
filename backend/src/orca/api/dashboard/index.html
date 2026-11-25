@@ -10,7 +10,7 @@ Refs: main_implementation plan.md P11.3; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md. P
   <meta name="theme-color" content="#ffffff">
   <title>ORCA — Marine research workspace</title>
   <link rel="stylesheet" href="/research/assets/workspace.css?v=20261107-identity1">
-  <script type="module" src="/research/assets/workspace.js?v=20261119-arkiv-evidence"></script>
+  <script type="module" src="/research/assets/workspace.js?v=companion-jobs-1"></script>
 </head>
 <body>
   <aside class="sidebar">
@@ -75,6 +75,18 @@ Refs: main_implementation plan.md P11.3; ORCA_F02_AGENT_ONBOARDING_HANDOFF.md. P
               <p class="small muted">The planner identifies evidence needs and limitations. Calculations run only after you approve the proposed plan.</p>
             </section>
 
+            <section class="panel" id="companion-panel" aria-labelledby="companion-title" hidden>
+              <div class="panel-heading"><div><span class="eyebrow">RESEARCH COMPANION</span><h2 id="companion-title">Ask about verified evidence</h2></div></div>
+              <p class="muted">Ask about the input years, method, or limitations of a published research artifact.</p>
+              <form id="companion-form" class="form-grid">
+                <label class="span2">Published artifact ID<input id="companion-artifact" required maxlength="36" spellcheck="false" autocomplete="off"></label>
+                <label class="span2">Question<textarea id="companion-question" rows="3" maxlength="1200" required></textarea></label>
+                <label class="consent span2"><input id="companion-consent" type="checkbox" required>Send this question to Gemini. Leave private details out of the question.</label>
+                <div class="form-actions span2"><button id="companion-submit" type="submit">Request reply</button><button id="companion-resume" type="button" class="secondary" hidden>Resume queued reply</button></div>
+              </form>
+              <p id="companion-status" role="status" aria-live="polite"></p>
+              <div id="companion-result"></div>
+            </section>
             <section class="panel" aria-labelledby="results-title">
               <div class="panel-heading"><div><span class="eyebrow">03 / INVESTIGATION</span><h2 id="results-title">Plan and results</h2></div><select id="run-select" aria-label="Investigation history"><option value="">Choose an investigation</option></select></div>
               <div id="run-content" class="empty">Your proposed plan will appear here.<small>Calculations run only after your approval.</small></div>

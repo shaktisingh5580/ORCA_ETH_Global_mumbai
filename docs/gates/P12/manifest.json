@@ -59,7 +59,7 @@
       "location_scope": "One fixed, explicitly saved coordinate per tenant, issuer and subject. Withdrawal clears the active row's location. This does not attest removal from prior backups or exported copies."
     },
     "P12.2": {
-      "status": "DURABLE_REPLY_JOBS_VERIFIED_LOCALLY",
+      "status": "DURABLE_REPLY_JOBS_AND_DASHBOARD_RESUME_VERIFIED_LOCALLY",
       "gate_status": "BLOCKED",
       "route": "POST /v1/conversations/{conversation_id}/reply",
       "settings": [
@@ -82,11 +82,12 @@
         "14 focused tests passed across reply, evidence, memory, and default OpenAPI. Ruff and strict mypy passed.",
         "9 focused tests passed with disposable PostgreSQL. Reply persistence and conversation RLS were real; model and artifact access changes were injected. Default OpenAPI and downgrade guard passed.",
         "PostgreSQL HTTP tests verified both ceilings, rollback of the organization reservation on user denial, no provider call on denial, and recovery in a fresh window. Eight other cases passed in the initial run; the companion integration file passed both cases on rerun. Ruff and strict mypy passed.",
-        "9 focused tests passed with local PostgreSQL, covering durable queued readback, explicit resume, idempotent submission, input clearing, citation revocation, default OpenAPI and downgrade guard. Ruff and strict mypy passed."
+        "9 focused tests passed with local PostgreSQL, covering durable queued readback, explicit resume, idempotent submission, input clearing, citation revocation, default OpenAPI and downgrade guard. Ruff and strict mypy passed.",
+        "13 isolated dashboard interaction tests and 2 local dashboard/API regressions passed, covering consent, same-tab reload and resume, escaped model-boundary output, and existing session behavior."
       ],
       "remaining": [
         "Live consented provider trial against a real access-approved research artifact; model provider transport was intercepted in local tests.",
-        "Independent worker scheduling after an API process restart, expiry sweeping for abandoned rows, frontend polling and resume, and dedicated concurrent lease and crash drills. The API schedules work after responding and an owner can resume unclaimed jobs.",
+        "Independent worker scheduling after an API process restart, expiry sweeping for abandoned rows, and dedicated concurrent lease and crash drills. Dashboard polling and same-tab resume are implemented; the owner needs a published artifact UUID.",
         "Multilingual acceptance and broader evidence-backed questions. No forecast, numeric result extraction, or model-authored scientific claim is enabled."
       ],
       "history_route": "GET /v1/conversations/{conversation_id}/replies",

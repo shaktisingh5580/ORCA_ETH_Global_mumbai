@@ -44,4 +44,9 @@ def install_dashboard(app: FastAPI, settings: Settings) -> None:
             else None,
             "profile": "bounded research prototype",
             "agent_onboarding_enabled": settings.agent_onboarding_enabled,
+            "companion_reply_enabled": bool(
+                settings.companion_enabled
+                and settings.companion_model_enabled
+                and settings.gemini_api_key
+            ),
         }

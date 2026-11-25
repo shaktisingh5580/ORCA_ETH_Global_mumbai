@@ -70,9 +70,9 @@ async function token() {
   }
   return state.token;
 }
-async function api(path, body, method = body === undefined ? 'GET' : 'POST', timeout = 45000) {
+async function api(path, body, method = body === undefined ? 'GET' : 'POST', timeout = 45000, idempotencyKey) {
   const access = await token();
-  const response = await fetch(path, {method, headers:{Authorization:`Bearer ${access}`, ...(body !== undefined ? {'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()} : {})}, ...(body !== undefined ? {body:JSON.stringify(body)} : {}), signal:AbortSignal.timeout(timeout)});
+  const response = await fetch(path, {method, headers:{Authorization:`Bearer ${access}`, ...(body !== undefined ? {'Content-Type':'application/json','Idempotency-Key':idempotencyKey || crypto.randomUUID()} : {})}, ...(body !== undefined ? {body:JSON.stringify(body)} : {}), signal:AbortSignal.timeout(timeout)});
   if (response.status === 401 && state.token === access) clearSession();
   return responseBody(response);
 }
@@ -80,8 +80,116 @@ function base() { if (!state.project) throw new Error('Choose a project first.')
 function runBase() { if (!state.run) throw new Error('Choose an investigation first.'); return `${base()}/reasoning/${state.run.id}`; }
 async function action(button, work) { if (button.disabled) return; button.disabled = true; try { await work(); } catch(error) { notice(error.message); } finally { button.disabled = false; updateActions(); } }
 let arkivEvidenceCursor = null, arkivEvidenceRequest = 0;
+const companionUuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+let companionPending = null, companionBusy = false, companionTimer, companionGeneration = 0;
+function companionScope() {
+  const org = $('organization').value;
+  return state.config?.companion_reply_enabled && state.token && state.user?.id && org ?
+    `orca.companion.job:${JSON.stringify([state.config.auth_url, state.user.id, org])}` : null;
+}
+function companionPath(conversation, suffix) {
+  return `/v1/conversations/${conversation}/reply-jobs${suffix}?organization_id=${encodeURIComponent($('organization').value)}`;
+}
+function rememberCompanion(scope, job) {
+  try { sessionStorage.setItem(scope, JSON.stringify(job)); } catch { /* Current view can still poll. */ }
+}
+function resetCompanion() {
+  companionGeneration++; clearTimeout(companionTimer);
+  companionBusy = false; companionPending = null;
+  $('companion-resume').hidden = true;
+  $('companion-status').textContent = '';
+  $('companion-result').textContent = '';
+  $('companion-question').value = $('companion-artifact').value = '';
+  $('companion-consent').checked = false;
+}
+function restoreCompanion() {
+  const scope = companionScope();
+  if (!scope) return;
+  try {
+    const job = JSON.parse(sessionStorage.getItem(scope));
+    if (companionUuid.test(job?.conversation) && companionUuid.test(job?.id)) {
+      companionPending = job;
+      void pollCompanion();
+    }
+  } catch { /* Ignore malformed or unavailable storage. */ }
+}
+async function pollCompanion(resume = false) {
+  const job = companionPending, scope = companionScope(), generation = companionGeneration;
+  if (!job || !scope || companionBusy) return;
+  clearTimeout(companionTimer);
+  companionBusy = true; $('companion-resume').disabled = true;
+  const current = () => generation === companionGeneration && scope === companionScope();
+  try {
+    const path = companionPath(job.conversation, `/${job.id}${resume ? '/resume' : ''}`);
+    const result = await api(path, undefined, resume ? 'POST' : 'GET');
+    if (!current()) return;
+    $('companion-resume').hidden = result.state !== 'queued';
+    const status = {queued:'Reply queued. You can resume it if processing has not started.', running:'Checking the evidence…',
+      completed:'Reply complete.', rate_limited:'Model request limit reached. Try a new request in a minute.',
+      expired:'This request expired. Submit a new question.', interrupted:'Processing was interrupted. Submit a new request.'};
+    $('companion-status').textContent = status[result.state] || 'The server returned an unknown reply state.';
+    const citation = result.result?.citation;
+    const link = companionUuid.test(citation?.artifact_id) ?
+      ` <a href="/v1/research/artifacts/${citation.artifact_id}/manifest" id="companion-citation">Inspect cited manifest</a>` : '';
+    fill('companion-result', result.result ? `<p>${esc(result.result.text)}</p>${link}` : '');
+    const cite = $('companion-result').querySelector('#companion-citation');
+    if (cite) cite.onclick = async event => {
+      event.preventDefault();
+      try {
+        const manifest = await api(cite.getAttribute('href'));
+        if (current()) fill('companion-result', detail('Cited evidence manifest', manifest));
+      } catch (error) { if (current()) notice(error.message); }
+    };
+    if (['queued','running'].includes(result.state)) {
+      companionTimer = setTimeout(pollCompanion, 2500);
+    } else {
+      companionPending = null;
+    }
+  } catch (error) {
+    if (!current()) return;
+    $('companion-status').textContent = error.status === 404 ?
+      'This job was not found. Submit a new request if it was never accepted.' : 'Could not check the reply. Try resuming.';
+    $('companion-resume').hidden = error.status === 404;
+    if (error.status === 404) {
+      companionPending = null;
+      try { sessionStorage.removeItem(scope); } catch { /* Storage is optional. */ }
+    }
+  } finally {
+    if (current()) {
+      companionBusy = false; $('companion-resume').disabled = false; updateActions();
+    }
+  }
+}
+async function submitCompanion() {
+  const scope = companionScope(), generation = companionGeneration;
+  const question = $('companion-question').value.trim(), artifact = $('companion-artifact').value.trim();
+  if (!scope || companionBusy || companionPending || !question || !companionUuid.test(artifact) ||
+      !$('companion-consent').checked) {
+    notice('Enter a published artifact UUID and question, then approve sharing the question.');
+    return;
+  }
+  companionBusy = true; updateActions();
+  const current = () => generation === companionGeneration && scope === companionScope();
+  try {
+    const org = encodeURIComponent($('organization').value);
+    const conversation = await api(`/v1/conversations?organization_id=${org}`, {title:'Evidence question'});
+    if (!current()) return;
+    if (!companionUuid.test(conversation.id)) throw new Error('Could not open a private conversation.');
+    const job = {conversation:conversation.id,id:crypto.randomUUID()};
+    companionPending = job; rememberCompanion(scope, job);
+    await api(companionPath(job.conversation, ''), {artifact_id:artifact,question,share_question_with_model:true}, 'POST', 15000, job.id);
+    if (current()) {
+      $('companion-question').value = ''; $('companion-consent').checked = false;
+    }
+  } catch (error) { if (current()) $('companion-status').textContent = error.message; }
+  finally {
+    if (current()) { companionBusy = false; updateActions(); await pollCompanion(); }
+  }
+}
 function updateActions() {
   renderAccountState();
+  $('companion-panel').hidden = !state.config?.companion_reply_enabled;
+  $('companion-submit').disabled = !companionScope() || companionBusy || !!companionPending;
   $('plan-button').disabled = !state.project || !state.selected.size || !state.config?.reasoning_configured;
   $('upload-open').disabled = !state.project;
   $('publish-button').disabled = state.run?.state !== 'completed' || !$('publish-consent').checked || !state.config?.arkiv_configured;
@@ -92,6 +200,7 @@ function updateActions() {
 }
 let ownedAgents = [], selectedAgent = null, qualificationTimer = null;
 function resetProject() {
+  resetCompanion();
   ownedAgents = []; selectedAgent = null; clearTimeout(qualificationTimer); $('onboard-open').disabled = true; $('agent-detail').hidden = true; empty('owned-agents','Sign in and select an organization to manage agents.'); empty('institution-directory','Sign in to discover qualified services.');
   $('network-refresh').disabled = true; empty('network-agents','Sign in and select a project to inspect registered services.'); empty('network-profile','No network configuration loaded.');
   state.generation++; state.run = null; state.datasets = []; state.selected.clear(); state.reviews = []; state.anchors = []; lastEvents = ''; clearTimeout(state.timer);
@@ -175,6 +284,7 @@ async function loadProjects() {
 async function loadProject() {
   state.project = $('project').value; resetProject(); $('project-title').textContent = $('project').selectedOptions[0]?.textContent || 'Overview';
   persistSession();
+  restoreCompanion(); updateActions();
   if (!state.project) { empty('dataset-list','Create a project in your existing ORCA workspace, then sign in again.'); return; }
   void loadNetwork();
   const version = state.generation;
@@ -493,6 +603,8 @@ async function refreshRun() {
   finally { state.polling=false; if(state.run&&state.token){clearTimeout(state.timer);state.timer=setTimeout(refreshRun,5000);} }
 }
 function bind() {
+  $('companion-form').onsubmit = event => { event.preventDefault(); return submitCompanion(); };
+  $('companion-resume').onclick = () => pollCompanion(true);
   for (const button of document.querySelectorAll('[data-view]')) {
     button.onclick = event => { event.preventDefault(); selectView(button.dataset.view); };
     button.onkeydown = event => {

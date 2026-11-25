@@ -362,5 +362,38 @@
       "ORCA_TEST_RUNTIME_DATABASE_URL"
     ],
     "last_status": "PASS_LOCAL_POSTGRESQL"
+  },
+  {
+    "file": "backend/src/orca/api/dashboard.py",
+    "phase": "P12.2",
+    "purpose_ref": "A-API §§3.13,17; main implementation plan P12.2",
+    "test_ids": [
+      "companion polls and resumes the same private reply after reload",
+      "test_workspace_assets_and_public_configuration"
+    ],
+    "required_env": [],
+    "last_status": "PASS_LOCAL"
+  },
+  {
+    "file": "backend/src/orca/api/dashboard/index.html",
+    "phase": "P12.2",
+    "purpose_ref": "A-API §§3.13,17; main implementation plan P12.2",
+    "test_ids": [
+      "companion polls and resumes the same private reply after reload",
+      "test_workspace_assets_and_public_configuration"
+    ],
+    "required_env": [],
+    "last_status": "PASS_LOCAL"
+  },
+  {
+    "file": "backend/src/orca/api/dashboard/workspace.js",
+    "phase": "P12.2",
+    "purpose_ref": "A-API §§3.13,17; main implementation plan P12.2",
+    "test_ids": [
+      "companion polls and resumes the same private reply after reload",
+      "test_workspace_assets_and_public_configuration"
+    ],
+    "required_env": [],
+    "last_status": "PASS_LOCAL"
   }
 ]
