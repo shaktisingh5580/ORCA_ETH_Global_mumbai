@@ -30,7 +30,7 @@
         "9 focused tests passed covering preference versions, tenant/owner/issuer isolation, opt-in, withdrawal and coordinate clearing, individual deletion, history, default OpenAPI, and downgrade refusal. Ruff and strict mypy passed."
       ],
       "remaining": [
-        "Durable turn jobs, remaining durable memory planes, and checkpoint expiry cleanup. Intake checkpoints do not track model jobs. P12.2 saves successful cited replies separately.",
+        "Remaining durable memory planes and checkpoint expiry sweeping. P12.2 has a separate durable reply queue.",
         "Broader privacy deletion and retention workflow, including backup policy; authorized project linking.",
         "Evidence reference reauthorization before fetching any underlying artifact; memory itself grants no access.",
         "Optional-profile contract reconciliation: this slice uses verified organization membership and org:read; project linking, locale expansion, and companion-specific user scopes remain open.",
@@ -59,7 +59,7 @@
       "location_scope": "One fixed, explicitly saved coordinate per tenant, issuer and subject. Withdrawal clears the active row's location. This does not attest removal from prior backups or exported copies."
     },
     "P12.2": {
-      "status": "CITED_REPLIES_HISTORY_AND_MODEL_ADMISSION_VERIFIED_LOCALLY",
+      "status": "DURABLE_REPLY_JOBS_VERIFIED_LOCALLY",
       "gate_status": "BLOCKED",
       "route": "POST /v1/conversations/{conversation_id}/reply",
       "settings": [
@@ -81,11 +81,12 @@
       "checks": [
         "14 focused tests passed across reply, evidence, memory, and default OpenAPI. Ruff and strict mypy passed.",
         "9 focused tests passed with disposable PostgreSQL. Reply persistence and conversation RLS were real; model and artifact access changes were injected. Default OpenAPI and downgrade guard passed.",
-        "PostgreSQL HTTP tests verified both ceilings, rollback of the organization reservation on user denial, no provider call on denial, and recovery in a fresh window. Eight other cases passed in the initial run; the companion integration file passed both cases on rerun. Ruff and strict mypy passed."
+        "PostgreSQL HTTP tests verified both ceilings, rollback of the organization reservation on user denial, no provider call on denial, and recovery in a fresh window. Eight other cases passed in the initial run; the companion integration file passed both cases on rerun. Ruff and strict mypy passed.",
+        "9 focused tests passed with local PostgreSQL, covering durable queued readback, explicit resume, idempotent submission, input clearing, citation revocation, default OpenAPI and downgrade guard. Ruff and strict mypy passed."
       ],
       "remaining": [
         "Live consented provider trial against a real access-approved research artifact; model provider transport was intercepted in local tests.",
-        "Durable turn jobs, idempotent enqueue, worker leases and fenced result publication. The current on-demand API is synchronous.",
+        "Independent worker scheduling after an API process restart, expiry sweeping for abandoned rows, frontend polling and resume, and dedicated concurrent lease and crash drills. The API schedules work after responding and an owner can resume unclaimed jobs.",
         "Multilingual acceptance and broader evidence-backed questions. No forecast, numeric result extraction, or model-authored scientific claim is enabled."
       ],
       "history_route": "GET /v1/conversations/{conversation_id}/replies",
@@ -97,7 +98,13 @@
         "per_organization_default": 30,
         "denial_http_status": 429,
         "counts": "reserved attempts, including unsuccessful provider calls"
-      }
+      },
+      "job_revision": "0049_companion_reply_jobs",
+      "job_routes": [
+        "POST /v1/conversations/{conversation_id}/reply-jobs",
+        "GET /v1/conversations/{conversation_id}/reply-jobs/{job_id}",
+        "POST /v1/conversations/{conversation_id}/reply-jobs/{job_id}/resume"
+      ]
     },
     "P12.3": {
       "status": "NOT_ATTESTED"

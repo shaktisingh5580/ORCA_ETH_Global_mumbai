@@ -206,6 +206,39 @@ def test_companion_conversation_isolation_pagination_and_revision(monkeypatch):
                 client.post(resource + "/reply", params=params, json=reply_body).status_code == 200
             )
             assert len(calls) == 3
+            with psycopg.connect(admin) as db:
+                db.execute("""UPDATE research.companion_model_counters
+                    SET window_start = date_trunc('minute', clock_timestamp()) - interval '1 minute'""")
+            jobs = resource + "/reply-jobs"
+            job_id = str(uuid4())
+            headers = {"Idempotency-Key": job_id}
+            actual_runner = companion_reply.run_job
+            monkeypatch.setattr(companion_reply, "run_job", lambda *_: None)
+            queued = client.post(jobs, params=params, json=reply_body, headers=headers)
+            assert queued.status_code == 202 and queued.json()["state"] == "queued"
+            assert client.get(f"{jobs}/{job_id}", params=params).json()["state"] == "queued"
+            conflict = client.post(
+                jobs, params=params, json={**reply_body, "question": "Other"}, headers=headers
+            )
+            assert conflict.status_code == 409
+            monkeypatch.setattr(companion_reply, "run_job", actual_runner)
+            assert client.post(f"{jobs}/{job_id}/resume", params=params).status_code == 202
+            result = client.get(f"{jobs}/{job_id}", params=params).json()
+            assert result["state"] == "completed" and result["result"]["id"]
+            assert (
+                client.post(jobs, params=params, json=reply_body, headers=headers).status_code
+                == 202
+            )
+            assert len(calls) == 4
+            allowed = False
+            assert (
+                client.get(f"{jobs}/{job_id}", params=params).json()["result"]["citation"] is None
+            )
+            allowed = True
+            with psycopg.connect(admin) as db:
+                assert db.execute(
+                    "SELECT input FROM research.companion_reply_jobs WHERE id=%s", (job_id,)
+                ).fetchone() == (None,)
             with psycopg.connect(runtime) as db:
                 assert db.execute("SELECT count(*) FROM research.companion_replies").fetchone() == (
                     0,

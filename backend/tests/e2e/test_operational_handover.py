@@ -151,13 +151,13 @@ def test_staging_rollback_migration_safe():
     assert migration("upgrade", "head").returncode == 0
     with psycopg.connect(url, autocommit=True) as connection:
         before = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-        assert before == ("0048_companion_model_limits",)
+        assert before == ("0049_companion_reply_jobs",)
         refused = migration("downgrade", "-1")
         assert refused.returncode != 0
-        assert "Companion model counters require explicit recovery review" in refused.stderr
+        assert "Companion reply jobs require explicit recovery review" in refused.stderr
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == before
         assert connection.execute(
-            "SELECT to_regclass('research.companion_model_counters') IS NOT NULL"
+            "SELECT to_regclass('research.companion_reply_jobs') IS NOT NULL"
         ).fetchone() == (True,)
 
 
